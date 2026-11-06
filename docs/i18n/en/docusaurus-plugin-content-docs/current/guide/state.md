@@ -114,6 +114,21 @@ import {autorun, flow, reaction, toJS} from 'mobx';
 - `toJS`: turn state into a plain object before sending or persisting it;
 - the `computed` / `observable` / `action` decorators: finer control, and they coexist with `@OopReactRender()`.
 
+Write `flow` as a **field**, not as a generator method:
+
+```ts
+export class Cart {
+  readonly save = flow(function* (this: Cart, draft: Draft) {
+    yield api.persist(draft);
+    this.items = yield api.list();
+  });
+}
+```
+
+`makeAutoObservable` does turn a generator method (`*save()`) into a flow, but TypeScript still types it as a
+`Generator`, so every caller needs an `as unknown as Promise` cast. As a field its type is the function it becomes at
+runtime: `(draft) => CancellablePromise<void>`.
+
 ## Options
 
 ```ts

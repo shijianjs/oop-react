@@ -5,7 +5,7 @@ slug: /api
 sidebar_position: 3
 ---
 
-所有导出都带 `OopReact` 前缀。包是纯 ESM，`react` / `react-dom` / `mobx` 是 peer 依赖。
+所有导出都带 `OopReact` 前缀。包是纯 ESM，`react` / `react-dom` / `mobx` / `mobx-react-lite` 是 peer 依赖。
 
 ## 渲染
 

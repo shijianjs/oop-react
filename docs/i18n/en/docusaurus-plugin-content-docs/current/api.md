@@ -5,8 +5,8 @@ slug: /api
 sidebar_position: 3
 ---
 
-Every export carries the `OopReact` prefix. The package is pure ESM; `react`, `react-dom` and `mobx` are peer
-dependencies.
+Every export carries the `OopReact` prefix. The package is pure ESM; `react`, `react-dom`, `mobx` and
+`mobx-react-lite` are peer dependencies.
 
 ## Rendering
 

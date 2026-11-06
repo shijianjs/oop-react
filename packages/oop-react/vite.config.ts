@@ -23,7 +23,7 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     rollupOptions: {
-      external: [/^react($|\/)/, /^react-dom($|\/)/, 'mobx'],
+      external: [/^react($|\/)/, /^react-dom($|\/)/, /^mobx($|\/)/, /^mobx-react-lite($|\/)/],
     },
   },
 });

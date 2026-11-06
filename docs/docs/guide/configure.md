@@ -30,7 +30,8 @@ restore();
 所以：
 
 - 状态类在自己的构造器里声明可观察性（`OopReactObservable`），这是 MobX 的地方；
-- 库只负责「把渲染方法放进一个 `Reaction` 里跑，读到的字段就订阅」；
+- 库只负责「把渲染方法包进官方的 `observer`（`mobx-react-lite`）里，读到的字段就订阅」—— 订阅、批处理、
+  调度都交给官方实现，不自己维护 `Reaction` 循环；
 - 想要 MobX 的其它能力，直接从 `mobx` import，没有中间层。
 
 ## 配置是模块级的

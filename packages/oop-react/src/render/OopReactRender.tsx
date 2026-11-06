@@ -1,7 +1,7 @@
 import {memo, type Key, type ReactNode} from 'react';
 import {OopReactErrorBoundary} from '../error/OopReactErrorBoundary';
 import {islandName} from './islandName';
-import {ObservedRender} from './ObservedRender';
+import {TrackedRender} from './TrackedRender';
 
 /**
  * `any[]` rather than `unknown[]` on purpose: this type is used as a *constraint*
@@ -54,6 +54,16 @@ function isSameIsland(previous: OopReactRenderIslandProps, next: OopReactRenderI
  * trigger a re-render) and the error boundary (so one broken method does not
  * take the page down).
  *
+ * The boundary sits *outside* the tracked component on purpose: the render
+ * method runs while `TrackedRender` renders, so an element can only be caught by
+ * an ancestor. `observer` re-throws what the render throws, which is what lets
+ * this boundary see it.
+ *
+ * The `memo` here is ours, not `observer`'s: `observer` memoizes on props with a
+ * shallow comparison, and `args` is a fresh array on every call, so it would
+ * never skip. Comparing the arguments ourselves is what makes nested islands
+ * independent of a parent's re-render.
+ *
  * Creating the element is side-effect free, so the method can be called from any
  * render — a plain React component, another island, a parent object's method.
  */
@@ -65,7 +75,7 @@ export const OopReactRenderIsland = memo(function OopReactRenderIsland({
 }: OopReactRenderIslandProps): ReactNode {
   return (
     <OopReactErrorBoundary name={name}>
-      <ObservedRender render={() => method.apply(instance, args)} />
+      <TrackedRender render={() => method.apply(instance, args)} />
     </OopReactErrorBoundary>
   );
 }, isSameIsland);

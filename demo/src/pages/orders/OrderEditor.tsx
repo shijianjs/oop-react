@@ -94,9 +94,7 @@ export class OrderEditor {
 
     this.saving = true;
     try {
-      // `makeAutoObservable` turns the generator method into a flow function
-      // that returns a promise, but the declared type is still a generator.
-      yield this.page.save(this.editing, values) as unknown as Promise<void>;
+      yield this.page.save(this.editing, values);
       form.resetFields();
       this.open = false;
     } finally {

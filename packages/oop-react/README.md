@@ -38,7 +38,8 @@ export function CartView() {
 pnpm add oop-react
 ```
 
-`react` / `react-dom`（`>=18.2`）与 `mobx`（`^6.12 || ^7`）都是 peer 依赖。
+`react` / `react-dom`（`>=18.2`）、`mobx`（`^7`）与 `mobx-react-lite`（`^5`）都是 peer 依赖。追踪用 MobX，
+React 绑定用官方的 `mobx-react-lite`（`observer`）。
 
 > **mobx 只能装一份。** 两份 mobx 各自持有自己的记账 symbol，A 造的 observable 在 B 的 reaction 里不是
 > observable：状态改了界面不动，而且不报错。用 `pnpm why mobx` 检查、`pnpm dedupe` 或 `overrides` 统一版本；

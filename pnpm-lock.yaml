@@ -19,6 +19,9 @@ importers:
       mobx:
         specifier: ^7.1.4
         version: 7.1.4
+      mobx-react-lite:
+        specifier: ^5.1.2
+        version: 5.1.2(mobx@7.1.4)(react@19.3.1)
       oop-react:
         specifier: workspace:*
         version: link:../packages/oop-react
@@ -108,6 +111,9 @@ importers:
       mobx:
         specifier: ^7.1.4
         version: 7.1.4
+      mobx-react-lite:
+        specifier: ^5.1.2
+        version: 5.1.2(mobx@7.1.4)(react@19.3.1)
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -4783,6 +4789,12 @@ packages:
         optional: true
       uglify-js:
         optional: true
+
+  mobx-react-lite@5.1.2:
+    resolution: {integrity: sha512-40ZukD+RmKT1up5J1rHcPU8wJSB++Wf37lkV6wIHdQtRTt9wCYf9swfYUbfcW+Mz94xImQBwQ7jAr0aP0KeATA==}
+    peerDependencies:
+      mobx: ^7.0.0
+      react: ^18 || ^19
 
   mobx@7.1.4:
     resolution: {integrity: sha512-2G9WcLqXGKe4e5usnMabjz06mqO5hQmad3qagY7/n5MmKS7t281+XtmYxnPYqVmSnCEGAKJkrdRfDhOjn3UNJg==}
@@ -12843,6 +12855,11 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.16.21
       postcss: 8.5.32
+
+  mobx-react-lite@5.1.2(mobx@7.1.4)(react@19.3.1):
+    dependencies:
+      mobx: 7.1.4
+      react: 19.3.1
 
   mobx@7.1.4: {}
 

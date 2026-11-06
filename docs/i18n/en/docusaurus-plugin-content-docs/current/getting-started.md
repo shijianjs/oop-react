@@ -11,8 +11,9 @@ sidebar_position: 2
 pnpm add oop-react
 ```
 
-`react`, `react-dom` (`>=18.2`) and `mobx` (`^6.12 || ^7`) are peer dependencies and have to come from the host
-project — see "only one mobx" below.
+`react`, `react-dom` (`>=18.2`), `mobx` (`^7`) and `mobx-react-lite` (`^5`) are peer dependencies and have to come
+from the host project — see "only one mobx" below. Tracking is MobX, and the React binding is the official
+`mobx-react-lite` (`observer`), not a hand-written `Reaction` loop.
 
 ## Turn on decorators
 
@@ -35,7 +36,9 @@ MobX keys its bookkeeping on a symbol **created per module instance**, so two co
 observable copy A made is not observable as far as copy B is concerned" — no error, the state changes and the UI
 does not. MobX itself only complains when the two copies are **incompatible** versions.
 
-`oop-react` declares mobx as a peer (`^6.12 || ^7`) and warns at runtime when it finds more than one copy:
+`oop-react` declares mobx as a peer (`^7`) and warns at runtime when it finds more than one copy. `mobx-react-lite` is
+a peer too, and it has to share that same copy — otherwise the reactions `observer` creates cannot see your
+observables:
 
 ```bash
 pnpm why mobx     # who pulled it in, how many versions

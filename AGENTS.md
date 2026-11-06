@@ -58,6 +58,11 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
 5. **绑死 mobx，不留响应式抽象层。** `config` 只有 `fallback` / `onError`；对 `makeAutoObservable` 的封装
    只提供类型和幂等（`OopReactObservable`），不要重新引入 `observe` / `observable` 口子，也不要包
    `computed` / `flow` / `reaction` —— 用户直接从 `mobx` import。
+   **React 绑定用官方的 `mobx-react-lite` 的 `observer`**（`src/render/TrackedRender.tsx`），不要退回手写
+   `Reaction` 循环：订阅、批处理、并发调度都该由官方实现负责。岛外面的 `memo` 是我们自己的，因为
+   `observer` 的 memo 按 props 浅比较，而 `args` 每次都是新数组。
+   代价：`mobx-react-lite@5` 要求 mobx ^7、React >=18，所以 mobx 的 peer 范围收窄到 `^7`。要用 mobx 6 只能配
+   `mobx-react-lite@4`，那就得另开一个兼容版本，别在同一个包里混两个范围。
 6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this, {...})`（放最后一行）；
    `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。annotations 的键必须受
    `keyof T` 约束，别退回 `Record<string, unknown>`。

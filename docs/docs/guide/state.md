@@ -107,6 +107,20 @@ import {autorun, flow, reaction, toJS} from 'mobx';
 - `toJS`：把状态转成普通对象再发请求或存盘；
 - `computed` / `observable` / `action` 装饰器：想更细粒度时用，和 `@OopReactRender()` 共存。
 
+`flow` 建议写成**字段**而不是 generator 方法：
+
+```ts
+export class Cart {
+  readonly save = flow(function* (this: Cart, draft: Draft) {
+    yield api.persist(draft);
+    this.items = yield api.list();
+  });
+}
+```
+
+`makeAutoObservable` 会把 `*save()` 这样的 generator 方法也变成 flow，但 TypeScript 仍然把它当 `Generator`，
+每个调用方都得 `as unknown as Promise`。写成字段时，它的类型就是运行时那个函数：`(draft) => CancellablePromise<void>`。
+
 ## 选项
 
 ```ts

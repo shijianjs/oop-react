@@ -30,7 +30,9 @@ writing one, and an adapter layer in between would only distort both sides.
 So:
 
 - a state class declares its own observability in its constructor (`OopReactObservable`); that is MobX's territory;
-- the library only does "run the render method inside a `Reaction`, so whatever it reads becomes a subscription";
+- the library only does "wrap the render method in the official `observer` from `mobx-react-lite`, so whatever it
+  reads becomes a subscription" — subscribing, batching and scheduling are the official implementation's job, not a
+  `Reaction` loop of our own;
 - for anything else MobX offers, import it from `mobx` — there is no middle layer.
 
 ## Configuration is module-level
