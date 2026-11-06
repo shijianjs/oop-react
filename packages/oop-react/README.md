@@ -1,5 +1,7 @@
 # oop-react
 
+**简体中文** | [English](https://github.com/shijianjs/oop-react/blob/main/packages/oop-react/README.en.md)
+
 给 React 用的面向对象 UI 组织方式：状态和行为在一个普通类里，**只有标了 `@OopReactRender()` 的方法参与重渲染**。
 
 ```tsx
@@ -62,7 +64,8 @@ pnpm add oop-react
 | `OopReactErrorBoundary` | 手动包一段 JSX 的错误边界 |
 | `OopReactConfigure(patch)` | 替换订阅、可观察化、fallback、错误上报 |
 
-完整文档：https://shijianjs.github.io/oop-react/ 。在线演示：https://shijianjs.github.io/oop-react/demo/ 。
+完整文档：[中文](https://shijianjs.github.io/oop-react/) · [English](https://shijianjs.github.io/oop-react/en/) 。
+在线演示：https://shijianjs.github.io/oop-react/demo/ 。
 
 ## 默认实现
 

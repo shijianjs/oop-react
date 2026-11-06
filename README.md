@@ -1,5 +1,7 @@
 # oop-react
 
+**简体中文** | [English](./README.en.md)
+
 状态和行为留在一个普通类里，只有 `@OopReactRender()` 方法参与重渲染。
 
 ```tsx
@@ -22,7 +24,7 @@ export const CounterView = OopReactComponent(Counter, 'view');
 没有 `useState`，没有 `useCallback`，没有依赖数组：`this.count` 是当前值，`this.increment` 是稳定引用，
 `view()` 只订阅自己读到的字段。
 
-- 文档：https://shijianjs.github.io/oop-react/
+- 文档：[中文](https://shijianjs.github.io/oop-react/) · [English](https://shijianjs.github.io/oop-react/en/)
 - 在线演示：https://shijianjs.github.io/oop-react/demo/
 - npm：https://www.npmjs.com/package/oop-react
 
@@ -32,7 +34,7 @@ export const CounterView = OopReactComponent(Counter, 'view');
 | --- | --- |
 | `packages/oop-react/` | 发布的 npm 库（Vite lib + `tsc` 声明） |
 | `demo/` | Vite + React + antd 演示，构建产物落在 `docs/build/demo` |
-| `docs/` | Docusaurus 文档站，与 demo 一起发布到 GitHub Pages |
+| `docs/` | Docusaurus 文档站（中文默认、英文在 `/en/`），与 demo 一起发布到 GitHub Pages |
 
 ## 本地开发
 

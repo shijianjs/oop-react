@@ -1,0 +1,10 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.guide.category.指南": {
+    "message": "Guides",
+    "description": "The label for category '指南' in sidebar 'guide'"
+  }
+}

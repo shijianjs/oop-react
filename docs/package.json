@@ -8,6 +8,7 @@
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "write-heading-ids": "docusaurus write-heading-ids",
+    "write-translations": "docusaurus write-translations --locale en",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -49,6 +49,29 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
 6. **实例只建一次。** `OopReactComponent` 的实例活得和组件一样久，构造函数必须可重复执行但不重建；
    需要响应后续 props 就用 `onPropsChange` 调一个方法。
 
+## 文档语言（中英双语）
+
+文档默认中文（`docs/docs/`，路由在 `/`），英文是镜像（`docs/i18n/en/docusaurus-plugin-content-docs/current/`，
+路由在 `/en/`）。**加或改一页，两边都要动**：文件名与 frontmatter 的 `id` / `slug` 必须一致，Docusaurus 靠它
+把两种语言对到同一条路由上。相对链接（`./getting-started.md`）会被按 locale 解析，别写成绝对路径，否则英文页
+会跳回中文。
+
+不是 .md 的文案另有落点：
+
+| 位置 | 文件 |
+| --- | --- |
+| 首页（`src/pages/index.tsx`） | `<Translate id="home.*">`，英文在 `docs/i18n/en/code.json` |
+| 导航栏 / 页脚 | `docs/i18n/en/docusaurus-theme-classic/{navbar,footer}.json` |
+| 侧边栏分类名 | `docs/i18n/en/docusaurus-plugin-content-docs/current.json` |
+
+新增 `<Translate>` 之后跑一次 `pnpm --filter @oop-react/docs write-translations`，它会把新键补进
+`code.json`（已有的译文保留），再手填英文。
+
+语言切换靠导航栏的 `localeDropdown`；`docusaurus build` 一次构建两种语言（`build/` 与 `build/en/`）。
+
+README 同样两份：根目录 `README.md`（中文）/ `README.en.md`，包里 `packages/oop-react/README.md`（中文）/
+`README.en.md`（英文），各自顶部互相链接（包内的链接用 GitHub 绝对地址，npm 上相对路径会断）。
+
 ## 目录约定
 
 按业务语义分目录，不按技术类型分：`src/render/`（渲染方法与函数式入口）、`src/component/`（组件工厂）、
@@ -77,8 +100,9 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
   顺序反了 demo 会被文档站构建清掉。这就是 `scripts/build-site.mjs` 存在的理由，别再手抄这三条命令。
 - **demo 的 `base`**：默认按命令决定 —— `vite` dev 是 `/`，`vite build` 是 `/oop-react/demo/`；要换站点路径用
   `DEMO_BASE` 覆盖（CI 不传，靠构建默认值，避免两处各写一遍）。
-- **导航里的 demo 链接用 `pathname://`**：它是另一个构建的目录，不是 Docusaurus 的路由，
-  否则 `onBrokenLinks: 'throw'` 会让构建失败。
+- **导航/页脚里的 demo 链接必须是绝对 URL**：`/demo/` 会被 broken-link 检查判死（构建文档时 demo 还没生成），
+  而 `pathname://` 会被 locale 前缀成 `/en/demo/`（demo 没有 `/en` 版本）。所以配置里拼 `${url}${baseUrl}demo/`，
+  CI 与 `pnpm site` 通过 `DOCS_URL` 提供 origin；没有 `DOCS_URL` 时指向 Vite dev server（5173）。
 
 ## 加内容时的落点
 

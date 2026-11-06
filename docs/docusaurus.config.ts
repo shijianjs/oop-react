@@ -7,13 +7,18 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const url = process.env.DOCS_URL ?? 'http://localhost:3000';
 const baseUrl = process.env.DOCS_BASE_URL ?? '/';
 
-// The demo is built into the same artifact (`docs/build/demo`), one directory
-// below the site, so its URL is the site's baseUrl plus `demo/`.
+// The demo is a separate Vite build that lands in `docs/build/demo`, below the
+// site. It has no locale variants — `/demo/` is the only one — so the link is an
+// absolute URL: an absolute one is neither prefixed with `/en` nor guessed at by
+// the broken-link checker (the directory does not exist yet when this site is
+// built, the demo is written afterwards).
 //
-// The `pathname://` prefix tells Docusaurus this is a real path to serve but not
-// a route of its own: the demo is a separate Vite build that lands in `build/`
-// after this site is built, so the broken-link checker must not judge it.
-const demoHref = `pathname://${baseUrl.replace(/\/+$/, '')}/demo/`;
+// `DOCS_URL` is set by CI and by `pnpm site`; without it we are under
+// `docusaurus start`, where the demo runs on Vite's own dev server.
+const demoHref =
+  process.env.DOCS_URL === undefined
+    ? 'http://localhost:5173/'
+    : new URL(`.${baseUrl}demo/`, `${url}/`).href;
 
 const config: Config = {
   title: 'oop-react',
@@ -29,14 +34,21 @@ const config: Config = {
   trailingSlash: true,
   onBrokenLinks: 'throw',
 
+  // Chinese is the default: it is served from `/`, English from `/en/`. The
+  // navbar dropdown is what makes the two reachable from each other.
   i18n: {
     defaultLocale: 'zh-Hans',
-    locales: ['zh-Hans'],
+    locales: ['zh-Hans', 'en'],
     localeConfigs: {
       'zh-Hans': {
         label: '简体中文',
         direction: 'ltr',
         htmlLang: 'zh-Hans',
+      },
+      en: {
+        label: 'English',
+        direction: 'ltr',
+        htmlLang: 'en',
       },
     },
   },
@@ -87,6 +99,10 @@ const config: Config = {
           href: 'https://github.com/shijianjs/oop-react',
           position: 'right',
           label: 'GitHub',
+        },
+        {
+          type: 'localeDropdown',
+          position: 'right',
         },
       ],
     },
