@@ -61,6 +61,10 @@ this memo one state change in a parent would re-execute every render method belo
 **shallowly**, so `this.row(item)` re-runs when `item` is a different object; mutating a field of the same `item`
 does not (that is `row()`'s own subscription).
 
+`OopReactObserver` / `OopReactCallback` do not get this: the function they receive is created fresh on every render,
+so there is nothing to compare, and they re-run when their parent does. If a block needs that isolation, make it a
+decorated method.
+
 ## Where you can draw one
 
 An island's element is an ordinary React element and creating it has no side effects, so it can be produced anywhere:
