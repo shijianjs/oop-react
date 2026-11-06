@@ -67,7 +67,8 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
 新增 `<Translate>` 之后跑一次 `pnpm --filter @oop-react/docs write-translations`，它会把新键补进
 `code.json`（已有的译文保留），再手填英文。
 
-语言切换靠导航栏的 `localeDropdown`；`docusaurus build` 一次构建两种语言（`build/` 与 `build/en/`）。
+语言切换靠导航栏的 `localeDropdown`；`docusaurus build` 一次构建两种语言（`build/` 与 `build/en/`），
+本地预览英文用 `pnpm --filter @oop-react/docs start:en`（中文是 `start`）。
 
 README 同样两份：根目录 `README.md`（中文）/ `README.en.md`，包里 `packages/oop-react/README.md`（中文）/
 `README.en.md`（英文），各自顶部互相链接（包内的链接用 GitHub 绝对地址，npm 上相对路径会断）。
