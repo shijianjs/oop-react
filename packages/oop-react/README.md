@@ -31,7 +31,11 @@ export const CounterView = OopReactComponent(Counter, 'view');
 pnpm add oop-react
 ```
 
-`react` / `react-dom` 是 peer 依赖（`>=18.2`）。
+`react` / `react-dom`（`>=18.2`）与 `mobx`（`^6.12 || ^7`）都是 peer 依赖。
+
+> **mobx 只能装一份。** MobX 把记账信息挂在每个模块实例自己的 symbol 上，页面里两份 mobx 就会出现
+> 「状态改了界面不动」，而且不报错。用 `pnpm why mobx` 检查、`pnpm dedupe` 或 `overrides` 统一版本；
+> oop-react 运行时发现多份会在控制台告警。
 
 装饰器使用旧版语义，消费方的 `tsconfig.json` 需要：
 

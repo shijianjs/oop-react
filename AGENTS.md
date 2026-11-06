@@ -62,6 +62,11 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
 
 - **装饰器是旧版语义**：`tsconfig.base.json` 里 `experimentalDecorators: true`。库自身的 `dist` 里没有装饰器
   （源码不用装饰器），消费方自己编译。
+- **mobx 必须是 peerDependency，不要再挪回 dependencies。** MobX 的记账信息挂在每个模块实例自己的
+  symbol 上，页面里两份 mobx 就是「状态变了界面不动」，且 MobX 只在版本不兼容时才告警（同版本静默）。
+  peer 范围是 `^6.12.0 || ^7.0.0`，两个大版本都跑过测试；`src/reactivity/duplicates.ts` 负责在运行时发现
+  多份并告警（`globalThis.__mobxInstanceCount`，MobX 4 起就有）。workspace 里的 `demo` 自己声明了 mobx，
+  它就扮演「宿主项目」这个角色。
 - **`@docusaurus/tsconfig` 仍设 `baseUrl`**，TS 6 会报 deprecated；`docs/tsconfig.json` 用
   `ignoreDeprecations: "6.0"` 静音，不要 fork 官方预设。
 - **`future.v4: true` 需要 `@docusaurus/faster`**（rspack + SWC），少了它构建直接 `ERR_MODULE_NOT_FOUND`。

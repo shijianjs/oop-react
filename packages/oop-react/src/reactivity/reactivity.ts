@@ -1,4 +1,5 @@
 import {isObservable, makeAutoObservable} from 'mobx';
+import {reportDuplicateMobx} from './duplicates';
 
 /** Set on instances this module has already handled, so calling twice is a no-op. */
 const OBSERVED = Symbol.for('oop-react.observed');
@@ -30,6 +31,8 @@ export function makeInstanceObservable<T extends object>(
   instance: T,
   options: OopReactObservableOptions = {},
 ): T {
+  reportDuplicateMobx();
+
   const marked = instance as T & {[OBSERVED]?: boolean};
   if (marked[OBSERVED] === true || isObservable(instance)) {
     return instance;

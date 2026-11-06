@@ -11,7 +11,8 @@ sidebar_position: 2
 pnpm add oop-react
 ```
 
-`react` / `react-dom` 是 peer 依赖，版本 `>=18.2`。
+`react` / `react-dom` / `mobx` 是 peer 依赖：`react`、`react-dom` 要求 `>=18.2`，`mobx` 接受 `^6.12 || ^7`。
+**它们必须是宿主项目的依赖，而不是被装进库自己的 `node_modules`** —— 见下面的「mobx 只能有一份」。
 
 ## 打开装饰器
 
@@ -27,6 +28,35 @@ pnpm add oop-react
 
 Vite、esbuild、SWC、tsc 都能转译这个组合。Babel 用户需要 `@babel/plugin-proposal-decorators` 的
 `legacy: true`。
+
+## mobx 只能有一份
+
+追踪靠 MobX。MobX 把记账信息挂在一个**每个模块实例各自创建**的 symbol 上，所以页面里如果有两份 mobx，
+A 造出来的 observable 在 B 眼里根本不是 observable —— B 的 reaction 读了它，什么都不会订阅。
+
+症状是最难查的那种：**不报错，只是状态改了界面不动**，重新挂载一次又好像好了。
+
+MobX 自己只在两份版本**不兼容**时告警（`There are multiple, different versions of MobX active`），
+同版本的两份它不说话。所以：
+
+- `oop-react` 把 mobx 声明为 `peerDependencies`（`^6.12 || ^7`），正常安装只有一份；
+- 运行时也会检查，发现多份就打印一条 `[oop-react] N copies of mobx are loaded ...`。
+
+排查和修复：
+
+```bash
+pnpm why mobx     # 谁装的、几个版本
+pnpm dedupe       # 能合并的合并
+```
+
+合并不了（比如某个依赖锁死了旧版本）就在工作区里统一版本 —— pnpm 写在 `pnpm-workspace.yaml`：
+
+```yaml
+overrides:
+  mobx: ^7.1.4
+```
+
+npm 用 `package.json` 的 `overrides`，yarn 用 `resolutions`。
 
 ## 第一个组件
 

@@ -1,5 +1,6 @@
 import {Reaction} from 'mobx';
 import {useEffect, useReducer, useRef, type ReactNode} from 'react';
+import {reportDuplicateMobx} from '../reactivity/duplicates';
 
 export interface ObservedRenderProps {
   /** The function whose observable reads decide when this component re-renders. */
@@ -18,6 +19,11 @@ export interface ObservedRenderProps {
  * a write would invalidate the reaction it is currently running inside.
  */
 export function ObservedRender({render}: ObservedRenderProps): ReactNode {
+  // Also checked here, not only where instances are made observable: an app that
+  // brings its own MobX-managed stores passes `autoObservable: false` and would
+  // otherwise never reach that other check.
+  reportDuplicateMobx();
+
   const [, invalidate] = useReducer((version: number) => version + 1, 0);
   const reactionRef = useRef<Reaction | null>(null);
 
