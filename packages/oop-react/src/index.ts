@@ -3,6 +3,8 @@ export type {OopReactRenderFunction, OopReactRenderOptions} from './render/OopRe
 
 export {OopReactObserver} from './render/OopReactObserver';
 export {OopReactCallback} from './render/OopReactCallback';
+export {OopReactBridge} from './render/OopReactBridge';
+export type {OopReactBridgeProps} from './render/OopReactBridge';
 
 export {OopReactComponent} from './component/OopReactComponent';
 export type {

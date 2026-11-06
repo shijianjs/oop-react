@@ -1,4 +1,4 @@
-import type {Key, ReactNode} from 'react';
+import {memo, type Key, type ReactNode} from 'react';
 import {OopReactErrorBoundary} from '../error/OopReactErrorBoundary';
 import {islandName} from './islandName';
 import {ObservedRender} from './ObservedRender';
@@ -17,6 +17,35 @@ interface OopReactRenderIslandProps {
   name: string;
 }
 
+function sameArgs(left: unknown[], right: unknown[]): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => Object.is(value, right[index]));
+}
+
+/**
+ * Islands are memoized on what actually identifies them: the instance, the
+ * method, the name and the call arguments. So a parent island re-rendering does
+ * **not** re-run a child island whose arguments did not change — the child still
+ * re-renders on its own when a field *it* read changes.
+ *
+ * That is what makes "split it as fine as you like" true: React re-renders
+ * children by default, and without this every state change in a parent would
+ * re-execute every nested render method on the way down.
+ *
+ * Note that the arguments are compared, not the objects inside them: mutating a
+ * field of an argument object is caught by the child's own subscription, which
+ * is exactly the case this must not skip.
+ */
+function isSameIsland(previous: OopReactRenderIslandProps, next: OopReactRenderIslandProps): boolean {
+  return (
+    previous.instance === next.instance &&
+    previous.method === next.method &&
+    previous.name === next.name &&
+    sameArgs(previous.args, next.args)
+  );
+}
+
 /**
  * The element a render method hands back to its caller.
  *
@@ -28,7 +57,7 @@ interface OopReactRenderIslandProps {
  * Creating the element is side-effect free, so the method can be called from any
  * render — a plain React component, another island, a parent object's method.
  */
-export function OopReactRenderIsland({
+export const OopReactRenderIsland = memo(function OopReactRenderIsland({
   instance,
   method,
   args,
@@ -39,7 +68,7 @@ export function OopReactRenderIsland({
       <ObservedRender render={() => method.apply(instance, args)} />
     </OopReactErrorBoundary>
   );
-}
+}, isSameIsland);
 
 export interface OopReactRenderOptions {
   /**
@@ -69,7 +98,7 @@ export interface OopReactRenderOptions {
    * row() { … }
    *
    * // the parent renders rows for its children
-   * @OopReactRender({key: (self: TodoBoard, item: TodoItem) => item.id})
+   * @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
    * row(item: TodoItem) { … }
    * ```
    */

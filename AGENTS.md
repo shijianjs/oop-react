@@ -103,6 +103,8 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
 - **Pages 由 Actions 发布**（`build_type: workflow`），不是 `gh-pages` 分支。站点地址
   https://shijianjs.github.io/oop-react/ ，demo 在 `/demo/`；首次开启用
   `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`。
+- **工作流不绑 push**：`ci.yml` 只在 PR / 手动触发，`pages.yml` 只有手动触发。发布是
+  `gh workflow run pages.yml`；本地验证过就可以直接提交，不必等 CI。
 - **dependabot**：npm（patch/minor 合成一个 PR）+ github-actions，每周一。
 - **auto-merge**：dependabot 的 PR 在检查全绿后 squash 合并。`GITHUB_TOKEN` 没有 workflows 权限，
   所以改动 `.github/workflows/` 的 PR 会被跳过、留给人工；配了 `GH_PAT` secret（contents + pull requests

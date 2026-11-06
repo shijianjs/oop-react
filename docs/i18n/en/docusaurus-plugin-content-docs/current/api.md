@@ -67,6 +67,19 @@ OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Arg
 
 Wraps a function into a callback that renders an island when called — the render-prop shape.
 
+## Bridge
+
+### `OopReactBridge`
+
+```tsx
+<OopReactBridge value={form} assign={(next) => editor.bindForm(next)} release={() => editor.releaseForm()} />
+```
+
+Hands an instance that only exists inside a component (`Form.useForm()`, `App.useApp()`, `Modal.useModal()`) to an
+object: it renders `null`, calls `assign` in a `useEffect` after commit, again when the value changes, and `release`
+on unmount. From then on object methods can call the form, the message api or the dialog directly. See
+[complex components and hooks](./guide/complex-components.md).
+
 ## State
 
 ### `OopReactObservable(instance, annotations?, options?)`

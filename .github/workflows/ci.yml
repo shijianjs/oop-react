@@ -1,9 +1,10 @@
 name: CI
 
+# Pull requests only: pushing to main is done from a verified local run, and a
+# green CI badge on main is not worth the extra minutes it burns.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:

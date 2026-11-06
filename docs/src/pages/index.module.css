@@ -1,6 +1,10 @@
 .hero {
   padding: 72px 24px 48px;
   text-align: center;
+  /* Docusaurus wraps page content in a flex container; without an explicit
+     width these blocks shrink to their content and the grid below collapses
+     into a single column. */
+  width: 100%;
 }
 
 .title {
@@ -23,15 +27,8 @@
 }
 
 .code {
-  background: var(--ifm-code-background);
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.6;
   margin: 40px auto 0;
-  max-width: 640px;
-  overflow-x: auto;
-  padding: 18px 20px;
+  max-width: 760px;
   text-align: left;
 }
 
@@ -39,12 +36,13 @@
   margin: 0 auto;
   max-width: 1080px;
   padding: 24px 24px 64px;
+  width: 100%;
 }
 
 .grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .card {

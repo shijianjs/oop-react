@@ -73,6 +73,7 @@ Decorators use the legacy semantics, so the consuming project needs:
 | `OopReactObservable(instance, annotations?, options?)` | declare observability in a state class's constructor (typed `makeAutoObservable`) |
 | `OopReactObserver(render)` | function entry point: subscribe a function that returns JSX |
 | `OopReactCallback(render)` | function entry point: wrap a callback as a render prop |
+| `OopReactBridge` | hands a component-only instance (`Form`, `message`, `modal`) to an object, which can then call it |
 | `OopReactComponent(Class, method, options?)` | the bridge: mount a class as a React component (incremental adoption) |
 | `OopReactErrorBoundary` | a boundary to wrap a piece of hand-written JSX |
 | `OopReactConfigure({fallback, onError})` | global failure presentation and reporting |

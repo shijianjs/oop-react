@@ -1,23 +1,25 @@
 import {App as AntApp} from 'antd';
 import type {MessageInstance} from 'antd/es/message/interface';
-import {useEffect} from 'react';
+import {OopReactBridge} from 'oop-react';
 
 /**
- * antd's `message` only exists inside a component: `App.useApp()` reads the very
+ * antd's `message` only exists inside a component: `App.useApp()` reads the
  * context that gives it the current theme and locale. An object method cannot
- * call a hook, so the value is captured once by a tiny bridge component and then
- * lives on this object — from that point any method can call it.
+ * call a hook — so the value is handed over once by `OopReactBridge` and then
+ * lives here, where any method can call it.
  *
- * This is the general shape for every context-bound hook an object needs:
- * mount a component that calls the hook, and hand the value to the object in an
- * effect (never during render).
+ * This is the general shape for every context-bound instance an object needs:
+ * `Form.useForm`, `Modal.useModal`, `message.useMessage`, … see
+ * `pages/orders/OrderEditor.tsx` for the form case.
  */
 export class Feedback {
   #message: MessageInstance | null = null;
 
-  bind(message: MessageInstance): void {
+  // Arrow fields rather than methods: this object is not observable, so nothing
+  // binds a plain method, and `assign={feedback.bind}` would lose `this`.
+  bind = (message: MessageInstance | null): void => {
     this.#message = message;
-  }
+  };
 
   success(text: string): void {
     void this.#message?.success(text);
@@ -28,12 +30,7 @@ export class Feedback {
   }
 }
 
-export function FeedbackBridge({feedback}: {feedback: Feedback}) {
+export function FeedbackHost({feedback}: {feedback: Feedback}) {
   const {message} = AntApp.useApp();
-
-  useEffect(() => {
-    feedback.bind(message);
-  }, [feedback, message]);
-
-  return null;
+  return <OopReactBridge value={message} assign={feedback.bind} release={() => feedback.bind(null)} />;
 }

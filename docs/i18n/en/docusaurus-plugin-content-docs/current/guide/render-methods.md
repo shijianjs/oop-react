@@ -50,6 +50,17 @@ class Panel {
 `this.counter()` inside `view()` does not return a component tag but an element that is already subscribed —
 nesting needs no extra syntax.
 
+## A parent re-render does not re-run its child islands
+
+Islands are memoized: the comparison is "instance + method + name + call arguments". When a parent island re-renders
+because one of *its* fields changed, child islands whose arguments did not change are skipped — they re-run when
+their own fields move.
+
+That is what makes "split it as fine as you like" true: React re-renders the whole subtree by default, and without
+this memo one state change in a parent would re-execute every render method below it. Arguments are compared
+**shallowly**, so `this.row(item)` re-runs when `item` is a different object; mutating a field of the same `item`
+does not (that is `row()`'s own subscription).
+
 ## Where you can draw one
 
 An island's element is an ordinary React element and creating it has no side effects, so it can be produced anywhere:

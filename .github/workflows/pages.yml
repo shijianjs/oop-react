@@ -4,9 +4,8 @@ name: Deploy site
 # and the demo at `/oop-react/demo/`. The demo is a separate Vite build that is
 # written into the docs build's output directory, so the artifact uploaded below
 # is `docs/build` alone.
+# Manual only: the site is deployed when someone asks for it, not on every push.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

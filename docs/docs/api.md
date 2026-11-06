@@ -65,6 +65,18 @@ OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Arg
 
 包成「调用即得到岛」的回调，用于 render prop。
 
+## 桥
+
+### `OopReactBridge`
+
+```tsx
+<OopReactBridge value={form} assign={(next) => editor.bindForm(next)} release={() => editor.releaseForm()} />
+```
+
+把只能在组件里拿到的实例（`Form.useForm()`、`App.useApp()`、`Modal.useModal()`）交给对象：它渲染 `null`，
+在 commit 之后的 `useEffect` 里调用 `assign`，值变化时再调一次，卸载时调 `release`。
+之后对象方法就能直接调表单/提示/弹窗的 API。见[复杂组件与 hooks](./guide/complex-components.md)。
+
 ## 状态
 
 ### `OopReactObservable(instance, annotations?, options?)`

@@ -68,6 +68,7 @@ pnpm add oop-react
 | `OopReactObservable(instance, annotations?, options?)` | 在状态类构造器里声明可观察性（`makeAutoObservable` 的类型安全包装） |
 | `OopReactObserver(render)` | 函数式入口：订阅一个返回 JSX 的函数 |
 | `OopReactCallback(render)` | 函数式入口：包成 render prop |
+| `OopReactBridge` | 把组件里的实例（`Form`、`message`、`modal`）交给对象，之后对象方法直接调 |
 | `OopReactComponent(Class, method, options?)` | 桥：把一个类挂成 React 组件（渐进式采用时用） |
 | `OopReactErrorBoundary` | 手动包一段 JSX 的错误边界 |
 | `OopReactConfigure({fallback, onError})` | 全局的失败展示与上报 |

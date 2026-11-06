@@ -4,7 +4,7 @@ import zhCN from 'antd/locale/zh_CN';
 import {OopReactObserver} from 'oop-react';
 import type {ReactNode} from 'react';
 import type {App} from './App';
-import {FeedbackBridge} from './Feedback';
+import {FeedbackHost} from './Feedback';
 
 /**
  * The provider host, and the only reason the React layer has a component of its
@@ -29,7 +29,7 @@ export function AppRoot({app}: {app: App}): ReactNode {
         button={{autoInsertSpace: false}}
       >
         <AntApp>
-          <FeedbackBridge feedback={app.feedback} />
+          <FeedbackHost feedback={app.feedback} />
           {app.view()}
         </AntApp>
       </ConfigProvider>

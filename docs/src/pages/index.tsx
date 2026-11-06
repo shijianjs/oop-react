@@ -1,6 +1,7 @@
 import Link from '@docusaurus/Link';
 import Translate, {translate} from '@docusaurus/Translate';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import CodeBlock from '@theme/CodeBlock';
 import Layout from '@theme/Layout';
 import type {ReactNode} from 'react';
 import styles from './index.module.css';
@@ -131,9 +132,11 @@ export default function Home(): ReactNode {
             <Translate id="home.cta.demo">在线演示</Translate>
           </a>
         </div>
-        <pre className={styles.code}>
-          <code>{SAMPLE}</code>
-        </pre>
+        <div className={styles.code}>
+          <CodeBlock language="tsx" title="counter.tsx">
+            {SAMPLE}
+          </CodeBlock>
+        </div>
       </header>
 
       <main className={styles.section}>
