@@ -124,6 +124,32 @@ checking is unaffected:
 import type {Workshop} from './Workshop';
 ```
 
+## The framework layer is objects too
+
+Routing, theming and language — the things that usually mean installing a library — are just nodes in the graph:
+
+```tsx
+export class Router {
+  readonly pages: Page[];
+  path: string;                       // the only observable part
+
+  constructor(pages: Page[]) {
+    this.pages = pages;
+    this.path = location.hash.replace(/^#\//, '') || pages[0].path;
+    window.addEventListener('hashchange', () => this.sync());
+    OopReactObservable(this, {pages: false});
+  }
+
+  get current(): Page {              // computed: recalculated when path changes
+    return this.byPath(this.path);
+  }
+}
+```
+
+Switching pages is `router.go(page)` writing one field, and the island that reads `router.current` re-renders. The
+same holds for theme and language: `theme` and `locale` on a `Settings` object, subscribed by whoever reads them.
+The demo's menu, dark mode and EN/中文 switch all work this way — no router library, no i18n library, no context.
+
 ## When not to do this
 
 - **Component APIs take props.** When the caller is unknown React code, props are the contract; the object graph is

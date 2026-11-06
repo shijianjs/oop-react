@@ -1,39 +1,34 @@
 import {Button} from 'antd';
 import {OopReactObservable, OopReactRender} from 'oop-react';
-import type {TodoBoard} from './TodoBoard';
+import type {TodosPage} from './TodosPage';
 
 /**
- * The deep end of the graph: an item knows the board that owns it, and through
- * it the workshop — so "toggle me" and "log this" need no callback, no context
- * and no ref, and a list row can write into a panel that lives three levels up.
+ * The deep end: an item holds the page that owns it and, through it, the whole
+ * App — so it writes the shared log without a callback or a context.
  */
 export class TodoItem {
   readonly title: string;
-  readonly board: TodoBoard;
+  readonly page: TodosPage;
   done = false;
 
-  constructor(title: string, board: TodoBoard) {
+  constructor(title: string, page: TodosPage) {
     this.title = title;
-    this.board = board;
-    // `title` never changes and `board` is a parent, not this object's state.
-    OopReactObservable(this, {title: false, board: false});
-  }
-
-  get status(): string {
-    return this.done ? '已完成' : '未完成';
+    this.page = page;
+    OopReactObservable(this, {title: false, page: false});
   }
 
   toggle(): void {
     this.done = !this.done;
-    this.board.workshop.log.add(`「${this.title}」→ ${this.status}`);
+    this.page.app.log.add(`todos.item(${JSON.stringify(this.title)}).done = ${this.done}`);
   }
 
   select(): void {
-    this.board.workshop.select(this);
+    this.page.select(this);
+    this.page.app.log.add(`todos.select(${JSON.stringify(this.title)})`);
   }
 
   remove(): void {
-    this.board.remove(this);
+    this.page.remove(this);
   }
 
   @OopReactRender({key: (self: TodoItem) => self.title})
@@ -45,7 +40,7 @@ export class TodoItem {
           {this.title}
         </button>
         <Button size="small" type="text" danger onClick={this.remove}>
-          删除
+          ✕
         </Button>
       </li>
     );

@@ -1,0 +1,35 @@
+version: 2
+
+updates:
+  # One npm entry is enough: the three workspace packages share the root
+  # pnpm-lock.yaml, so per-directory entries would raise duplicate PRs.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Patch and minor bumps arrive as one PR so the auto-merge queue stays
+      # short; majors keep their own PR because they need a human read.
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore(ci)"

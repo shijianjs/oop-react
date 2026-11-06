@@ -22,13 +22,7 @@ export interface OopReactObservableOptions {
 }
 
 /**
- * Turns a plain object into observable state: every field becomes tracked, every
- * method becomes an action, and (by default) every method is bound to the
- * instance.
- *
- * Call it **from the class's own constructor** — that is where a state class
- * declares what is state, and it makes the class usable anywhere, not only
- * inside a component:
+ * Declares an object's state, in the object's own constructor:
  *
  * ```ts
  * class Cart {
@@ -41,11 +35,15 @@ export interface OopReactObservableOptions {
  * }
  * ```
  *
- * It is deliberately *additive*: the object is not wrapped in a proxy or copied,
- * so the instance a caller holds is the instance that renders, and identity
- * comparisons keep working. Calling it twice is a no-op.
+ * Every field becomes observable, every method an action bound to the instance,
+ * and the second argument excludes what is not state — a service, a DOM node, a
+ * cache, or another state object that already declared its own observability.
+ *
+ * This is MobX's `makeAutoObservable` with two additions: the field-name types,
+ * and idempotence. Everything else about MobX — `computed`, `flow`, `reaction`,
+ * `autorun`, `toJS` — is used directly, imported from `mobx`.
  */
-export function makeInstanceObservable<T extends object>(
+export function OopReactObservable<T extends object>(
   instance: T,
   annotations?: OopReactAnnotations<T>,
   options: OopReactObservableOptions = {},

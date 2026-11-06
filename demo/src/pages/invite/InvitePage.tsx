@@ -1,23 +1,28 @@
 import {Button, Card, Input, Modal, Space, Tag, Typography} from 'antd';
 import {OopReactObservable, OopReactRender} from 'oop-react';
-import {bumpRender} from '../app/renderStats';
-import type {Workshop} from './Workshop';
+import type {App} from '../../app/App';
+import {sourceUrl} from '../../app/links';
+import type {Page} from '../Page';
+import {PageHeader} from '../PageHeader';
 
 interface Invite {
   name: string;
   email: string;
 }
 
-export class InviteBoard {
+export class InvitePage implements Page {
+  readonly path = 'invite';
+  readonly titleKey = 'route.invite';
+  readonly sourcePath = 'demo/src/pages/invite/InvitePage.tsx';
+  readonly app: App;
   open = false;
   name = '';
   email = '';
   invites: Invite[] = [];
-  readonly workshop: Workshop;
 
-  constructor(workshop: Workshop) {
-    this.workshop = workshop;
-    OopReactObservable(this, {workshop: false});
+  constructor(app: App) {
+    this.app = app;
+    OopReactObservable(this, {app: false});
   }
 
   get canSubmit(): boolean {
@@ -47,64 +52,75 @@ export class InviteBoard {
     this.name = '';
     this.email = '';
     this.open = false;
-    this.workshop.log.add(`邀请「${invite.name}」`);
+    this.app.log.add(`invite.submit(${JSON.stringify(invite.name)})`);
   }
 
   @OopReactRender()
   view() {
+    const {t} = this.app.settings;
+
     return (
-      <Card
-        title="弹窗表单"
-        extra={<span className="render-count">这个岛渲染 {bumpRender('invite')} 次</span>}
-      >
+      <div>
+        <PageHeader
+          title={t('invite.title')}
+          description={t('invite.description')}
+          sourceLabel={t('nav.source')}
+          sourceUrl={sourceUrl(this.sourcePath)}
+        />
         <Space direction="vertical" size="middle" style={{width: '100%'}}>
           {this.actions()}
           {this.list()}
           {this.dialog()}
         </Space>
-      </Card>
+      </div>
     );
   }
 
   @OopReactRender()
   actions() {
+    const {t} = this.app.settings;
+
     return (
       <Space wrap>
         <Button type="primary" onClick={this.openDialog}>
-          邀请成员
+          {t('invite.open')}
         </Button>
-        <Typography.Text type="secondary">
-          弹窗开合就是 <code>this.open</code>，没有 useState。
-        </Typography.Text>
+        <Typography.Text type="secondary">{t('invite.hint')}</Typography.Text>
       </Space>
     );
   }
 
   @OopReactRender()
   list() {
+    const {t} = this.app.settings;
+
     if (this.invites.length === 0) {
-      return <Typography.Text type="secondary">还没有邀请任何人。</Typography.Text>;
+      return <Typography.Text type="secondary">{t('invite.empty')}</Typography.Text>;
     }
 
     return (
-      <Space wrap>
-        {this.invites.map((invite) => (
-          <Tag key={invite.email} color="blue">
-            {invite.name} · {invite.email}
-          </Tag>
-        ))}
-      </Space>
+      <Card size="small">
+        <Space wrap>
+          {this.invites.map((invite) => (
+            <Tag key={invite.email} color="blue">
+              {invite.name} · {invite.email}
+            </Tag>
+          ))}
+        </Space>
+      </Card>
     );
   }
 
   @OopReactRender()
   dialog() {
+    const {t} = this.app.settings;
+
     return (
       <Modal
         open={this.open}
-        title="邀请成员"
-        okText="邀请"
-        cancelText="取消"
+        title={t('invite.open')}
+        okText={t('invite.submit')}
+        cancelText={t('invite.cancel')}
         okButtonProps={{disabled: !this.canSubmit}}
         onOk={() => this.submit()}
         onCancel={() => this.closeDialog()}
@@ -112,12 +128,12 @@ export class InviteBoard {
         <Space direction="vertical" size="small" style={{width: '100%'}}>
           <Input
             value={this.name}
-            placeholder="姓名"
+            placeholder={t('invite.name')}
             onChange={(event) => this.setName(event.target.value)}
           />
           <Input
             value={this.email}
-            placeholder="邮箱"
+            placeholder={t('invite.email')}
             onChange={(event) => this.setEmail(event.target.value)}
           />
         </Space>

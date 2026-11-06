@@ -1,5 +1,5 @@
 import {useEffect, useRef, type ComponentType, type ReactNode} from 'react';
-import {makeInstanceObservable, type OopReactAnnotations} from '../reactivity/reactivity';
+import {OopReactObservable, type OopReactAnnotations} from '../reactivity/reactivity';
 import {COMPONENT_NAME} from '../render/islandName';
 
 /** Keys of `Instance` whose value is a method returning JSX. */
@@ -72,7 +72,7 @@ export function OopReactComponent<Props extends object, Instance extends object>
       instanceRef.current =
         options.autoObservable === false
           ? created
-          : makeInstanceObservable(created, options.annotations);
+          : OopReactObservable(created, options.annotations);
     }
     const instance = instanceRef.current;
 

@@ -17,7 +17,7 @@ export {OopReactConfigure} from './config/config';
 export type {OopReactConfig} from './config/config';
 export type {OopReactFallbackProps} from './config/OopReactFallbackProps';
 
-export {OopReactObservable} from './reactivity/OopReactObservable';
+export {OopReactObservable} from './reactivity/reactivity';
 export type {
   OopReactAnnotations,
   OopReactObservableOptions,

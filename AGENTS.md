@@ -6,17 +6,21 @@
 ## 这个项目是什么
 
 一个 React 的**组织方式**，不是 UI 框架：状态和行为待在一个普通类的实例里，只有标了 `@OopReactRender()`
-的方法参与重渲染。默认的可观察性与订阅实现是 MobX，但两者都是可替换的配置项。
+的方法参与重渲染。可观察性与订阅就是 MobX 本身，不做抽象层。
 
 三个交付物，各自一个包（pnpm workspace）：
 
 | 路径 | 包名 | 说明 |
 | --- | --- | --- |
 | `packages/oop-react/` | `oop-react` | 发布到 npm 的库。Vite lib 出 ESM，`tsc` 出 `.d.ts` |
-| `demo/` | `@oop-react/demo` | Vite + React + antd 演示，构建产物写进 `docs/build/demo` |
+| `demo/` | `@oop-react/demo` | Vite + React + antd 演示：一张对象图 + 五条哈希路由，产物写进 `docs/build/demo` |
 | `docs/` | `@oop-react/docs` | Docusaurus 站点，文档在根路径，demo 在 `/demo/` |
 
 GitHub Pages 只上传一个产物 `docs/build`：先建文档站，再建 demo 到它的 `demo/` 子目录。
+
+demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`AppRoot`）、`routing/`
+（`Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，页面对象 +
+它的子对象）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
 
 ## 命令
 

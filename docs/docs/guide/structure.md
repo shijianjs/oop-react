@@ -120,6 +120,32 @@ const board = new TodoBoard(workshop);
 import type {Workshop} from './Workshop';
 ```
 
+## 框架层也是对象
+
+路由、主题、语言这些「通常要装个库」的东西，在这个模型里只是图里的节点：
+
+```tsx
+export class Router {
+  readonly pages: Page[];
+  path: string;                       // 可观察的只有它
+
+  constructor(pages: Page[]) {
+    this.pages = pages;
+    this.path = location.hash.replace(/^#\//, '') || pages[0].path;
+    window.addEventListener('hashchange', () => this.sync());
+    OopReactObservable(this, {pages: false});
+  }
+
+  get current(): Page {              // computed：path 变了才算
+    return this.byPath(this.path);
+  }
+}
+```
+
+切页就是 `router.go(page)` 改一个字段，读 `router.current` 的那个岛重渲染。主题和语言同理：`Settings`
+上的 `theme` / `locale`，谁读了谁订阅。演示站点的导航、深浅色、中英切换都是这么实现的，没有 router 库、
+没有 i18n 库、没有 context。
+
 ## 什么时候不该这样
 
 - **对外组件 API 用 props。** 调用方是陌生 React 代码时，props 是契约；对象图是应用内部的。

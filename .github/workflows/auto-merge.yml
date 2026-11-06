@@ -1,0 +1,87 @@
+name: Auto Merge
+
+# Dependabot pull requests are merged once every required check has succeeded.
+# `pull_request_target` is what makes the token able to merge; the job only reads
+# the PR and its checks, it never checks out or runs the PR's code.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Pull request number to try to merge"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  # workflow_dispatch runs have no pull_request payload, so fall back to the input
+  group: auto-merge-${{ github.event.inputs.pr || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  merge:
+    name: Merge when checks pass
+    runs-on: ubuntu-latest
+    # Long enough for a cold pnpm install plus the Docusaurus build.
+    timeout-minutes: 25
+    if: github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Wait for checks and merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.inputs.pr || github.event.pull_request.number }}
+          SELF_JOB: Merge when checks pass
+          MERGE_METHOD: squash
+        run: |
+          set -euo pipefail
+          pr="$PR_NUMBER"
+
+          if [ "$(gh pr view "$pr" --json isDraft --jq .isDraft)" = "true" ]; then
+            echo "Draft pull request, nothing to merge"
+            exit 0
+          fi
+
+          # Poll the check list, ignoring this workflow's own check, which can
+          # never reach SUCCESS while this job is still running.
+          for _ in $(seq 1 120); do
+            # A definitively failed check never turns into SUCCESS, so stop
+            # instead of waiting for the job timeout.
+            failed=$(gh pr checks "$pr" --json name,state --jq \
+              ".[] | select(.name != \"$SELF_JOB\") | select(.state == \"FAILURE\" or .state == \"CANCELLED\" or .state == \"TIMED_OUT\" or .state == \"ACTION_REQUIRED\") | .name")
+            if [ -n "$failed" ]; then
+              echo "PR #$pr has failing checks ($failed), leaving it open"
+              exit 0
+            fi
+            pending=$(gh pr checks "$pr" --json name,state --jq \
+              ".[] | select(.name != \"$SELF_JOB\") | select(.state != \"SUCCESS\" and .state != \"SKIPPED\") | .name")
+            if [ -z "$pending" ]; then
+              break
+            fi
+            echo "waiting for: $pending"
+            sleep 20
+          done
+
+          # GitHub computes mergeability asynchronously, so retry a few times.
+          mergeable=""
+          for _ in $(seq 1 10); do
+            mergeable=$(gh pr view "$pr" --json mergeable --jq .mergeable)
+            [ "$mergeable" = "MERGEABLE" ] && break
+            echo "PR #$pr mergeable=$mergeable, retrying"
+            sleep 15
+          done
+          if [ "$mergeable" != "MERGEABLE" ]; then
+            echo "PR #$pr is not mergeable yet"
+            exit 0
+          fi
+
+          gh pr merge "$pr" --"$MERGE_METHOD" --delete-branch
+          echo "merged PR #$pr"
