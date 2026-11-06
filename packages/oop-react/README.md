@@ -35,11 +35,13 @@ export function CartView() {
 ## 安装
 
 ```bash
-pnpm add oop-react
+pnpm add oop-react mobx mobx-react-lite
 ```
 
 `react` / `react-dom`（`>=18.2`）、`mobx`（`^7`）与 `mobx-react-lite`（`^5`）都是 peer 依赖。追踪用 MobX，
 React 绑定用官方的 `mobx-react-lite`（`observer`）。
+
+**只跟最新大版本**：不做旧版本兼容分支。mobx 6 要配 `mobx-react-lite@4`，那是另一套 peer，这里不支持。
 
 > **mobx 只能装一份。** 两份 mobx 各自持有自己的记账 symbol，A 造的 observable 在 B 的 reaction 里不是
 > observable：状态改了界面不动，而且不报错。用 `pnpm why mobx` 检查、`pnpm dedupe` 或 `overrides` 统一版本；

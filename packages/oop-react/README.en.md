@@ -36,11 +36,14 @@ export function CartView() {
 ## Install
 
 ```bash
-pnpm add oop-react
+pnpm add oop-react mobx mobx-react-lite
 ```
 
 `react` / `react-dom` (`>=18.2`), `mobx` (`^7`) and `mobx-react-lite` (`^5`) are peer dependencies. Tracking is
 MobX; the React binding is the official `mobx-react-lite` (`observer`).
+
+**Latest major only**: no compatibility branch for older versions. mobx 6 needs `mobx-react-lite@4`, a different set
+of peers, and is not supported here.
 
 > **Only one copy of mobx.** Each copy keys its bookkeeping on its own symbol, so an observable made by copy A is not
 > observable to copy B: the state changes, the UI does not, and nothing is reported. Check with `pnpm why mobx`, then

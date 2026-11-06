@@ -11,9 +11,17 @@ sidebar_position: 2
 pnpm add oop-react
 ```
 
+```bash
+pnpm add oop-react mobx mobx-react-lite
+```
+
 `react`, `react-dom` (`>=18.2`), `mobx` (`^7`) and `mobx-react-lite` (`^5`) are peer dependencies and have to come
 from the host project — see "only one mobx" below. Tracking is MobX, and the React binding is the official
 `mobx-react-lite` (`observer`), not a hand-written `Reaction` loop.
+
+**Latest major only.** mobx 6 needs `mobx-react-lite@4`, a different set of peers; mixing the two ranges in one
+package only resolves to combinations that cannot work. So there is no compatibility branch here — upgrade the host
+to mobx 7, or stay on the old version of the old package.
 
 ## Turn on decorators
 

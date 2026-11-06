@@ -61,14 +61,28 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    **React 绑定用官方的 `mobx-react-lite` 的 `observer`**（`src/render/TrackedRender.tsx`），不要退回手写
    `Reaction` 循环：订阅、批处理、并发调度都该由官方实现负责。岛外面的 `memo` 是我们自己的，因为
    `observer` 的 memo 按 props 浅比较，而 `args` 每次都是新数组。
-   代价：`mobx-react-lite@5` 要求 mobx ^7、React >=18，所以 mobx 的 peer 范围收窄到 `^7`。要用 mobx 6 只能配
-   `mobx-react-lite@4`，那就得另开一个兼容版本，别在同一个包里混两个范围。
+   版本策略见下面的「只跟最新大版本」——不为了 mobx 6 / lite 4 写兼容分支。
 6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this, {...})`（放最后一行）；
    `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。annotations 的键必须受
    `keyof T` 约束，别退回 `Record<string, unknown>`。
 7. **库不依赖 UI 组件库。** 默认 fallback 用内联样式的朴素 div；antd 只出现在 demo 和文档示例里。
 8. **实例只建一次**（`OopReactComponent` 的实例活得和组件一样久），构造函数可重复执行但不重建；
    需要响应后续 props 就用 `onPropsChange` 调一个方法。
+
+## 版本策略：只跟最新大版本
+
+依赖范围就是当前 major，**不为旧大版本写兼容分支**：
+
+| 依赖 | peer | 说明 |
+| --- | --- | --- |
+| `mobx` | `^7` | React 绑定要求它 >= 7 |
+| `mobx-react-lite` | `^5` | 与 mobx 7 配套；它自己也会在运行时拒绝 mobx < 7 |
+| `react` / `react-dom` | `>=18.2` | 官方绑定同时支持 18/19，这里不需要额外代码 |
+| TypeScript | 仓库当前 major | 升到新 major 就整体升，不挂兼容开关 |
+
+mobx 6 需要 `mobx-react-lite@4`，是另一套 peer；把两个范围塞进同一个包只会让依赖解析出「mobx 6 + lite 5」
+这种必炸的组合。所以不支持：要么宿主升级，要么留着旧版本的旧包。升级依赖（含 dependabot 的 major）时也按这个
+思路走 —— 能升到最新就升，不写「宽范围兼容」。
 
 ## 文档语言（中英双语）
 
@@ -123,8 +137,8 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
   （源码不用装饰器），消费方自己编译。
 - **mobx 必须是 peerDependency，不要再挪回 dependencies。** MobX 的记账信息挂在每个模块实例自己的
   symbol 上，页面里两份 mobx 就是「状态变了界面不动」，且 MobX 只在版本不兼容时才告警（同版本静默）。
-  peer 范围是 `^6.12.0 || ^7.0.0`，两个大版本都跑过测试；`src/reactivity/duplicates.ts` 负责在运行时发现
-  多份并告警（`globalThis.__mobxInstanceCount`，MobX 4 起就有）。workspace 里的 `demo` 自己声明了 mobx，
+  peer 范围是 `^7`；`src/reactivity/duplicates.ts` 负责在运行时发现多份并告警
+  （`globalThis.__mobxInstanceCount`，MobX 4 起就有）。workspace 里的 `demo` 自己声明了 mobx，
   它就扮演「宿主项目」这个角色。
 - **`@docusaurus/tsconfig` 仍设 `baseUrl`**，TS 6 会报 deprecated；`docs/tsconfig.json` 用
   `ignoreDeprecations: "6.0"` 静音，不要 fork 官方预设。

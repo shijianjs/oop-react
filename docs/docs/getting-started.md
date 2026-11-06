@@ -11,9 +11,16 @@ sidebar_position: 2
 pnpm add oop-react
 ```
 
+```bash
+pnpm add oop-react mobx mobx-react-lite
+```
+
 `react`、`react-dom`（`>=18.2`）、`mobx`（`^7`）与 `mobx-react-lite`（`^5`）都是 peer 依赖，必须由宿主项目
 提供，见下面的「mobx 只能有一份」。追踪用 MobX，React 绑定用官方的 `mobx-react-lite`（`observer`），不是自己
 写的 `Reaction` 循环。
+
+**只跟最新大版本。** mobx 6 要配 `mobx-react-lite@4`，那是另一套 peer，混在一起只会解析出不能用的组合，
+所以这里不做兼容分支 —— 宿主升级到 mobx 7，或者继续用旧版本的旧包。
 
 ## 打开装饰器
 
