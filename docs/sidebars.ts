@@ -12,6 +12,7 @@ const sidebars: SidebarsConfig = {
         'guide/structure',
         'guide/state',
         'guide/render-methods',
+        'guide/complex-components',
         'guide/react-bridge',
         'guide/errors',
         'guide/configure',

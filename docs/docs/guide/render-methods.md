@@ -152,3 +152,6 @@ function List({items}: {items: Item[]}) {
 ```
 
 两者都使用 hooks，必须在组件渲染过程中调用 —— 不能放进事件处理函数。
+
+渲染方法本身也可以调用 hook（它就是一个组件）；provider、`Form.useForm`、`App.useApp` 这类边界怎么处理，
+见[复杂组件与 hooks](./complex-components.md)。

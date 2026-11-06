@@ -4,10 +4,12 @@ import {ActivityLog} from '../log/ActivityLog';
 import {CounterPage} from '../pages/counter/CounterPage';
 import {FailurePage} from '../pages/failure/FailurePage';
 import {InvitePage} from '../pages/invite/InvitePage';
+import {OrdersPage} from '../pages/orders/OrdersPage';
 import {OverviewPage} from '../pages/overview/OverviewPage';
 import type {Page} from '../pages/Page';
 import {TodosPage} from '../pages/todos/TodosPage';
 import {Router} from '../routing/Router';
+import {Feedback} from './Feedback';
 import {DOCS_HREF} from './links';
 import {Settings} from './Settings';
 
@@ -21,16 +23,19 @@ import {Settings} from './Settings';
 export class App {
   readonly settings: Settings;
   readonly log: ActivityLog;
+  readonly feedback: Feedback;
   readonly router: Router;
   readonly pages: Page[];
 
   constructor() {
     this.settings = new Settings();
     this.log = new ActivityLog(this);
+    this.feedback = new Feedback();
     this.pages = [
       new OverviewPage(this),
       new CounterPage(this),
       new TodosPage(this),
+      new OrdersPage(this),
       new InvitePage(this),
       new FailurePage(this),
     ];
@@ -40,6 +45,7 @@ export class App {
     OopReactObservable(this, {
       settings: false,
       log: false,
+      feedback: false,
       router: false,
       pages: false,
     });

@@ -18,9 +18,14 @@
 
 GitHub Pages 只上传一个产物 `docs/build`：先建文档站，再建 demo 到它的 `demo/` 子目录。
 
-demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`AppRoot`）、`routing/`
-（`Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，页面对象 +
-它的子对象）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
+demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`AppRoot`、`Feedback`）、
+`routing/`（`Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，
+页面对象 + 它的子对象）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
+
+`pages/orders/` 是**能力边界的试验场**：antd `Table`（受控分页/排序/选中/筛选）+ `Form`（校验、自定义
+validator）+ 嵌套 `ConfigProvider` + `Form.useForm`/`Modal.useModal` 在渲染方法里 + `App.useApp()` 通过
+`Feedback` 桥进入对象 + mobx `flow` 处理异步提交。改这页时先读 `docs/docs/guide/complex-components.md`，
+那张表就是「什么东西放哪」的答案；没覆盖到的组件用法先加到这页，再把结论补进文档。
 
 ## 命令
 

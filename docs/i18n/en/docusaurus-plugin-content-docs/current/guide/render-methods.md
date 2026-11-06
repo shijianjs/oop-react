@@ -156,3 +156,6 @@ function List({items}: {items: Item[]}) {
 ```
 
 Both use hooks, so they must be called during a render — not from an event handler.
+
+A render method itself may call hooks too (it is a component). For providers, `Form.useForm` and `App.useApp`, see
+[complex components and hooks](./complex-components.md).
