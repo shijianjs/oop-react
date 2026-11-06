@@ -1,5 +1,5 @@
 export {OopReactRender} from './render/OopReactRender';
-export type {OopReactRenderFunction} from './render/OopReactRender';
+export type {OopReactRenderFunction, OopReactRenderOptions} from './render/OopReactRender';
 
 export {OopReactObserver} from './render/OopReactObserver';
 export {OopReactCallback} from './render/OopReactCallback';
@@ -18,4 +18,7 @@ export type {OopReactConfig} from './config/config';
 export type {OopReactFallbackProps} from './config/OopReactFallbackProps';
 
 export {OopReactObservable} from './reactivity/OopReactObservable';
-export type {OopReactObservableOptions} from './reactivity/reactivity';
+export type {
+  OopReactAnnotations,
+  OopReactObservableOptions,
+} from './reactivity/reactivity';

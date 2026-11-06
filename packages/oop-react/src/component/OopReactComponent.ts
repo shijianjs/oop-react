@@ -1,7 +1,6 @@
 import {useEffect, useRef, type ComponentType, type ReactNode} from 'react';
-import {getOopReactConfig} from '../config/config';
+import {makeInstanceObservable, type OopReactAnnotations} from '../reactivity/reactivity';
 import {COMPONENT_NAME} from '../render/islandName';
-import type {OopReactObservableOptions} from '../reactivity/reactivity';
 
 /** Keys of `Instance` whose value is a method returning JSX. */
 export type OopReactRenderMethodKey<Instance> = {
@@ -17,12 +16,14 @@ export interface OopReactComponentOptions<Props, Instance> {
    */
   name?: string;
   /**
-   * `false` when the class sets up its own observability (MobX decorators, a
-   * hand-written store). Default: this library makes the instance observable.
+   * Whether this factory should declare the instance's state for it. Default
+   * `true`, which is what makes an *existing* plain class usable as-is. A class
+   * that already calls `OopReactObservable(this)` in its constructor needs
+   * nothing here — the second call is a no-op.
    */
   autoObservable?: boolean;
-  /** Fields to leave alone, and other overrides, for the default observable adapter. */
-  observableOptions?: OopReactObservableOptions;
+  /** Field overrides used when `autoObservable` does the declaring. */
+  annotations?: OopReactAnnotations<Instance>;
   /**
    * Called after mount and whenever `props` change. The instance itself is
    * created once per mount and never replaced, so a prop is an input to the
@@ -32,20 +33,23 @@ export interface OopReactComponentOptions<Props, Instance> {
 }
 
 /**
- * Turns a class plus one of its render methods into a React component.
+ * Mounts one render method of a class as a React component — the bridge between
+ * an object graph and the React tree.
  *
  * ```tsx
- * class Counter {
- *   count = 0;
- *   @OopReactRender() view() { … }
- * }
- * export const CounterView = OopReactComponent(Counter, 'view');
+ * // the only React-aware line in an otherwise plain-object application
+ * export const WorkshopView = OopReactComponent(Workshop, 'view');
  * ```
  *
- * `props` are forwarded to the constructor. The instance lives for as long as
- * the component is mounted — that is the point: it is the stable context every
- * method and every handler on it shares, which is what a hook-based component
- * has to rebuild on each render.
+ * This is not the main way to use the library. The main way is to `new` your
+ * state objects wherever they belong, let them hold each other, and call their
+ * `@OopReactRender()` methods from a component that already exists. Reach for
+ * `OopReactComponent` when a class has to *be* a component: adopting the
+ * library one screen at a time in a React app, or exposing a piece of the graph
+ * to a page that only speaks props.
+ *
+ * `props` are forwarded to the constructor. The instance lives as long as the
+ * component is mounted and is never rebuilt.
  */
 export function OopReactComponent<Props extends object, Instance extends object>(
   Class: new (props: Props) => Instance,
@@ -68,7 +72,7 @@ export function OopReactComponent<Props extends object, Instance extends object>
       instanceRef.current =
         options.autoObservable === false
           ? created
-          : getOopReactConfig().observable(created, options.observableOptions);
+          : makeInstanceObservable(created, options.annotations);
     }
     const instance = instanceRef.current;
 

@@ -363,10 +363,10 @@
     "message": "Subscription, observability, fallback and error reporting are configuration, not hidden implementation."
   },
   "home.description": {
-    "message": "State and behaviour stay in a plain class; only methods annotated with @OopReactRender() re-render."
+    "message": "State and behaviour stay in a plain class, objects hold each other, and React appears once at the edge."
   },
   "home.tagline": {
-    "message": "State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. No useCallback, no dependency arrays, no lifting state up the tree."
+    "message": "State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. Objects hold each other and call methods directly; React appears once, at the edge."
   },
   "home.cta.start": {
     "message": "Get started"

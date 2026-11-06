@@ -11,29 +11,35 @@ body {
 
 .page {
   margin: 0 auto;
-  max-width: 1120px;
-  padding: 48px 24px 64px;
+  max-width: 1180px;
+  padding: 40px 24px 64px;
 }
 
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .page-header h1 {
-  font-size: 32px;
+  font-size: 30px;
   margin: 0 0 8px;
 }
 
 .page-header p {
   color: #52565e;
-  margin: 0 0 16px;
-  max-width: 60ch;
+  margin: 0 0 14px;
+  max-width: 70ch;
 }
 
-.page-grid {
+.workshop-grid {
+  align-items: start;
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+
+/* The activity log spans the row: it is written to by every other card. */
+.workshop-wide {
+  grid-column: 1 / -1;
 }
 
 .render-count {
@@ -45,4 +51,51 @@ body {
 .muted {
   color: #52565e;
   font-size: 13px;
+}
+
+.todo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.todo-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.todo-row--done .todo-title {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.todo-title {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  flex: 1;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.todo-title:hover {
+  color: #2f5fd0;
+}
+
+.log-list {
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  padding-left: 20px;
+}
+
+.log-list li {
+  color: #52565e;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 0;
 }

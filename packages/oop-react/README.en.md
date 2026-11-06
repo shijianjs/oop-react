@@ -2,30 +2,35 @@
 
 [简体中文](https://github.com/shijianjs/oop-react/blob/main/packages/oop-react/README.md) | **English**
 
-An object-oriented way to organise a React UI: state and behaviour live in a plain class, and **only methods
-marked `@OopReactRender()` re-render**.
+An object-oriented way to organise React logic: state and behaviour live in a plain class, `@OopReactRender()` marks
+which methods are UI, and everything else is ordinary object code. Those classes can be `new`ed anywhere and hold
+each other — React appears once, at the edge.
 
 ```tsx
-import {OopReactComponent, OopReactRender} from 'oop-react';
+import {OopReactObservable, OopReactRender} from 'oop-react';
 
-class Counter {
-  count = 0;
+class Cart {
+  items: Item[] = [];
 
-  increment(): void {
-    this.count += 1;
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  add(item: Item): void {
+    this.items.push(item);
   }
 
   @OopReactRender()
   view() {
-    return (
-      <button type="button" onClick={this.increment}>
-        count: {this.count}
-      </button>
-    );
+    return <ul>{this.items.map((item) => <li key={item.id}>{item.title}</li>)}</ul>;
   }
 }
 
-export const CounterView = OopReactComponent(Counter, 'view');
+const cart = new Cart();
+
+export function CartView() {
+  return cart.view();
+}
 ```
 
 ## Install
@@ -36,9 +41,9 @@ pnpm add oop-react
 
 `react` / `react-dom` (`>=18.2`) and `mobx` (`^6.12 || ^7`) are peer dependencies.
 
-> **Only one copy of mobx.** MobX keys its bookkeeping on a per-module-instance symbol, so two copies on one page
-> give you "state changed, UI did not" — silently. Check with `pnpm why mobx`, then `pnpm dedupe` or pin one
-> version through `overrides`; oop-react warns in the console when it detects more than one copy.
+> **Only one copy of mobx.** Each copy keys its bookkeeping on its own symbol, so an observable made by copy A is not
+> observable to copy B: the state changes, the UI does not, and nothing is reported. Check with `pnpm why mobx`, then
+> `pnpm dedupe` or pin one version through `overrides`; oop-react warns in the console when it finds more than one.
 
 Decorators use the legacy semantics, so the consuming project needs:
 
@@ -48,34 +53,37 @@ Decorators use the legacy semantics, so the consuming project needs:
 
 ## What it solves
 
-- **State needs no external home.** A field is the state: `this.count += 1` is the update, and what you read is
-  always the current value.
-- **Callbacks need no memoising.** Instance methods are already bound, so `this.increment` is passed straight to
-  `onClick` and the reference never changes — no `useCallback`.
-- **Re-rendering has a boundary.** A class can have as many render methods as it likes; each is an island that
-  subscribes only to the fields it reads and carries its own error boundary.
-- **Logic does not move.** Objects hold each other and call methods directly — no lifting state, no threading
-  callbacks down, no context.
+- **A field is the state**: `this.count += 1` is the update, and what you read is always the current value — no
+  setters, no snapshots.
+- **A method is the callback**: instance methods are bound in the constructor, so `onClick={this.save}` is passed
+  directly and the reference never changes — no `useCallback`.
+- **Re-rendering has a boundary**: a class can have any number of render methods; each is an island that subscribes
+  only to what it reads and carries its own error boundary.
+- **The object graph organises the logic**: parent/child/grandchild, one-to-one and one-to-many are plain
+  references, so a grandchild can write its grandparent's field — no lifting state, no callback threading, no
+  context, no refs.
+- **Observability belongs to the class**: `OopReactObservable(this, {api: false})` in the constructor, with the
+  excluded field names constrained by `keyof T` — a typo is a compile error.
 
 ## API
 
 | Export | Purpose |
 | --- | --- |
-| `OopReactRender()` | decorator: turns a method that returns JSX into an island |
-| `OopReactComponent(Class, method, options?)` | class + render method → React component |
+| `OopReactRender(options?)` | decorator: turns a method returning JSX into an island (`name` / `key` optional) |
+| `OopReactObservable(instance, annotations?, options?)` | declare observability in a state class's constructor (typed `makeAutoObservable`) |
 | `OopReactObserver(render)` | function entry point: subscribe a function that returns JSX |
 | `OopReactCallback(render)` | function entry point: wrap a callback as a render prop |
-| `OopReactObservable(instance, options?)` | make an instance created outside a component observable |
+| `OopReactComponent(Class, method, options?)` | the bridge: mount a class as a React component (incremental adoption) |
 | `OopReactErrorBoundary` | a boundary to wrap a piece of hand-written JSX |
-| `OopReactConfigure(patch)` | replace subscription, observability, fallback, error reporting |
+| `OopReactConfigure({fallback, onError})` | global failure presentation and reporting |
 
 Full docs: [English](https://shijianjs.github.io/oop-react/en/) · [中文](https://shijianjs.github.io/oop-react/) .
 Live demo: https://shijianjs.github.io/oop-react/demo/ .
 
-## Defaults
+## Dependencies
 
-Observability and subscription default to [MobX](https://mobx.js.org/) (`makeAutoObservable` + `Reaction`).
-Replace it with `OopReactConfigure({observe, observable})` if you prefer; the library itself depends on no UI kit.
+Tracking is [MobX](https://mobx.js.org/), used directly: import `computed`, `flow`, `reaction`, `toJS` from `mobx` —
+the library does not wrap them. The library itself depends on no UI kit.
 
 ## License
 

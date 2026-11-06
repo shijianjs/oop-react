@@ -5,33 +5,29 @@ slug: /api
 sidebar_position: 3
 ---
 
-Every export carries the `OopReact` prefix. The package is pure ESM; `react` and `react-dom` are peer
+Every export carries the `OopReact` prefix. The package is pure ESM; `react`, `react-dom` and `mobx` are peer
 dependencies.
 
-## Decorator
+## Rendering
 
-### `OopReactRender()`
+### `OopReactRender(options?)`
 
 ```ts
-OopReactRender(): MethodDecorator
-```
+OopReactRender(options?: OopReactRenderOptions): MethodDecorator
 
-Marks a method that returns `ReactNode`. The method keeps its signature; calling it returns an element that is
-already subscribed and already wrapped in a boundary.
-
-```tsx
-class Counter {
-  @OopReactRender()
-  view() {
-    return <p>{this.count}</p>;
-  }
+interface OopReactRenderOptions {
+  name?: string;                                          // island name prefix: <name>.<method>
+  key?: (instance: any, ...args: any[]) => Key | null;    // the key of a list entry
 }
 ```
 
-Requires `experimentalDecorators`. The method's return type must be assignable to `ReactNode`, otherwise
-`OopReactRenderMethodKey` will not offer it as a candidate to `OopReactComponent`.
+Marks a method that returns `ReactNode`. The method keeps its signature; calling it returns an element that is
+already subscribed and wrapped in a boundary. Creating that element is side-effect free, so it can happen during any
+render — a plain component, another island, a `map`.
 
-## Component factory
+Requires `experimentalDecorators`.
+
+## Component bridge
 
 ### `OopReactComponent(Class, method, options?)`
 
@@ -41,20 +37,19 @@ OopReactComponent<Props, Instance>(
   method: OopReactRenderMethodKey<Instance>,
   options?: OopReactComponentOptions<Props, Instance>,
 ): ComponentType<Props>
-```
 
-Creates the instance once, makes it observable, and renders `method`. Returns a plain function component.
-
-```ts
 interface OopReactComponentOptions<Props, Instance> {
-  name?: string;                       // component and island name: <name>.<method>
-  autoObservable?: boolean;            // false = the instance manages its own observability
-  observableOptions?: OopReactObservableOptions;
+  name?: string;                            // name prefix for the component and its islands
+  autoObservable?: boolean;                 // default true: this factory declares the state if the class did not
+  annotations?: OopReactAnnotations<Instance>;
   onPropsChange?: (instance: Instance, props: Props, previousProps: Props) => void;
 }
 ```
 
-## Function-based entry points
+Mounts "class + one render method" as a React component. **This is the bridge, not the main path** — the main path is
+a plain component returning `obj.view()`; see [the React bridge](./guide/react-bridge.md).
+
+## Function islands
 
 ### `OopReactObserver(render)`
 
@@ -62,8 +57,7 @@ interface OopReactComponentOptions<Props, Instance> {
 OopReactObserver(render: () => ReactNode): ReactNode
 ```
 
-Called during a render, subscribes to the state `render` reads. It has to be called while rendering (it uses
-hooks internally).
+Called during a render, subscribes to the state `render` reads. Uses hooks internally.
 
 ### `OopReactCallback(render)`
 
@@ -71,7 +65,28 @@ hooks internally).
 OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Args) => Result
 ```
 
-Turns a function into a callback that renders an island when called — the render-prop shape.
+Wraps a function into a callback that renders an island when called — the render-prop shape.
+
+## State
+
+### `OopReactObservable(instance, annotations?, options?)`
+
+```ts
+OopReactObservable<T extends object>(
+  instance: T,
+  annotations?: {[K in keyof T]?: AnnotationMapEntry},
+  options?: {autoBind?: boolean; deep?: boolean},
+): T
+```
+
+Called in a state class's constructor: fields become observable, methods become actions and are bound. The keys of
+`annotations` are the real field names, so a typo is a compile error. Idempotent.
+
+```ts
+constructor() {
+  OopReactObservable(this, {api: false});
+}
+```
 
 ## Errors
 
@@ -81,27 +96,7 @@ Turns a function into a callback that renders an island when called — the rend
 <OopReactErrorBoundary name="Chart">{children}</OopReactErrorBoundary>
 ```
 
-A boundary that uses the global `fallback` / `onError` configuration. `@OopReactRender()` already adds one per
-island; use this directly when a hand-written piece of JSX needs protecting.
-
-## State
-
-### `OopReactObservable(instance, options?)`
-
-```ts
-OopReactObservable<T extends object>(instance: T, options?: OopReactObservableOptions): T
-```
-
-Makes an object observable in place; calling it twice is a no-op. Use it for instances created outside a
-component and shared by several.
-
-```ts
-interface OopReactObservableOptions {
-  annotations?: Record<string, unknown>;  // field name → false means "not state"
-  autoBind?: boolean;                     // default true
-  deep?: boolean;                         // default true: nested objects/arrays are tracked too
-}
-```
+A boundary using the global `fallback` / `onError`. `@OopReactRender()` already adds one per island.
 
 ## Configuration
 
@@ -109,14 +104,8 @@ interface OopReactObservableOptions {
 
 ```ts
 OopReactConfigure(patch: Partial<OopReactConfig>): () => void
-```
 
-Replaces defaults and returns a function that restores them.
-
-```ts
 interface OopReactConfig {
-  observe(render: () => ReactNode): ReactNode;
-  observable<T extends object>(instance: T, options?: OopReactObservableOptions): T;
   fallback: ComponentType<OopReactFallbackProps>;
   onError(error: unknown, name?: string): void;
 }
@@ -128,14 +117,19 @@ interface OopReactFallbackProps {
 }
 ```
 
+Returns a restore function. The reactive engine is not configurable on purpose — see
+[global configuration](./guide/configure.md).
+
 ## Types
 
 | Type | Purpose |
 | --- | --- |
 | `OopReactRenderFunction` | `(...args: any[]) => ReactNode`, the shape of a render method |
+| `OopReactRenderOptions` | decorator options (`name` / `key`) |
 | `OopReactRenderMethodKey<Instance>` | every method on `Instance` that returns `ReactNode` |
-| `OopReactComponentOptions` | component factory options |
-| `OopReactObservableOptions` | observability options |
-| `OopReactConfig` | global configuration |
+| `OopReactComponentOptions` | component bridge options |
+| `OopReactAnnotations<T>` | field name → MobX annotation, keys constrained by `keyof T` |
+| `OopReactObservableOptions` | `autoBind` / `deep` |
+| `OopReactConfig` | global configuration (`fallback` / `onError`) |
 | `OopReactFallbackProps` | props a fallback component receives |
 | `OopReactErrorBoundaryProps` | props of the boundary component |

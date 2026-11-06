@@ -1,17 +1,24 @@
 import {Button, Card, Input, Modal, Space, Tag, Typography} from 'antd';
-import {OopReactComponent, OopReactRender} from 'oop-react';
+import {OopReactObservable, OopReactRender} from 'oop-react';
 import {bumpRender} from '../app/renderStats';
+import type {Workshop} from './Workshop';
 
 interface Invite {
   name: string;
   email: string;
 }
 
-class InviteBoard {
+export class InviteBoard {
   open = false;
   name = '';
   email = '';
   invites: Invite[] = [];
+  readonly workshop: Workshop;
+
+  constructor(workshop: Workshop) {
+    this.workshop = workshop;
+    OopReactObservable(this, {workshop: false});
+  }
 
   get canSubmit(): boolean {
     return this.name.trim() !== '' && this.email.includes('@');
@@ -35,10 +42,12 @@ class InviteBoard {
 
   submit(): void {
     if (!this.canSubmit) return;
-    this.invites.push({name: this.name.trim(), email: this.email.trim()});
+    const invite = {name: this.name.trim(), email: this.email.trim()};
+    this.invites.push(invite);
     this.name = '';
     this.email = '';
     this.open = false;
+    this.workshop.log.add(`邀请「${invite.name}」`);
   }
 
   @OopReactRender()
@@ -46,7 +55,7 @@ class InviteBoard {
     return (
       <Card
         title="弹窗表单"
-        extra={<span className="render-count">这个岛渲染 {bumpRender('invite-shell')} 次</span>}
+        extra={<span className="render-count">这个岛渲染 {bumpRender('invite')} 次</span>}
       >
         <Space direction="vertical" size="middle" style={{width: '100%'}}>
           {this.actions()}
@@ -65,7 +74,7 @@ class InviteBoard {
           邀请成员
         </Button>
         <Typography.Text type="secondary">
-          弹窗开合就是 <code>this.open</code> 这个字段，没有 useState。
+          弹窗开合就是 <code>this.open</code>，没有 useState。
         </Typography.Text>
       </Space>
     );
@@ -97,8 +106,8 @@ class InviteBoard {
         okText="邀请"
         cancelText="取消"
         okButtonProps={{disabled: !this.canSubmit}}
-        onOk={this.submit}
-        onCancel={this.closeDialog}
+        onOk={() => this.submit()}
+        onCancel={() => this.closeDialog()}
       >
         <Space direction="vertical" size="small" style={{width: '100%'}}>
           <Input
@@ -116,5 +125,3 @@ class InviteBoard {
     );
   }
 }
-
-export const InviteCard = OopReactComponent(InviteBoard, 'view');

@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import {getOopReactConfig} from '../config/config';
+import {ObservedRender} from './ObservedRender';
 
 /**
  * Subscribes any function that returns JSX to the observable state it reads.
@@ -7,8 +7,8 @@ import {getOopReactConfig} from '../config/config';
  * This is the primitive `@OopReactRender()` is built on. It is public for the
  * few places where a class method is not the natural unit — a render prop, an
  * inline block inside an existing component — and it must be called while a
- * component renders, because the default implementation uses hooks.
+ * component renders, because it uses hooks.
  */
 export function OopReactObserver(render: () => ReactNode): ReactNode {
-  return getOopReactConfig().observe(render);
+  return <ObservedRender render={render} />;
 }

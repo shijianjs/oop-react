@@ -43,10 +43,17 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    副作用，用不进入实例的普通对象（demo 的 `renderStats.ts` 就是例子）。
 3. **改状态走方法。** 方法是 MobX 的 action，`onClick={this.save}` 不会有 `enforceActions` 告警；
    JSX 里的内联箭头直接赋值会有告警，文档里明确写了这一条，不要在库里偷偷 `configure` 全局 MobX。
-4. **默认实现要能换。** `observe` / `observable` / `fallback` / `onError` 四个口子在
-   `src/config/config.ts`，新增能力时先想「这是不是该成为一个口子」，而不是硬编码进组件。
-5. **库不依赖 UI 组件库。** 默认 fallback 用内联样式的朴素 div；antd 只出现在 demo 和文档示例里。
-6. **实例只建一次。** `OopReactComponent` 的实例活得和组件一样久，构造函数必须可重复执行但不重建；
+4. **对象图是主体，`OopReactComponent` 只是桥。** 主路径是「状态类在应用入口 `new`、相互持有、普通组件
+   返回 `obj.view()`」；`OopReactComponent` 只服务渐进式采用和「必须是一个组件」的场合。加新 API 前先问：
+   这是不是在把对象图往组件树上搬？是就别加。
+5. **绑死 mobx，不留响应式抽象层。** `config` 只有 `fallback` / `onError`；对 `makeAutoObservable` 的封装
+   只提供类型和幂等（`OopReactObservable`），不要重新引入 `observe` / `observable` 口子，也不要包
+   `computed` / `flow` / `reaction` —— 用户直接从 `mobx` import。
+6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this, {...})`（放最后一行）；
+   `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。annotations 的键必须受
+   `keyof T` 约束，别退回 `Record<string, unknown>`。
+7. **库不依赖 UI 组件库。** 默认 fallback 用内联样式的朴素 div；antd 只出现在 demo 和文档示例里。
+8. **实例只建一次**（`OopReactComponent` 的实例活得和组件一样久），构造函数可重复执行但不重建；
    需要响应后续 props 就用 `onPropsChange` 调一个方法。
 
 ## 文档语言（中英双语）

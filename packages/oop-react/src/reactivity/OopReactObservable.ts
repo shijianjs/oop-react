@@ -1,20 +1,39 @@
-import {getOopReactConfig} from '../config/config';
-import type {OopReactObservableOptions} from './reactivity';
+import {
+  makeInstanceObservable,
+  type OopReactAnnotations,
+  type OopReactObservableOptions,
+} from './reactivity';
 
-export type {OopReactObservableOptions};
+export type {OopReactAnnotations, OopReactObservableOptions};
 
 /**
- * Makes an already-constructed object observable, through whatever
- * `OopReactConfigure({observable})` points at.
+ * Declares an object's state, in the object's own constructor:
  *
- * `OopReactComponent` does this for the instance it creates. Reach for it
- * directly when an instance outlives a single component — a store shared by
- * several classes, a service handed down from outside React. Calling it twice
- * is a no-op.
+ * ```ts
+ * class Cart {
+ *   readonly api = new ApiClient();
+ *   items: Item[] = [];
+ *
+ *   constructor() {
+ *     OopReactObservable(this, {api: false});
+ *   }
+ * }
+ * ```
+ *
+ * Every field becomes observable, every method an action bound to the
+ * instance, and the second argument excludes the fields that are not state — a
+ * service, a DOM node, a cache, or another state object that already declared
+ * its own observability.
+ *
+ * This is a thin, typed wrapper over MobX's `makeAutoObservable`: the only
+ * things it adds are the field-name types and idempotence. Everything else
+ * about MobX — `computed`, `flow`, `reaction`, `autorun` — is used directly, by
+ * importing it from `mobx`.
  */
 export function OopReactObservable<T extends object>(
   instance: T,
+  annotations?: OopReactAnnotations<T>,
   options?: OopReactObservableOptions,
 ): T {
-  return getOopReactConfig().observable(instance, options);
+  return makeInstanceObservable(instance, annotations, options);
 }

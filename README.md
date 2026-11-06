@@ -2,38 +2,54 @@
 
 **简体中文** | [English](./README.en.md)
 
-状态和行为留在一个普通类里，只有 `@OopReactRender()` 方法参与重渲染。
+状态和行为待在一个普通类里，`@OopReactRender()` 标出哪些方法是 UI，其余全是普通对象代码。这些类可以在任何
+地方 `new`，相互持有、直接调用 —— React 只在最外层出现一次。
 
 ```tsx
-class Counter {
-  count = 0;
+class Cart {
+  items: Item[] = [];
 
-  increment(): void {
-    this.count += 1;
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  add(item: Item): void {
+    this.items.push(item);
   }
 
   @OopReactRender()
   view() {
-    return <button onClick={this.increment}>{this.count}</button>;
+    return <ul>{this.items.map((item) => <li key={item.id}>{item.title}</li>)}</ul>;
   }
 }
 
-export const CounterView = OopReactComponent(Counter, 'view');
+const cart = new Cart();
+
+// 唯一和 React 有关的东西
+export function CartView() {
+  return cart.view();
+}
 ```
 
-没有 `useState`，没有 `useCallback`，没有依赖数组：`this.count` 是当前值，`this.increment` 是稳定引用，
-`view()` 只订阅自己读到的字段。
+- **没有 `useState` / `useCallback` / 依赖数组**：字段就是状态，方法就是回调（已经绑定好）。
+- **重渲染有边界**：一个类可以有任意多个 `@OopReactRender()` 方法，每个都是独立的岛，只订阅自己读到的字段，
+  各自被一个错误边界包住。
+- **逻辑不搬家**：对象之间相互持有，孙子可以直接写祖父的字段，不经过 context、回调 prop 或 ref。
+- **状态类本身就是普通对象**：可以在测试里 `new`，可以被别的类注入，可以脱离 React 单独使用。
 
 - 文档：[中文](https://shijianjs.github.io/oop-react/) · [English](https://shijianjs.github.io/oop-react/en/)
 - 在线演示：https://shijianjs.github.io/oop-react/demo/
 - npm：https://www.npmjs.com/package/oop-react
+
+`OopReactComponent(Class, 'view')` 是把一个类挂成 React 组件的**桥**（渐进式采用、或塞进已有 React 页面），
+不是主路径 —— 主路径就是上面那两行。
 
 ## 仓库结构
 
 | 目录 | 内容 |
 | --- | --- |
 | `packages/oop-react/` | 发布的 npm 库（Vite lib + `tsc` 声明） |
-| `demo/` | Vite + React + antd 演示，构建产物落在 `docs/build/demo` |
+| `demo/` | Vite + React + antd 演示：一张对象图，一行 React |
 | `docs/` | Docusaurus 文档站（中文默认、英文在 `/en/`），与 demo 一起发布到 GitHub Pages |
 
 ## 本地开发

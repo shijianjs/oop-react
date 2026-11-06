@@ -5,11 +5,15 @@ slug: /guide/errors
 ---
 
 Every render method is wrapped in a React error boundary. When one throws, only its island becomes a fallback;
-siblings and the parent island keep rendering.
+siblings and the parent keep rendering.
 
 ```tsx
 class Report {
   broken = true;
+
+  constructor() {
+    OopReactObservable(this);
+  }
 
   @OopReactRender()
   view() {
@@ -34,17 +38,15 @@ class Report {
 }
 ```
 
-Why not a single boundary around the whole app: that lets one failure eat the page, while here every island is a
-unit that can fail and recover on its own.
+Why not a single boundary around the whole app: that lets one failure eat the page, while here every island is a unit
+that can fail and recover on its own.
 
 ## The default fallback
 
-Out of the box it is a plain `<div>`: one heading, the error message, a "Retry" button. It deliberately uses no
-design system — the library should not drag antd or MUI into an application that never asked for it.
+Out of the box it is a plain `<div>`: one heading, the error message, a "Retry" button. It deliberately uses no design
+system — the library should not drag antd or MUI into an application that never asked for it.
 
 ## Replacing it
-
-`OopReactConfigure({fallback})` replaces it globally. The fallback receives three fields:
 
 ```tsx
 import {Alert, Button} from 'antd';
@@ -68,13 +70,13 @@ OopReactConfigure({
 ```
 
 - `error`: whatever the method threw;
-- `name`: `ClassName.method` (or the `name` given to `OopReactComponent`), to locate the island;
-- `reset`: clears the error and renders that method again.
+- `name`: the island's name, `<class name>.<method name>` — a production build minifies class names, so name the
+  ones a human reads with `@OopReactRender({name: 'FlakySection'})`;
+- `reset`: clears the error and runs the render method again.
 
-**Be precise about what retry means**: `reset` only clears "this island failed" and runs the render method again.
-If the state that caused the failure is still there, it throws again and the fallback comes back. Real recovery
-usually means fixing the state first (say, a "recover" button in another island calling `this.recover()`) and then
-retrying — the failure card in the demo walks through exactly that.
+**What retry means**: `reset` only clears "this island failed" and re-renders the method. If the state that caused
+the failure is still there, it throws again. Real recovery usually means fixing the state first (another island
+calling `this.recover()`) and then retrying — the failure card in the demo walks through exactly that.
 
 ## Reporting
 
@@ -86,12 +88,10 @@ OopReactConfigure({
 });
 ```
 
-Called once per throw of a render method (same timing as React's own `componentDidCatch`). The default is
+Called once per throw of a render method (the same moment as React's `componentDidCatch`). The default is
 `console.error`.
 
-## Wrapping a smaller piece
-
-To protect a section of JSX rather than a whole render method, use the exported boundary directly:
+## Protecting a smaller piece
 
 ```tsx
 import {OopReactErrorBoundary} from 'oop-react';

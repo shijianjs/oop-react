@@ -1,75 +1,44 @@
 ---
 id: configure
-title: 替换默认实现
+title: 全局配置
 slug: /guide/configure
 ---
 
-库的核心只有一层薄封装，四件事都是可替换的：
+可以配的只有两件：失败的岛长什么样、错误报到哪里去。
 
 ```ts
 OopReactConfigure({
-  observe,     // 怎么订阅
-  observable,  // 怎么把实例变成可观察的
-  fallback,    // 渲染方法抛错时显示什么
-  onError,     // 错误怎么上报
+  fallback,  // 渲染方法抛错时显示什么
+  onError,   // 错误怎么上报
 });
 ```
 
 它返回一个恢复函数，把自己撤掉 —— 测试里最常用：
 
 ```ts
-const restore = OopReactConfigure({fallback: MyFallback});
+const restore = OopReactConfigure({onError: vi.fn()});
 // ……
 restore();
 ```
 
-## 默认实现的边界在哪
+## 为什么没有「换掉响应式实现」的口子
 
-| 能力 | 默认 | 说明 |
-| --- | --- | --- |
-| `observe` | MobX `Reaction` | 在渲染里跑一遍渲染方法，订阅它读到的字段 |
-| `observable` | `makeAutoObservable` | 字段变可观察，方法变 action 并绑定 `this` |
-| `fallback` | 内置的朴素 div | 无设计系统依赖 |
-| `onError` | `console.error` | |
+被认真考虑过，结论是不做。MobX 的价值不在 `makeAutoObservable` 这一行，而在 `computed` 失效传播、批量事务、
+`flow`、`reaction`、`toJS`、调试工具这一整套。换掉它的工作量约等于自己造一个 MobX，而在中间塞一层适配层只会
+让两边都变形。
 
-## 换掉订阅实现
+所以：
 
-`observe` 拿到一个返回 JSX 的函数，返回渲染结果。它在一个组件内部被调用，所以可以用 hooks：
+- 状态类在自己的构造器里声明可观察性（`OopReactObservable`），这是 MobX 的地方；
+- 库只负责「把渲染方法放进一个 `Reaction` 里跑，读到的字段就订阅」；
+- 想要 MobX 的其它能力，直接从 `mobx` import，没有中间层。
 
-```tsx
-import {useSyncExternalStore} from 'react';
+## 配置是模块级的
 
-OopReactConfigure({
-  observe: (render) => {
-    // 自己的订阅实现：只要在数据变化时让 React 重渲染即可
-    return <MyObserved render={render} />;
-  },
-});
-```
+`OopReactConfigure` 影响之后创建的实例和之后的渲染，**不会**让已经挂载的岛重新订阅。在应用启动时配一次，
+测试里用返回值恢复。
 
-`observable` 拿到实例，返回同一个实例（可以就地加工，也可以返回包装对象，但返回什么，后续方法调用就作用在
-什么上面）：
+只改一个地方就不必动全局配置：
 
-```tsx
-OopReactConfigure({
-  observable: (instance) => {
-    // 例如：换成自己的响应式实现，或干脆什么都不做（此时渲染方法只在父级重渲染时执行）
-    return instance;
-  },
-});
-```
-
-:::caution 不是「换个库就能用」
-`observe` / `observable` 两个口子足以换掉 MobX，但换上去的实现要自己保证两件事：`observe` 里的读操作能
-被追踪、`observable` 之后的写操作能触发失效。库不替你做这层适配 —— 它只规定这两个函数长什么样。
-:::
-
-## 只换一个岛
-
-`fallback` / `onError` 是全局的。只想改一个地方，就用 `<OopReactErrorBoundary>` 手动包一层；只想给某个
-组件换订阅行为，就用 `OopReactObserver` 自己写。
-
-## 不要用它做运行时切换
-
-`OopReactConfigure` 是模块级配置，改它对之后创建的实例和之后的渲染生效，**不会**让已经挂载的岛重新订阅。
-配置在应用启动时做一次，测试里用返回值恢复。
+- 某个岛要用别的错误展示 → 手动包一层 `<OopReactErrorBoundary>`；
+- 一段手写 JSX 要订阅 → 用 `OopReactObserver`。

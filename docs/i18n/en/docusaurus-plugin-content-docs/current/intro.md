@@ -5,95 +5,68 @@ slug: /intro
 sidebar_position: 1
 ---
 
-React's function components separate state from the thing that owns it: state lives in hook slots, the component
-function runs again on every render, and `useCallback`, `useMemo`, dependency arrays, `useRef` and stale closures
-become patches you have to memorise. The more logic a component holds, the longer the function gets — and pulling
-out a child means lifting state up and passing callbacks down.
+React puts state inside the component function, and the component function runs again on every render. So
+`useCallback`, `useMemo`, dependency arrays, `useRef` and stale closures become patches you have to memorise; the
+moment logic grows, the function grows with it, and pulling out a child means lifting state up and threading
+callbacks down.
 
-oop-react organises it differently: **state and behaviour stay in one instance of a plain class, and only methods
-marked `@OopReactRender()` re-render**.
+oop-react changes **how the logic is organised**, not how JSX is written: state and behaviour live in a plain
+class, `@OopReactRender()` marks which methods are UI, and everything else is ordinary object code. Those classes
+can be `new`ed anywhere and hold each other — React appears once, at the edge.
 
-```tsx title="The same component, two ways"
-// hooks: state, callbacks and dependencies all live in the component function
-function Counter() {
-  const [count, setCount] = useState(0);
-  const increment = useCallback(() => setCount((value) => value + 1), []);
-  return <button onClick={increment}>{count}</button>;
-}
+```tsx title="One object graph, one line of React"
+class Cart {
+  items: Item[] = [];
 
-// oop-react: state and callbacks are members of the instance
-class Counter {
-  count = 0;
+  constructor() {
+    OopReactObservable(this);
+  }
 
-  increment(): void {
-    this.count += 1;
+  add(item: Item): void {
+    this.items.push(item);
   }
 
   @OopReactRender()
   view() {
-    return <button onClick={this.increment}>{this.count}</button>;
+    return <ul>{this.items.map((item) => <li key={item.id}>{item.title}</li>)}</ul>;
   }
 }
 
-export const CounterView = OopReactComponent(Counter, 'view');
+const cart = new Cart();
+
+// the only React-aware thing here
+export function CartView() {
+  return cart.view();
+}
 ```
 
-The class on the right needs no `useCallback`: `this.increment` is a method already bound to the instance, so the
-reference never changes. It needs no dependency array either: `view()` reads `count`, so a change to `count`
-re-renders exactly that method and nothing else.
+`cart` is created at module scope, asserted against in tests as `new Cart()`, and held directly by whoever needs
+it. It does not depend on React, and it does not depend on a component being mounted.
 
 ## Three rules
 
-**Fields are state.** `count = 0` lives on the class; changing it is `this.count += 1`. No setter function, no
-snapshot of a past render — what you read is the current value.
+**The object graph organises the logic.** Who holds whom is a business decision: a grandchild can hold its
+grandparent, one-to-many is an array. Updates travel along method calls — no lifting state into a common parent,
+no context, no callback props, no event bus, no refs.
 
-**Methods are behaviour.** Code that changes state lives in methods, and a button calls a method. Logic stays on
-the object instead of being scattered across arrow functions in JSX.
+**`@OopReactRender()` is the render boundary.** A class can have any number of these methods, and each is an
+**island**: it subscribes to the fields it reads and carries its own error boundary. Islands nest, so the
+granularity is yours.
 
-**`@OopReactRender()` is the render boundary.** A class can have as many render methods as you like, and each one
-is an independent island: it subscribes to the fields it reads, and it has its own error boundary. Islands nest, so
-the granularity is yours to choose.
-
-```tsx title="One class, several islands"
-class Board {
-  title = "Today's list";
-  items: string[] = [];
-
-  @OopReactRender()
-  view() {
-    return (
-      <section>
-        {this.header()}   {/* re-renders only when title changes */}
-        {this.list()}     {/* re-renders only when items changes */}
-      </section>
-    );
-  }
-
-  @OopReactRender()
-  header() {
-    return <h2>{this.title}</h2>;
-  }
-
-  @OopReactRender()
-  list() {
-    return <ul>{this.items.map((item) => <li key={item}>{item}</li>)}</ul>;
-  }
-}
-```
+**React lives at the edge.** A plain function component returning `root.view()` is enough. Only when a class has to
+*be* a component for somebody else's React code do you need
+[`OopReactComponent`](./guide/react-bridge.md) — progressive adoption, or embedding the graph in an existing page.
 
 ## What it gives up
 
-Being honest about the trade-off beats wishful thinking:
+- **It is bound to MobX.** Tracking is MobX, and the library offers no "swap the reactive engine" seam — replacing
+  it costs about as much as writing one. `makeAutoObservable`, `computed`, `flow` and `reaction` are used directly;
+  see [state](./guide/state.md).
+- **Decorators use the legacy semantics** (`experimentalDecorators`). Prefer not to? `OopReactObserver` and
+  `OopReactCallback` are the equivalent function entry points.
+- **`props` is not the main channel.** Objects hold each other; props seed constructors and hand things to outside
+  React code.
+- **It is not "one class per component".** A class is a home for logic, not a stand-in for a component: it can have
+  a dozen islands, and an island need not be attached to any component of its own.
 
-- **It is not "React without React".** The component tree, JSX, React DevTools and the ecosystem all stay. What is
-  given up is "the component function re-runs every frame" as an organising principle, in exchange for a stable
-  instance context.
-- **Re-rendering relies on fine-grained subscription; the default implementation is MobX.** Don't want it? Swap
-  it, see [replacing the defaults](./guide/configure.md).
-- **Decorators use the legacy semantics** (`experimentalDecorators`). TypeScript 5, 6 and 7 all support it, but the
-  flag has to be on in `tsconfig.json`. Prefer not to? `OopReactObserver` and `OopReactCallback` are the equivalent
-  function-based entry points.
-- **`props` is not the main channel.** Objects hold each other and call methods; `props` exists to seed the
-  constructor.
-
-Next: [getting started](./getting-started.md).
+Next: [getting started](./getting-started.md), then [the object graph](./guide/structure.md).

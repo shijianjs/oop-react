@@ -5,31 +5,27 @@ slug: /api
 sidebar_position: 3
 ---
 
-所有导出都带 `OopReact` 前缀。包是纯 ESM，`react` / `react-dom` 是 peer 依赖。
+所有导出都带 `OopReact` 前缀。包是纯 ESM，`react` / `react-dom` / `mobx` 是 peer 依赖。
 
-## 装饰器
+## 渲染
 
-### `OopReactRender()`
+### `OopReactRender(options?)`
 
 ```ts
-OopReactRender(): MethodDecorator
-```
+OopReactRender(options?: OopReactRenderOptions): MethodDecorator
 
-标在一个返回 `ReactNode` 的方法上。方法保留原签名，调用它返回一个已订阅、已包边界的元素。
-
-```tsx
-class Counter {
-  @OopReactRender()
-  view() {
-    return <p>{this.count}</p>;
-  }
+interface OopReactRenderOptions {
+  name?: string;                                          // 岛名前缀：<name>.<method>
+  key?: (instance: any, ...args: any[]) => Key | null;    // 列表里的 key
 }
 ```
 
-需要 `experimentalDecorators`。方法必须返回值类型可赋给 `ReactNode`，否则 `OopReactComponent` 的
-`OopReactRenderMethodKey` 不会把它算作可选方法。
+标在一个返回 `ReactNode` 的方法上。方法保留原签名，调用它返回一个已订阅、已包边界的元素；元素可以在任何
+渲染过程中创建（普通组件、别的岛、map）。
 
-## 组件工厂
+需要 `experimentalDecorators`。
+
+## 组件桥
 
 ### `OopReactComponent(Class, method, options?)`
 
@@ -39,20 +35,19 @@ OopReactComponent<Props, Instance>(
   method: OopReactRenderMethodKey<Instance>,
   options?: OopReactComponentOptions<Props, Instance>,
 ): ComponentType<Props>
-```
 
-创建实例一次、让它可观察、渲染 `method`。返回普通函数组件。
-
-```ts
 interface OopReactComponentOptions<Props, Instance> {
-  name?: string;                       // 组件与它的岛的名字：<name>.<method>
-  autoObservable?: boolean;            // false = 实例自己负责可观察性
-  observableOptions?: OopReactObservableOptions;
+  name?: string;                            // 组件与它的岛的名字前缀
+  autoObservable?: boolean;                 // 默认 true：类没自己声明时由本工厂声明
+  annotations?: OopReactAnnotations<Instance>;
   onPropsChange?: (instance: Instance, props: Props, previousProps: Props) => void;
 }
 ```
 
-## 函数式入口
+把「类 + 一个渲染方法」挂成 React 组件。**这是桥，不是主路径** —— 主路径是普通组件返回 `obj.view()`，见
+[与 React 衔接](./guide/react-bridge.md)。
+
+## 函数式岛
 
 ### `OopReactObserver(render)`
 
@@ -60,7 +55,7 @@ interface OopReactComponentOptions<Props, Instance> {
 OopReactObserver(render: () => ReactNode): ReactNode
 ```
 
-在组件渲染中调用，订阅 `render` 读到的状态。必须处于渲染过程中（内部使用 hooks）。
+在组件渲染中调用，订阅 `render` 读到的状态。内部使用 hooks。
 
 ### `OopReactCallback(render)`
 
@@ -68,7 +63,28 @@ OopReactObserver(render: () => ReactNode): ReactNode
 OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Args) => Result
 ```
 
-把函数包成「调用即得到岛」的回调，用于 render prop。
+包成「调用即得到岛」的回调，用于 render prop。
+
+## 状态
+
+### `OopReactObservable(instance, annotations?, options?)`
+
+```ts
+OopReactObservable<T extends object>(
+  instance: T,
+  annotations?: {[K in keyof T]?: AnnotationMapEntry},
+  options?: {autoBind?: boolean; deep?: boolean},
+): T
+```
+
+在状态类的构造器里调用：字段变可观察、方法变 action 并绑定。`annotations` 的键就是真实字段名，写错是编译错误。
+幂等。
+
+```ts
+constructor() {
+  OopReactObservable(this, {api: false});
+}
+```
 
 ## 错误
 
@@ -78,26 +94,7 @@ OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Arg
 <OopReactErrorBoundary name="Chart">{children}</OopReactErrorBoundary>
 ```
 
-使用全局 `fallback` / `onError` 配置的边界。`@OopReactRender()` 已经为每个岛自动加了一层，只在需要保护
-某段手写 JSX 时直接用它。
-
-## 状态
-
-### `OopReactObservable(instance, options?)`
-
-```ts
-OopReactObservable<T extends object>(instance: T, options?: OopReactObservableOptions): T
-```
-
-就地让对象可观察，重复调用无副作用。用于在组件之外创建、被多处共用的实例。
-
-```ts
-interface OopReactObservableOptions {
-  annotations?: Record<string, unknown>;  // 字段名 → false 表示「不是状态」
-  autoBind?: boolean;                     // 默认 true
-  deep?: boolean;                         // 默认 true，嵌套对象/数组也观察
-}
-```
+使用全局 `fallback` / `onError` 的边界。`@OopReactRender()` 已经给每个岛加了一层。
 
 ## 配置
 
@@ -105,14 +102,8 @@ interface OopReactObservableOptions {
 
 ```ts
 OopReactConfigure(patch: Partial<OopReactConfig>): () => void
-```
 
-替换默认实现，返回恢复函数。
-
-```ts
 interface OopReactConfig {
-  observe(render: () => ReactNode): ReactNode;
-  observable<T extends object>(instance: T, options?: OopReactObservableOptions): T;
   fallback: ComponentType<OopReactFallbackProps>;
   onError(error: unknown, name?: string): void;
 }
@@ -124,14 +115,18 @@ interface OopReactFallbackProps {
 }
 ```
 
+返回恢复函数。响应式实现不可替换，原因见[全局配置](./guide/configure.md)。
+
 ## 类型
 
 | 类型 | 用途 |
 | --- | --- |
 | `OopReactRenderFunction` | `(...args: any[]) => ReactNode`，渲染方法的形状 |
-| `OopReactRenderMethodKey<Instance>` | 实例上所有返回 `ReactNode` 的方法名 |
-| `OopReactComponentOptions` | 组件工厂选项 |
-| `OopReactObservableOptions` | 可观察性选项 |
-| `OopReactConfig` | 全局配置 |
+| `OopReactRenderOptions` | 装饰器选项（`name` / `key`） |
+| `OopReactRenderMethodKey<Instance>` | `Instance` 上所有返回 `ReactNode` 的方法名 |
+| `OopReactComponentOptions` | 组件桥选项 |
+| `OopReactAnnotations<T>` | 字段名 → MobX 注解，键受 `keyof T` 约束 |
+| `OopReactObservableOptions` | `autoBind` / `deep` |
+| `OopReactConfig` | 全局配置（`fallback` / `onError`） |
 | `OopReactFallbackProps` | fallback 组件收到的 props |
 | `OopReactErrorBoundaryProps` | 边界组件的 props |

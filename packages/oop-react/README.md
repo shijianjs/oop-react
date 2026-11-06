@@ -2,29 +2,34 @@
 
 **简体中文** | [English](https://github.com/shijianjs/oop-react/blob/main/packages/oop-react/README.en.md)
 
-给 React 用的面向对象 UI 组织方式：状态和行为在一个普通类里，**只有标了 `@OopReactRender()` 的方法参与重渲染**。
+用面向对象的方式组织 React 的逻辑：状态和行为待在一个普通类里，`@OopReactRender()` 标出哪些方法是 UI，
+其余全是普通对象代码。这些类可以在任何地方 `new`，相互持有、直接调用 —— React 只在最外层出现一次。
 
 ```tsx
-import {OopReactComponent, OopReactRender} from 'oop-react';
+import {OopReactObservable, OopReactRender} from 'oop-react';
 
-class Counter {
-  count = 0;
+class Cart {
+  items: Item[] = [];
 
-  increment(): void {
-    this.count += 1;
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  add(item: Item): void {
+    this.items.push(item);
   }
 
   @OopReactRender()
   view() {
-    return (
-      <button type="button" onClick={this.increment}>
-        count: {this.count}
-      </button>
-    );
+    return <ul>{this.items.map((item) => <li key={item.id}>{item.title}</li>)}</ul>;
   }
 }
 
-export const CounterView = OopReactComponent(Counter, 'view');
+const cart = new Cart();
+
+export function CartView() {
+  return cart.view();
+}
 ```
 
 ## 安装
@@ -35,9 +40,9 @@ pnpm add oop-react
 
 `react` / `react-dom`（`>=18.2`）与 `mobx`（`^6.12 || ^7`）都是 peer 依赖。
 
-> **mobx 只能装一份。** MobX 把记账信息挂在每个模块实例自己的 symbol 上，页面里两份 mobx 就会出现
-> 「状态改了界面不动」，而且不报错。用 `pnpm why mobx` 检查、`pnpm dedupe` 或 `overrides` 统一版本；
-> oop-react 运行时发现多份会在控制台告警。
+> **mobx 只能装一份。** 两份 mobx 各自持有自己的记账 symbol，A 造的 observable 在 B 的 reaction 里不是
+> observable：状态改了界面不动，而且不报错。用 `pnpm why mobx` 检查、`pnpm dedupe` 或 `overrides` 统一版本；
+> oop-react 运行时发现多份会告警。
 
 装饰器使用旧版语义，消费方的 `tsconfig.json` 需要：
 
@@ -47,30 +52,33 @@ pnpm add oop-react
 
 ## 它解决什么
 
-- **状态不用外置**：字段就是状态，`this.count += 1` 就是更新，读到的永远是当前值。
-- **回调不用记**：实例方法已经绑好 `this`，直接当 `onClick` 传，引用稳定，不需要 `useCallback`。
+- **状态就是字段**：`this.count += 1` 就是更新，读到的永远是当前值 —— 没有 setter、没有快照。
+- **方法就是回调**：实例方法在构造器里已经绑定，`onClick={this.save}` 直接传，引用稳定，不需要 `useCallback`。
 - **重渲染有边界**：一个类可以有任意多个渲染方法，每个都是独立的岛，只订阅自己读到的字段，各自被错误边界包住。
-- **逻辑不用搬家**：对象之间相互持有、直接调方法，不需要状态提升、回调下传、context。
+- **对象图组织逻辑**：父子孙、一对一、一对多都是直接引用，孙子可以直接写祖父的字段 —— 不需要状态提升、
+  回调下传、context 或 ref。
+- **可观察性在类自己手里**：构造器里 `OopReactObservable(this, {api: false})`，排除的字段名受 `keyof T`
+  约束，写错是编译错误。
 
 ## API
 
 | 导出 | 用途 |
 | --- | --- |
-| `OopReactRender()` | 装饰器：把一个返回 JSX 的方法变成岛 |
-| `OopReactComponent(Class, method, options?)` | 类 + 渲染方法 → React 组件 |
+| `OopReactRender(options?)` | 装饰器：把返回 JSX 的方法变成岛，可选 `name` / `key` |
+| `OopReactObservable(instance, annotations?, options?)` | 在状态类构造器里声明可观察性（`makeAutoObservable` 的类型安全包装） |
 | `OopReactObserver(render)` | 函数式入口：订阅一个返回 JSX 的函数 |
 | `OopReactCallback(render)` | 函数式入口：包成 render prop |
-| `OopReactObservable(instance, options?)` | 让组件之外创建的实例可观察 |
+| `OopReactComponent(Class, method, options?)` | 桥：把一个类挂成 React 组件（渐进式采用时用） |
 | `OopReactErrorBoundary` | 手动包一段 JSX 的错误边界 |
-| `OopReactConfigure(patch)` | 替换订阅、可观察化、fallback、错误上报 |
+| `OopReactConfigure({fallback, onError})` | 全局的失败展示与上报 |
 
 完整文档：[中文](https://shijianjs.github.io/oop-react/) · [English](https://shijianjs.github.io/oop-react/en/) 。
 在线演示：https://shijianjs.github.io/oop-react/demo/ 。
 
-## 默认实现
+## 依赖
 
-可观察性与订阅的默认实现是 [MobX](https://mobx.js.org/)（`makeAutoObservable` + `Reaction`）。不想用它，可以用
-`OopReactConfigure({observe, observable})` 换掉；库本身不依赖任何 UI 组件库。
+追踪层是 [MobX](https://mobx.js.org/)，直接使用：`computed`、`flow`、`reaction`、`toJS` 从 `mobx` import
+即可，库不包装它们。库本身不依赖任何 UI 组件库。
 
 ## 许可
 

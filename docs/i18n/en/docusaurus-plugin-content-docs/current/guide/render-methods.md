@@ -25,7 +25,7 @@ class Panel {
 
   @OopReactRender()
   counter() {
-    return <button onClick={() => this.bump()}>{this.count}</button>;
+    return <button onClick={this.bump}>count: {this.count}</button>;
   }
 
   @OopReactRender()
@@ -43,54 +43,89 @@ class Panel {
 }
 ```
 
-- `view()` reads nothing, so it renders once and never again;
+- `view()` reads nothing, so it renders once;
 - `counter()` reads `count`, so `bump()` re-renders only it;
 - `editor()` reads `note`, so typing re-renders only it.
 
-Calling `this.counter()` inside `view()` does not return a component tag but an element that is already subscribed.
-Nesting therefore needs no extra syntax — it looks exactly like a method call.
+`this.counter()` inside `view()` does not return a component tag but an element that is already subscribed —
+nesting needs no extra syntax.
 
-## Arguments
+## Where you can draw one
 
-Render methods can take arguments, passed straight through:
+An island's element is an ordinary React element and creating it has no side effects, so it can be produced anywhere:
 
 ```tsx
-class Rows {
-  items: Row[] = [];
+// in a plain component
+export function PanelView() {
+  return panel.view();
+}
 
-  @OopReactRender()
-  view() {
-    return <ul>{this.items.map((item) => this.row(item))}</ul>;
-  }
+// in another object's render method
+@OopReactRender()
+view() {
+  return <main>{this.panel.view()}</main>;
+}
 
-  @OopReactRender()
-  row(item: Row) {
-    return <li key={item.id}>{item.title}</li>;
-  }
+// in a list
+@OopReactRender()
+list() {
+  return <ul>{this.items.map((item) => item.row())}</ul>;
 }
 ```
 
-An argument is input for that render; it does not become part of the subscription. When the list changes,
-`view()` re-renders and calls `row(item)` again, and each `row` subscribes to whatever it reads.
+But **do not call a render method from an event handler**: it returns an element for React to render, it is not a
+command to render once.
+
+## Lists and keys
+
+The island's element is created by the decorator, so the caller has no element to put a `key` on — the key is
+declared there instead:
+
+```tsx
+// the object renders itself: its identity is its own
+@OopReactRender({key: (self: TodoItem) => self.title})
+row() {
+  return <li>{this.title}</li>;
+}
+
+// the parent renders rows for its children: identity comes from the argument
+@OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
+row(item: TodoItem) {
+  return <li>{item.title}</li>;
+}
+```
+
+The key function receives the instance first, then the call arguments.
+
+## Naming
+
+An island is named `<class name>.<method name>`; that is what React DevTools shows, what the fallback prints and
+what `onError` receives. A production build minifies the class name, so name the ones a human will read:
+
+```tsx
+@OopReactRender({name: 'FlakySection'})   // → FlakySection.content
+content() { … }
+```
+
+`OopReactComponent(Class, 'view', {name: 'CounterView'})` sets a prefix for every island of that class.
 
 ## Do not write state in a render method
 
-A render method runs while React is rendering, and writing state there invalidates the subscription mid-render. The
-rule is simple: **read state and produce JSX here, write state somewhere else.**
+A render method runs while React renders, and writing state there invalidates the subscription mid-render. The rule:
+**read state and produce JSX here; write state somewhere else.**
 
 ```tsx
 // Don't
 @OopReactRender()
 view() {
-  this.renders += 1;   // writing state → invalidation during render
+  this.renders += 1;   // writing state during a render
   return <p>{this.renders}</p>;
 }
 ```
 
-If you only want to observe how often something rendered, count into a plain object (not on the instance, so it is
-not subscribed):
+To count renders, use a plain object (not on the instance, so it is not subscribed):
 
-```tsx
+```ts
 const stats = {renders: 0};
 
 @OopReactRender()
@@ -102,8 +137,6 @@ view() {
 
 ## Without a class
 
-Two function-based entry points, with the same semantics.
-
 `OopReactObserver` turns a function that returns JSX into an island subscribed to what it reads:
 
 ```tsx
@@ -112,23 +145,14 @@ function Total() {
 }
 ```
 
-`OopReactCallback` wraps a callback that renders an island when called (the render-prop shape):
+`OopReactCallback` wraps a callback that renders an island when called — the render-prop shape:
 
 ```tsx
-const renderRow = OopReactCallback((item: Row) => <li key={item.id}>{item.title}</li>);
+const renderRow = OopReactCallback((item: Item) => <li key={item.id}>{item.title}</li>);
 
-function List({rows}: {rows: Row[]}) {
-  return <ul>{rows.map(renderRow)}</ul>;
+function List({items}: {items: Item[]}) {
+  return <ul>{items.map(renderRow)}</ul>;
 }
 ```
 
-Both use React hooks, so they must be called during a render — not from an event handler.
-
-## Naming
-
-Every island is named `<component name>.<method name>`:
-
-- the component name defaults to the class name, but a production build minifies that into `zD` — pass one when a
-  human is going to read it: `OopReactComponent(Class, 'view', {name: 'CounterView'})`;
-- that name is also what React DevTools shows, what `config.onError` receives as its second argument, and what the
-  fallback prints as the origin (`CounterView.list`). See [error handling](./errors.md).
+Both use hooks, so they must be called during a render — not from an event handler.

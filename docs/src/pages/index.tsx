@@ -82,6 +82,10 @@ const FEATURES = [
 const SAMPLE = `class Counter {
   count = 0;
 
+  constructor() {
+    OopReactObservable(this);
+  }
+
   increment(): void {
     this.count += 1;
   }
@@ -92,7 +96,11 @@ const SAMPLE = `class Counter {
   }
 }
 
-export const CounterView = OopReactComponent(Counter, 'view');`;
+const counter = new Counter();
+
+export function CounterView() {
+  return counter.view();
+}`;
 
 export default function Home(): ReactNode {
   const demoHref = useBaseUrl('/demo/');
@@ -102,7 +110,7 @@ export default function Home(): ReactNode {
       title="oop-react"
       description={translate({
         id: 'home.description',
-        message: '状态和行为留在一个普通类里，只有被 @OopReactRender() 注解的方法参与重渲染。',
+        message: '状态和行为留在一个普通类里，对象之间相互持有，React 只在最外层出现一次。',
       })}
     >
       <header className={styles.hero}>
@@ -110,7 +118,7 @@ export default function Home(): ReactNode {
         <p className={styles.tagline}>
           <Translate id="home.tagline">
             状态和行为留在一个普通类里，只有被 @OopReactRender() 注解的方法参与重渲染。
-            于是没有 useCallback，没有依赖数组，也不用把状态一层层往上提。
+            对象之间相互持有、直接调用，React 只在最外层出现一次。
           </Translate>
         </p>
         <div className={styles.actions}>

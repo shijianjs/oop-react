@@ -9,9 +9,10 @@ const sidebars: SidebarsConfig = {
       label: '指南',
       collapsed: false,
       items: [
+        'guide/structure',
         'guide/state',
         'guide/render-methods',
-        'guide/props',
+        'guide/react-bridge',
         'guide/errors',
         'guide/configure',
       ],
