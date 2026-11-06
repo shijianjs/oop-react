@@ -93,6 +93,18 @@ README 同样两份：根目录 `README.md`（中文）/ `README.en.md`，包里
 demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`demo/src/failure/` 各自一个能力，
 `demo/src/app/` 放外壳与共享样式。
 
+## GitHub 侧
+
+- **Pages 由 Actions 发布**（`build_type: workflow`），不是 `gh-pages` 分支。站点地址
+  https://shijianjs.github.io/oop-react/ ，demo 在 `/demo/`；首次开启用
+  `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`。
+- **dependabot**：npm（patch/minor 合成一个 PR）+ github-actions，每周一。
+- **auto-merge**：dependabot 的 PR 在检查全绿后 squash 合并。`GITHUB_TOKEN` 没有 workflows 权限，
+  所以改动 `.github/workflows/` 的 PR 会被跳过、留给人工；配了 `GH_PAT` secret（contents + pull requests
+  write）才会自动合。
+- typescript 的大版本在 dependabot 里被忽略：`@docusaurus/tsconfig` 还设着 `baseUrl`，TS 7 已移除，
+  docs 包升不上去（库本身已经在 7）。
+
 ## 已知的坑
 
 - **装饰器是旧版语义**：`tsconfig.base.json` 里 `experimentalDecorators: true`。库自身的 `dist` 里没有装饰器
