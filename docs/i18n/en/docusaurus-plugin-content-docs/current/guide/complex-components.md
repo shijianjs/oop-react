@@ -38,6 +38,11 @@ provider's island re-renders, ordinary React components inside it re-render too;
 islands are memoized (see [render methods](./render-methods.md)) and skip when their props are unchanged. So a
 provider can sit as deep as it needs to, best in the smallest island that requires it.
 
+Even the application-level provider needs no dedicated React component: the demo's `App.root()` is a render method —
+`ConfigProvider` + `<AntApp>` wrapping `this.view()`, and the entry file only writes
+`createRoot(el).render(app.root())`. antd components take the new theme through context, so they follow it whether
+the enclosing island re-renders or is skipped by the memo.
+
 ## `reaction` belongs to the object
 
 A side effect does not have to live at the application entry. Whoever owns the state can own the effect that follows

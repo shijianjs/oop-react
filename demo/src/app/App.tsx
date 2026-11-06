@@ -1,4 +1,6 @@
-import {Button, Menu, Space} from 'antd';
+import {App as AntApp, Button, ConfigProvider, Menu, Space, theme} from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
 import {OopReactObservable, OopReactRender} from 'oop-react';
 import {ActivityLog} from '../log/ActivityLog';
 import {CounterPage} from '../pages/counter/CounterPage';
@@ -9,16 +11,16 @@ import {OverviewPage} from '../pages/overview/OverviewPage';
 import type {Page} from '../pages/Page';
 import {TodosPage} from '../pages/todos/TodosPage';
 import {Router} from '../routing/Router';
-import {Feedback} from './Feedback';
+import {Feedback, FeedbackHost} from './Feedback';
 import {DOCS_HREF} from './links';
 import {Settings} from './Settings';
 
 /**
- * The root of the graph: settings, the router, one shared log, and five pages.
+ * The root of the graph: settings, the router, one shared log, and six pages.
  *
- * It also owns the layout, and the layout is split into islands so that switching
- * a page does not re-render the header, and writing to the log does not re-render
- * the menu.
+ * It also owns the whole page — the providers, the layout, and the islands the
+ * layout is split into, so that switching a page does not re-render the header
+ * and writing to the log does not re-render the menu.
  */
 export class App {
   readonly settings: Settings;
@@ -49,6 +51,35 @@ export class App {
       router: false,
       pages: false,
     });
+  }
+
+  /**
+   * What the whole application is mounted from.
+   *
+   * antd's theme and locale have to wrap the tree and follow `settings`, which is
+   * exactly what a render method does; `<AntApp>` is here because `App.useApp()`
+   * is what makes `message` theme-aware, and `FeedbackHost` captures that API for
+   * the objects. There is no separate "React layer" for this — it is a method
+   * like any other, and the entry file just renders its element.
+   */
+  @OopReactRender()
+  root() {
+    const {settings} = this;
+
+    return (
+      <ConfigProvider
+        theme={{algorithm: settings.theme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm}}
+        locale={settings.locale === 'en' ? enUS : zhCN}
+        // antd pads two-character Chinese labels ("源 码"); these labels are
+        // short by design, so keep them as written.
+        button={{autoInsertSpace: false}}
+      >
+        <AntApp>
+          <FeedbackHost feedback={this.feedback} />
+          {this.view()}
+        </AntApp>
+      </ConfigProvider>
+    );
   }
 
   @OopReactRender()

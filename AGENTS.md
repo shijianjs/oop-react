@@ -18,7 +18,7 @@
 
 GitHub Pages 只上传一个产物 `docs/build`：先建文档站，再建 demo 到它的 `demo/` 子目录。
 
-demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`AppRoot`、`Feedback`）、
+demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`Feedback`）、
 `routing/`（`Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，
 页面对象 + 它的子对象）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
 

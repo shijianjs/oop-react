@@ -36,6 +36,10 @@ table() {
 普通 React 组件会跟着重渲染；**嵌在里面的岛不会**，因为岛是 memo 的（见[渲染方法](./render-methods.md)），
 它的 props 没变就跳过。所以 provider 放在多深的岛上都行，放在需要它的最小岛里最好。
 
+连应用级的 provider 也不需要一层专门的 React 组件：demo 的 `App.root()` 就是这样一个渲染方法 ——
+`ConfigProvider` + `<AntApp>` 包着 `this.view()`，入口只写 `createRoot(el).render(app.root())`。
+antd 组件通过 context 拿新主题，所以外层岛重渲染（或被 memo 跳过）都不影响它们跟着变色。
+
 ## `reaction` 属于对象
 
 副作用不一定要写在应用入口。谁拥有状态，谁就可以拥有跟随它的副作用：
