@@ -36,7 +36,14 @@ jobs:
     steps:
       - name: Wait for checks and merge
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GH_PAT (fine-grained token with contents + pull requests write) is
+          # optional. Without it GITHUB_TOKEN is used, and PRs that touch
+          # `.github/workflows/` cannot be merged — GitHub refuses to let a token
+          # without the workflows scope update workflow files.
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          # Detecting the optional PAT by comparing tokens is unreliable
+          # (GITHUB_TOKEN is not exported to the shell), so branch on the secret.
+          HAS_PAT: ${{ secrets.GH_PAT != '' }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.inputs.pr || github.event.pull_request.number }}
           SELF_JOB: Merge when checks pass
@@ -69,6 +76,12 @@ jobs:
             echo "waiting for: $pending"
             sleep 20
           done
+
+          if [ "$HAS_PAT" != "true" ] &&
+            gh pr view "$pr" --json files --jq '.files[].path' | grep -q '^\.github/workflows/'; then
+            echo "PR #$pr touches workflow files, leaving it for manual merge"
+            exit 0
+          fi
 
           # GitHub computes mergeability asynchronously, so retry a few times.
           mergeable=""

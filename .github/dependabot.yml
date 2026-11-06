@@ -13,6 +13,13 @@ updates:
       - dependencies
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # The docs package cannot take TypeScript 7 yet: @docusaurus/tsconfig
+      # still sets `baseUrl`, which TS 7 removed. The library is already on 7;
+      # this only stops the docs-side proposal from opening a PR that cannot pass.
+      - dependency-name: "typescript"
+        update-types:
+          - version-update:semver-major
     groups:
       # Patch and minor bumps arrive as one PR so the auto-merge queue stays
       # short; majors keep their own PR because they need a human read.
