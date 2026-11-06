@@ -1,4 +1,4 @@
-import {Component, createElement, type ErrorInfo, type ReactNode} from 'react';
+import {Component, type ErrorInfo, type ReactNode} from 'react';
 import {getOopReactConfig} from '../config/config';
 
 export interface OopReactErrorBoundaryProps {
@@ -44,11 +44,7 @@ export class OopReactErrorBoundary extends Component<
     const {failure} = this.state;
     if (failure !== null) {
       const {fallback: Fallback} = getOopReactConfig();
-      return createElement(Fallback, {
-        error: failure.error,
-        name: this.props.name,
-        reset: this.#reset,
-      });
+      return <Fallback error={failure.error} name={this.props.name} reset={this.#reset} />;
     }
     return this.props.children;
   }

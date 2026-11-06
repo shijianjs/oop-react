@@ -1,4 +1,4 @@
-import {createElement, type ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import {getOopReactConfig} from '../config/config';
 import {OopReactErrorBoundary} from '../error/OopReactErrorBoundary';
 import {islandName} from './islandName';
@@ -32,10 +32,10 @@ export function OopReactRenderIsland({
   name,
 }: OopReactRenderIslandProps): ReactNode {
   const {observe} = getOopReactConfig();
-  return createElement(
-    OopReactErrorBoundary,
-    {name},
-    observe(() => method.apply(instance, args)),
+  return (
+    <OopReactErrorBoundary name={name}>
+      {observe(() => method.apply(instance, args))}
+    </OopReactErrorBoundary>
   );
 }
 
@@ -63,8 +63,7 @@ export function OopReactRender(): MethodDecorator {
     }
 
     descriptor.value = function (this: object, ...args: unknown[]): ReactNode {
-      const name = islandName(this, propertyKey);
-      return createElement(OopReactRenderIsland, {instance: this, method, args, name});
+      return <OopReactRenderIsland instance={this} method={method} args={args} name={islandName(this, propertyKey)} />;
     } as never;
 
     return descriptor;

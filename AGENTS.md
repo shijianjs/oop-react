@@ -119,4 +119,6 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
 - 文本文件一律 LF。
 - 注释解释「为什么」，不解释「做了什么」；面向使用者的文案用中文，代码标识符用英文。
 - 不用 ESLint/Prettier：格式化靠编辑器约定（2 空格、单引号、无分号省略）。改动时跟随周围写法。
+- **会产出 JSX 的模块用 `.tsx` + JSX**；`createElement` 只留给真正「拿运行时值拼元素」且本身不该是
+  组件的 `.ts` 模块。别为了少一次 JSX 配置把组件写成 `createElement` 链——可读性差得多。
 - 提交信息用 `feat:` / `fix:` / `docs:` / `chore:` 前缀，一次提交一件事。

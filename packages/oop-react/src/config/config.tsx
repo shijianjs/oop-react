@@ -1,4 +1,4 @@
-import {createElement, type ComponentType, type ReactNode} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import {DefaultErrorFallback} from '../error/DefaultErrorFallback';
 import {makeInstanceObservable, type OopReactObservableOptions} from '../reactivity/reactivity';
 import {ObservedRender} from '../render/ObservedRender';
@@ -31,7 +31,7 @@ export interface OopReactConfig {
 }
 
 const defaults: OopReactConfig = {
-  observe: (render) => createElement(ObservedRender, {render}),
+  observe: (render) => <ObservedRender render={render} />,
   observable: (instance, options) => makeInstanceObservable(instance, options),
   fallback: DefaultErrorFallback,
   onError: (error, name) => {

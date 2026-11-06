@@ -1,4 +1,4 @@
-import {createElement, type CSSProperties} from 'react';
+import type {CSSProperties} from 'react';
 import type {OopReactFallbackProps} from '../config/OopReactFallbackProps';
 
 const box: CSSProperties = {
@@ -18,6 +18,10 @@ const message: CSSProperties = {
   overflowWrap: 'anywhere',
 };
 
+const retry: CSSProperties = {
+  alignSelf: 'flex-start',
+};
+
 /**
  * The fallback a failing render method lands on when the consumer has not
  * configured its own with `OopReactConfigure({fallback})`.
@@ -27,16 +31,14 @@ const message: CSSProperties = {
  * application that never asked for one.
  */
 export function DefaultErrorFallback({error, name, reset}: OopReactFallbackProps) {
-  return createElement(
-    'div',
-    {style: box, role: 'alert', 'data-oop-react-fallback': ''},
-    createElement('strong', null, name ? `Render failed: ${name}` : 'Render failed'),
-    createElement('p', {style: message}, describe(error)),
-    createElement(
-      'button',
-      {type: 'button', onClick: reset, style: {alignSelf: 'flex-start'}},
-      'Retry',
-    ),
+  return (
+    <div style={box} role="alert" data-oop-react-fallback="">
+      <strong>{name ? `Render failed: ${name}` : 'Render failed'}</strong>
+      <p style={message}>{describe(error)}</p>
+      <button type="button" onClick={reset} style={retry}>
+        Retry
+      </button>
+    </div>
   );
 }
 
