@@ -1,0 +1,63 @@
+name: Deploy site
+
+# One Pages deployment carries both deliverables: the docs site at `/oop-react/`
+# and the demo at `/oop-react/demo/`. The demo is a separate Vite build that is
+# written into the docs build's output directory, so the artifact uploaded below
+# is `docs/build` alone.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      # One artifact: docs at the base path, demo at `<base>demo/`. The script
+      # owns the build order (docs empties `docs/build` before the demo writes
+      # into it), so this workflow only supplies the deployment path.
+      - name: Build site
+        run: pnpm site
+        env:
+          SITE_BASE: /oop-react/
+          SITE_URL: https://shijianjs.github.io
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

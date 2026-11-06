@@ -1,0 +1,17 @@
+# The three deliverables of this repository, each its own package:
+#   packages/*  the published npm library
+#   demo        the Vite app deployed under /demo/ on GitHub Pages
+#   docs        the Docusaurus site deployed at the Pages root
+packages:
+  - 'packages/*'
+  - 'demo'
+  - 'docs'
+
+# pnpm does not run dependency install scripts unless each one is decided here.
+# esbuild's postinstall downloads its platform binary, without which Vite cannot
+# transform anything; core-js only prints a donation banner, so it stays off.
+allowBuilds:
+  esbuild: true
+  core-js: false
+  # Docusaurus' rspack bundler (`@docusaurus/faster`) transforms TSX with SWC.
+  '@swc/core': true

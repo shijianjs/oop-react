@@ -1,0 +1,18 @@
+{
+  "name": "oop-react-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "pnpm --filter oop-react build",
+    "typecheck": "pnpm --recursive --parallel typecheck",
+    "test": "pnpm --filter oop-react test",
+    "demo": "pnpm --filter @oop-react/demo dev",
+    "docs": "pnpm --filter @oop-react/docs start",
+    "site": "node scripts/build-site.mjs"
+  }
+}

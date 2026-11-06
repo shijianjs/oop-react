@@ -1,0 +1,12 @@
+{
+  "extends": "@docusaurus/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    // @docusaurus/tsconfig (3.10) still sets `baseUrl`, which TypeScript 6
+    // deprecates; the site uses no `paths`, so silence it rather than fork the
+    // preset.
+    "ignoreDeprecations": "6.0"
+  },
+  "include": ["src", "docusaurus.config.ts", "sidebars.ts"]
+}

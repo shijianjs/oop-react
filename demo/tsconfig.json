@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vite/client"],
+    // The demo consumes the library's source, not its build output: a one-line
+    // edit in packages/oop-react must hot-reload here without a rebuild step.
+    "paths": {
+      "oop-react": ["../packages/oop-react/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

@@ -1,0 +1,65 @@
+.hero {
+  padding: 72px 24px 48px;
+  text-align: center;
+}
+
+.title {
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.tagline {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 18px;
+  margin: 0 auto 28px;
+  max-width: 52ch;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.code {
+  background: var(--ifm-code-background);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 40px auto 0;
+  max-width: 640px;
+  overflow-x: auto;
+  padding: 18px 20px;
+  text-align: left;
+}
+
+.section {
+  margin: 0 auto;
+  max-width: 1080px;
+  padding: 24px 24px 64px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.card h3 {
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.card p {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 14px;
+  margin: 0;
+}
