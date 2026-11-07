@@ -27,6 +27,11 @@ validator）+ 嵌套 `ConfigProvider` + `Form.useForm`/`Modal.useModal` 在渲�
 `Feedback` 桥进入对象 + mobx `flow` 处理异步提交。改这页时先读 `docs/docs/guide/complex-components.md`，
 那张表就是「什么东西放哪」的答案；没覆盖到的组件用法先加到这页，再把结论补进文档。
 
+其余页面各自对着一种「React 里很麻烦」的场景：`pages/tictactoe/` 是官方教程 + 全部作业（快照历史、
+computed 判胜、两层循环棋盘），`pages/chart/` 是命令式库（ECharts）的薄组件封装，`pages/animation/`
+是 CSS 过渡与 `react-spring`（hook 关在一个岛里）。`docs/docs/compare/react-hooks.md` 那张总表把官方
+hooks 逐个对到这里，加新页面时顺手把对应行填上。
+
 ## 命令
 
 ```bash
@@ -62,9 +67,12 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    `Reaction` 循环：订阅、批处理、并发调度都该由官方实现负责。岛外面的 `memo` 是我们自己的，因为
    `observer` 的 memo 按 props 浅比较，而 `args` 每次都是新数组。
    版本策略见下面的「只跟最新大版本」——不为了 mobx 6 / lite 4 写兼容分支。
-6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this, {...})`（放最后一行）；
-   `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。annotations 的键必须受
-   `keyof T` 约束，别退回 `Record<string, unknown>`。
+6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this)`（放最后一行）；
+   `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。
+   排除字段用 `@OopReactIgnore`（在字段旁边，子类继承），注解表仍可用且优先级更高。
+   `OopReactObservable` 自己 walk 整条原型链、按 `true` 交给 MobX 的 auto 注解：这是为了绕开
+   `makeAutoObservable` 的两条限制（有父类就报错、只看一层原型）。改这里时别退回 `makeAutoObservable`。
+   第二次调用（子类构造器）不能传 options，MobX 会报 "Options can't be provided for already observable objects"。
 7. **库不依赖 UI 组件库。** 默认 fallback 用内联样式的朴素 div；antd 只出现在 demo 和文档示例里。
 8. **实例只建一次**（`OopReactComponent` 的实例活得和组件一样久），构造函数可重复执行但不重建；
    需要响应后续 props 就用 `onPropsChange` 调一个方法。

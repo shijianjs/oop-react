@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-spring/web": "^10.1.2",
     "antd": "^6.7.0",
     "dayjs": "^1.11.13",
+    "echarts": "^6.1.0",
     "mobx": "^7.1.4",
     "mobx-react-lite": "^5.1.2",
     "oop-react": "workspace:*",

@@ -34,6 +34,63 @@ export class Cart {
 in the constructor — before calling it.
 :::
 
+## Excluding fields with `@OopReactIgnore`
+
+The annotation map says "everything except these", which turns into a list to maintain once a class has a few of
+them. Marking the field where it is declared reads better:
+
+```ts
+class Cart {
+  @OopReactIgnore readonly api = new ApiClient();
+  @OopReactIgnore readonly board: Board;
+  items: Item[] = [];
+
+  constructor() {
+    OopReactObservable(this);
+  }
+}
+```
+
+- a marked field stays a plain field: no observable, no subscription — and subclasses inherit the mark;
+- the annotation map still works for one-off cases and **wins** over the mark:
+  `OopReactObservable(this, {items: false})`.
+
+## Inheritance: base classes are annotated too
+
+`makeAutoObservable` throws on a class that has a superclass (`can only be used for classes that don't have a
+superclass`), and it only looks at the immediate prototype. `OopReactObservable` walks the **whole chain**, and a
+subclass may call it again:
+
+```ts
+class Base {
+  @OopReactIgnore readonly service = new ApiClient();
+  count = 0;
+
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  get doubled() {
+    return this.count * 2;      // computed
+  }
+
+  bump(): void {
+    this.count += 1;            // action.bound
+  }
+}
+
+class Derived extends Base {
+  extra = 0;
+
+  constructor() {
+    super();
+    OopReactObservable(this);   // only adds `extra`; base keys are not re-annotated
+  }
+}
+```
+
+Base getters become computeds, base methods become actions, and a base `@OopReactIgnore` still applies.
+
 ## Change state in methods
 
 ```ts

@@ -92,14 +92,32 @@ OopReactObservable<T extends object>(
 ): T
 ```
 
-Called in a state class's constructor: fields become observable, methods become actions and are bound. The keys of
-`annotations` are the real field names, so a typo is a compile error. Idempotent.
+Called in a state class's constructor: fields become observable, methods actions bound to the instance, getters
+computeds, generators flows. The keys of `annotations` are the real field names, so a typo is a compile error.
+
+Two differences from MobX's `makeAutoObservable`:
+
+- **the whole prototype chain is annotated**, so `class Derived extends Base` works; after the base constructor has
+  called it, a subclass call only adds the keys that appeared since;
+- idempotent: calling it twice on one instance does not re-annotate anything.
 
 ```ts
 constructor() {
-  OopReactObservable(this, {api: false});
+  OopReactObservable(this);
 }
 ```
+
+### `OopReactIgnore`
+
+```ts
+class Cart {
+  @OopReactIgnore readonly api = new ApiClient();
+  items: Item[] = [];
+}
+```
+
+A field-level denylist: a marked field stays a plain field (no observable, no subscription), and subclasses inherit
+the mark. `OopReactObservable`'s `annotations` still work and take precedence over it.
 
 ## Errors
 

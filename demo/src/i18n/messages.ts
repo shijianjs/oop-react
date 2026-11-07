@@ -11,16 +11,19 @@ const zh = {
   'route.counter': '计数器',
   'route.todos': '待办',
   'route.orders': '订单',
+  'route.tictactoe': '井字棋',
+  'route.chart': '图表',
+  'route.animation': '动画',
   'route.invite': '弹窗表单',
   'route.failure': '故障隔离',
 
-  'overview.title': '一张对象图，六条路由',
+  'overview.title': '一张对象图，九条路由',
   'overview.description':
     '导航、路由、主题、语言和下面每个页面都是对象。React 只负责把根岛挂到 #root 上。',
   'overview.graph':
-    'App 持有 settings、router、log、feedback 和六个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
+    'App 持有 settings、router、log、feedback 和九个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
   'overview.cross':
-    '计数器、待办、订单、邀请都写着同一个共享的 log —— 它是 App 的字段，被深层子对象直接持有，没有回调和 context。',
+    '计数器、待办、订单、井字棋都写着同一个共享的 log —— 它是 App 的字段，被深层子对象直接持有，没有回调和 context。',
   'overview.try': '试试：切到「订单」新建一条，再回来看左侧日志和右上角的提示。',
 
   'counter.title': '计数器',
@@ -83,6 +86,41 @@ const zh = {
   'orders.submit': '保存',
   'orders.nested': '这一段表格在页面自己的 ConfigProvider 里，所以它是紧凑尺寸的 —— provider 可以出现在任何一层对象上。',
 
+  'tictactoe.title': '井字棋（官方教程）',
+  'tictactoe.description':
+    'React 官方教程的完整实现，加上官方留在最后的全部作业：历史里带坐标、当前步高亮、棋盘用两层循环、倒序开关、胜利线高亮、平局提示。',
+  'tictactoe.turn': '轮到 {player}',
+  'tictactoe.winner': '胜者：{player}',
+  'tictactoe.draw': '平局',
+  'tictactoe.reset': '重新开始',
+  'tictactoe.order.asc': '历史：正序',
+  'tictactoe.order.desc': '历史：倒序',
+  'tictactoe.history': '历史',
+  'tictactoe.history.start': '回到开局',
+  'tictactoe.history.move': '第 {move} 步（{column}, {row}）',
+  'tictactoe.history.current': '{label} ← 当前',
+  'tictactoe.history.hint': '点任意一步跳回那一步；历史是快照数组，跳回去不会丢后面的步骤。',
+
+  'chart.title': '图表（ECharts）',
+  'chart.description':
+    '命令式库用一个薄组件包住：它持有实例和生命周期，图表配置由页面对象 computed 派生。',
+  'chart.random': '随机数据',
+  'chart.double': '数值翻倍',
+  'chart.total': '合计',
+  'chart.hint': '改数据只动 points 字段，option 是 computed 派生的；对象不知道 ECharts 的存在。',
+
+  'animation.title': '动画',
+  'animation.description':
+    '两种做法都由字段驱动：CSS 过渡靠切换 class/style，react-spring 把字段喂给弹簧。',
+  'animation.css': 'CSS transition',
+  'animation.spring': 'react-spring',
+  'animation.list': '列表增删（CSS）',
+  'animation.toggle': '切换',
+  'animation.css.hint': '位移、旋转、颜色都由字段决定，动起来的部分交给 CSS。',
+  'animation.spring.hint': 'useSpring 在岛里，弹簧跟的是 popped 这个字段。',
+  'animation.list.add': '加一项',
+  'animation.list.hint': '点一项删除；过渡只写在 CSS 里。',
+
   'invite.title': '弹窗表单',
   'invite.description': '弹窗的开合就是对象上的一个布尔字段。',
   'invite.open': '邀请成员',
@@ -118,16 +156,19 @@ const en: Record<MessageKey, string> = {
   'route.counter': 'Counter',
   'route.todos': 'Todos',
   'route.orders': 'Orders',
+  'route.tictactoe': 'Tic-tac-toe',
+  'route.chart': 'Chart',
+  'route.animation': 'Animation',
   'route.invite': 'Dialog',
   'route.failure': 'Failure',
 
-  'overview.title': 'One object graph, six routes',
+  'overview.title': 'One object graph, nine routes',
   'overview.description':
     'The nav, the router, the theme, the language and every page below are objects. React only mounts the root island into #root.',
   'overview.graph':
-    'App holds settings, router, log, feedback and six pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
+    'App holds settings, router, log, feedback and nine pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
   'overview.cross':
-    'The counter, the todos, the orders and the invite form all write to the same shared log: a field of App, held directly by deep children — no callbacks, no context.',
+    'The counter, the todos, the orders and tic-tac-toe all write to the same shared log: a field of App, held directly by deep children — no callbacks, no context.',
   'overview.try': 'Try it: open Orders, create one, then look at the log on the left and the toast in the corner.',
 
   'counter.title': 'Counter',
@@ -191,6 +232,43 @@ const en: Record<MessageKey, string> = {
   'orders.submit': 'Save',
   'orders.nested':
     'This table lives in the page’s own ConfigProvider, which is why it is compact — a provider can sit on any object in the graph.',
+
+  'tictactoe.title': 'Tic-tac-toe (official tutorial)',
+  'tictactoe.description':
+    'The official tutorial, fully implemented, plus every exercise it leaves at the end: coordinates in the history, the current move highlighted, a board built from two loops, a reversible history, the winning line highlighted, and a draw message.',
+  'tictactoe.turn': 'Next player: {player}',
+  'tictactoe.winner': 'Winner: {player}',
+  'tictactoe.draw': 'Draw',
+  'tictactoe.reset': 'Restart',
+  'tictactoe.order.asc': 'History: ascending',
+  'tictactoe.order.desc': 'History: descending',
+  'tictactoe.history': 'History',
+  'tictactoe.history.start': 'Go to start',
+  'tictactoe.history.move': 'Move #{move} ({column}, {row})',
+  'tictactoe.history.current': '{label} ← current',
+  'tictactoe.history.hint':
+    'Click any step to jump to it; the history is a list of snapshots, so jumping back keeps the later ones.',
+
+  'chart.title': 'Chart (ECharts)',
+  'chart.description':
+    'An imperative library behind a thin component: the component owns the instance and its lifecycle, the chart option is derived by the page object.',
+  'chart.random': 'Random data',
+  'chart.double': 'Double values',
+  'chart.total': 'Total',
+  'chart.hint':
+    'Changing the data only touches the points field; the option is a computed. The object does not know ECharts exists.',
+
+  'animation.title': 'Animation',
+  'animation.description':
+    'Both styles are driven by fields: CSS transitions by switching class/style, react-spring by feeding a field to a spring.',
+  'animation.css': 'CSS transition',
+  'animation.spring': 'react-spring',
+  'animation.list': 'List add/remove (CSS)',
+  'animation.toggle': 'Toggle',
+  'animation.css.hint': 'Position, rotation and colour come from fields; the motion is CSS.',
+  'animation.spring.hint': 'useSpring lives in the island and follows the popped field.',
+  'animation.list.add': 'Add one',
+  'animation.list.hint': 'Click an item to remove it; the transition is only in CSS.',
 
   'invite.title': 'Dialog form',
   'invite.description': 'Whether the dialog is open is a boolean field on the object.',

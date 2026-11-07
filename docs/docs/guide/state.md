@@ -31,6 +31,60 @@ export class Cart {
 `makeAutoObservable` 只能看到调用时已经存在的字段。所有字段都在构造器之前（声明处）或构造器里先赋值，再调用它。
 :::
 
+## 用 `@OopReactIgnore` 排除字段
+
+注解表是「除了这几个，其它都是状态」，字段一多就变成一张待维护的清单。把标记放到字段旁边更好读：
+
+```ts
+class Cart {
+  @OopReactIgnore readonly api = new ApiClient();
+  @OopReactIgnore readonly board: Board;
+  items: Item[] = [];
+
+  constructor() {
+    OopReactObservable(this);
+  }
+}
+```
+
+- 被标记的字段保持普通字段：不建 observable、不参与订阅；子类继承这个标记；
+- 需要一次性覆盖时，注解表仍然可用，且**优先级更高**：`OopReactObservable(this, {items: false})`。
+
+## 继承：父类也一起标注
+
+`makeAutoObservable` 遇到有父类的类会直接报错（`can only be used for classes that don't have a superclass`），
+而且只看得到自己这一层原型。`OopReactObservable` 走完**整条原型链**，并且允许子类再调一次：
+
+```ts
+class Base {
+  @OopReactIgnore readonly service = new ApiClient();
+  count = 0;
+
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  get doubled() {
+    return this.count * 2;      // computed
+  }
+
+  bump(): void {
+    this.count += 1;            // action.bound
+  }
+}
+
+class Derived extends Base {
+  extra = 0;
+
+  constructor() {
+    super();
+    OopReactObservable(this);   // 只补 extra，父类已经标注过的不重复
+  }
+}
+```
+
+父类的 getter 是 computed、父类的方法是 action、父类标的 `@OopReactIgnore` 照样生效。
+
 ## 改状态写在方法里
 
 ```ts

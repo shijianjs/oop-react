@@ -18,6 +18,12 @@ const sidebars: SidebarsConfig = {
         'guide/configure',
       ],
     },
+    {
+      type: 'category',
+      label: 'React 写法对照',
+      collapsed: false,
+      items: ['compare/react-hooks'],
+    },
     'api',
   ],
 };

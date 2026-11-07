@@ -156,6 +156,119 @@ body {
   color: #2f5fd0;
 }
 
+/* Tic-tac-toe: the board is a grid of three rows, each a flex row. */
+.tictactoe {
+  align-items: start;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+.tictactoe-board {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tictactoe-row {
+  display: flex;
+  gap: 6px;
+}
+
+.tictactoe-square {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: 600;
+  height: 64px;
+  transition: background 0.15s ease, transform 0.15s ease;
+  width: 64px;
+}
+
+.tictactoe-square:hover {
+  background: #e6f0ff;
+  color: #1f2329;
+}
+
+.tictactoe-square--win {
+  background: #f6ffed;
+  border-color: #52c41a;
+  color: #1f2329;
+  transform: scale(1.04);
+}
+
+.tictactoe-history {
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* Animation demos */
+.animation-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.animation-track {
+  align-items: center;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  height: 72px;
+  overflow: hidden;
+  padding: 0 12px;
+}
+
+.animation-box {
+  border-radius: 8px;
+  height: 44px;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.5s ease;
+  width: 44px;
+}
+
+.animation-spring {
+  align-items: center;
+  background: linear-gradient(135deg, #1677ff, #69b1ff);
+  border-radius: 10px;
+  color: #fff;
+  display: flex;
+  font-size: 24px;
+  height: 72px;
+  justify-content: center;
+  width: 72px;
+}
+
+.animation-item {
+  animation: animation-item-in 0.25s ease;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.animation-item:hover {
+  border-color: #1677ff;
+  transform: translateX(4px);
+}
+
+@keyframes animation-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 860px) {
   .app-body {
     grid-template-columns: 1fr;

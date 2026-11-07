@@ -3,12 +3,15 @@ import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import {OopReactObservable, OopReactRender} from 'oop-react';
 import {ActivityLog} from '../log/ActivityLog';
+import {AnimationPage} from '../pages/animation/AnimationPage';
+import {ChartPage} from '../pages/chart/ChartPage';
 import {CounterPage} from '../pages/counter/CounterPage';
 import {FailurePage} from '../pages/failure/FailurePage';
 import {InvitePage} from '../pages/invite/InvitePage';
 import {OrdersPage} from '../pages/orders/OrdersPage';
 import {OverviewPage} from '../pages/overview/OverviewPage';
 import type {Page} from '../pages/Page';
+import {TicTacToePage} from '../pages/tictactoe/TicTacToePage';
 import {TodosPage} from '../pages/todos/TodosPage';
 import {Router} from '../routing/Router';
 import {Feedback, FeedbackHost} from './Feedback';
@@ -38,6 +41,9 @@ export class App {
       new CounterPage(this),
       new TodosPage(this),
       new OrdersPage(this),
+      new TicTacToePage(this),
+      new ChartPage(this),
+      new AnimationPage(this),
       new InvitePage(this),
       new FailurePage(this),
     ];

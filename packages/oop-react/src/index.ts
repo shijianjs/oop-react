@@ -24,3 +24,4 @@ export type {
   OopReactAnnotations,
   OopReactObservableOptions,
 } from './reactivity/reactivity';
+export {OopReactIgnore} from './reactivity/ignore';

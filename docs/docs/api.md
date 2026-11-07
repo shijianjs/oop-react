@@ -89,14 +89,31 @@ OopReactObservable<T extends object>(
 ): T
 ```
 
-在状态类的构造器里调用：字段变可观察、方法变 action 并绑定。`annotations` 的键就是真实字段名，写错是编译错误。
-幂等。
+在状态类的构造器里调用：字段变可观察、方法变 action 并绑定、getter 变 computed、generator 变 flow。
+`annotations` 的键就是真实字段名，写错是编译错误。
+
+两个与 MobX `makeAutoObservable` 不同的地方：
+
+- **走完整个原型链**，所以 `class Derived extends Base` 可用；父类构造器里调过一次后，子类再调只补新增的键。
+- 幂等：同一个实例重复调用不会重复标注。
 
 ```ts
 constructor() {
-  OopReactObservable(this, {api: false});
+  OopReactObservable(this);
 }
 ```
+
+### `OopReactIgnore`
+
+```ts
+class Cart {
+  @OopReactIgnore readonly api = new ApiClient();
+  items: Item[] = [];
+}
+```
+
+字段级黑名单：被标记的字段保持普通字段，不建 observable、不参与订阅，子类继承这个标记。
+`OopReactObservable` 的 `annotations` 仍然可用，并且优先级高于标记。
 
 ## 错误
 
