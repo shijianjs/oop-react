@@ -175,6 +175,16 @@ export class Cart {
 `makeAutoObservable` 会把 `*save()` 这样的 generator 方法也变成 flow，但 TypeScript 仍然把它当 `Generator`，
 每个调用方都得 `as unknown as Promise`。写成字段时，它的类型就是运行时那个函数：`(draft) => CancellablePromise<void>`。
 
+**为什么不用 `async/await`。** 因为 MobX 的 action 边界在 `await` 处就断了：`async` 方法整体是一个 action，
+但 `await` 之后的代码已经不在 action 里，写被观察的字段会被严格模式拦下 ——
+
+```
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
+```
+
+`flow` 每 `yield` 之后重新进入一次 action，所以多步流程（`loading = true` → 请求 → 写结果 → 收尾）每一步都合法。
+`await` 之后不写被观察的状态、或者用 `runInAction` 把写入包起来，用 `async` 也完全可以。
+
 ## 选项
 
 ```ts

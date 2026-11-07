@@ -186,6 +186,17 @@ export class Cart {
 `Generator`, so every caller needs an `as unknown as Promise` cast. As a field its type is the function it becomes at
 runtime: `(draft) => CancellablePromise<void>`.
 
+**Why not `async/await`.** Because MobX's action boundary ends at the `await`: an `async` method is one action as a
+whole, but the code after `await` is no longer inside it, so writing an observed field is rejected by strict mode —
+
+```
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
+```
+
+`flow` re-enters an action after every `yield`, so a multi-step sequence (`loading = true` → request → write the
+result → clean up) stays legal. If nothing observed is written after the `await`, or the writes are wrapped in
+`runInAction`, `async` is perfectly fine too.
+
 ## Options
 
 ```ts
