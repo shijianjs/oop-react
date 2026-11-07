@@ -1,19 +1,19 @@
 ---
 id: use
-title: use（读 Promise）
+title: use (reading a Promise)
 slug: /compare/use
 ---
 
 **React 19**: read a promise during render, together with `Suspense`.
-**Here**: never `await` in a render method — finish async work in a `flow` (or a plain `async` method) and write a field; render methods stay synchronous.
+**Here**: render methods stay synchronous; async work happens in a plain `async` method that writes a field when done.
 
-## 原生写法
+## React
 
 ```tsx
 const data = use(fetchProfile());   // needs a Suspense boundary
 ```
 
-## 对象写法
+## Objects
 
 ```ts
 @OopReactState
@@ -21,10 +21,10 @@ class Profile {
   data: Profile | null = null;
   loading = false;
 
-  *load(): Generator<Promise<unknown>, void, unknown> {
+  async load(): Promise<void> {
     this.loading = true;
     try {
-      this.data = (yield this.api.profile()) as Profile;
+      this.data = await this.api.profile();
     } finally {
       this.loading = false;
     }
@@ -38,55 +38,39 @@ class Profile {
 }
 ```
 
-## Why this page uses a generator (it is optional)
+Strict mode is off by default, so writing a field after `await` raises no warning; each write notifies observers once,
+which usually does not matter. To batch several consecutive writes, extract them into a method (a method is an action)
+or wrap them in `runInAction`.
 
-`*load()` is a generator, but callers get a plain promise: `@OopReactState` (and `OopReactObservable`) marks
-generator methods as MobX `flow`, and `yield` behaves exactly like `await`.
+## When you explicitly want `yield`: `flow`
 
-**Strict mode is off by default, so `async/await` works fine here**: writing a field after `await` raises no
-warning. This page picks `flow` because it is a multi-step sequence — the code after each `yield` runs inside an
-action, so `loading → data → clean up` is one notification per step, and the returned `CancellablePromise` can be
-cancelled when the page goes away.
-
-With `async` the same method is:
+MobX's `flow` is written as a generator: `yield` acts like `await`, except that **the code after every `yield`
+re-enters an action**:
 
 ```ts
-async load(): Promise<void> {
-  this.loading = true;
-  try {
-    this.data = await this.api.profile();
-  } finally {
-    this.loading = false;
-  }
-}
-```
+import {flow} from 'mobx';
 
-It runs just as well; the difference is that those writes notify observers one by one. Wrap the tail in
-`runInAction` if they should land together.
-
-If a host application turns strict mode back on (`OopReactConfigure({enforceActions: 'always'})`), every write after
-an `await` produces a `console.warn` (MobX 7 warns, it does not throw) — `flow` is unaffected, which makes it the
-safer choice there.
-
-If the public signature should not mention `Generator`, write it as a field — its type is the function it becomes at
-runtime:
-
-```ts
 readonly load = flow(function* (this: Profile) {
   this.loading = true;
   try {
-    this.data = yield this.api.profile();
+    this.data = yield this.api.profile();   // this step is inside an action too
   } finally {
     this.loading = false;
   }
 });
 ```
 
-## 注意
+That buys you: every step of a multi-step sequence is a transaction, a `CancellablePromise` that can be cancelled,
+and no warning-per-write if a host turns strict mode back on. Use it only when those are needed; ordinary async code
+stays with `async/await`. Generator **methods** are marked as flows too, but TypeScript still types them as
+`Generator` and every caller needs a cast — the field form is better.
 
-- After the `await`, `this.data` is always the current value — no stale closure; a `#token` field covers cancellation/races.
+## Notes
+
+- After an `await` / `yield`, `this.data` is always the current value — no stale closure; a `#token` field covers
+  cancellation and races.
 - Keeping render methods synchronous is a hard rule: React may re-run them any number of times.
 
-## 演示
+## Demo
 
-Orders (`#/orders`): `flow` submit with `saving`
+Orders (`#/orders`): an `async` submit with `saving`

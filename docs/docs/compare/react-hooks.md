@@ -28,8 +28,8 @@ sidebar_position: 1
 | `useTransition` / `useDeferredValue` | 未封装；状态在对象上，需要时在岛里用官方 hook | ⏳ |
 | [`useId`](./useid.md) | 未封装；表单控件的 label 由 antd 生成 | ⏳ |
 | [`useSyncExternalStore`](./usesyncexternalstore.md) | 不需要：订阅由 `observer` 负责 | — |
-| `useOptimistic` / `useActionState` / `useFormStatus` | 乐观更新 = 先改对象字段，失败再改回来（`flow` 里做） | ⏳ |
-| `use`（React 19，读 Promise） | 对象方法 `await` 之后写字段；渲染方法里不 `await` | 订单（`flow` 提交） |
+| `useOptimistic` / `useActionState` / `useFormStatus` | 乐观更新 = 先改对象字段，失败再改回来（`async` 方法里做） | ⏳ |
+| `use`（React 19，读 Promise） | 对象方法 `await` 之后写字段；渲染方法里不 `await` | 订单（`async` 提交） |
 | `Suspense` / `lazy` | 未封装：路由与页面都是同步对象，按需 `import()` 仍在边界用 | ⏳ |
 | 错误边界 | 每个岛自带一个，另有 `OopReactErrorBoundary` | 故障隔离 |
 | `createPortal` | 需要时在渲染方法里直接用 | 弹窗（antd `Modal`） |
@@ -78,7 +78,7 @@ class OrderEditor {
 | 用途 | 这里 |
 | --- | --- |
 | 订阅外部状态（主题、语言、路由） | 对象的 `reaction`，构造器里建、`dispose()` 释放 |
-| 数据请求 | 方法里的 `flow`（`yield` 异步，前后自动是 action） |
+| 数据请求 | 对象方法里的 `async/await` |
 | 操作 DOM / 第三方实例 | 薄组件里的 `useEffect`（`EChart`）；或者实例交给对象（`OopReactBridge`） |
 
 ### 异步：`await` 不再是雷区
@@ -87,9 +87,9 @@ React 里 `await` 之后拿到的是**闭包里的旧值**，所有「请回答�
 对象方法里的 `await` 之后，`this.xxx` 永远是当前值：
 
 ```ts
-*submit(): Generator<Promise<unknown>, void, unknown> {
-  const values = (yield this.#form!.validateFields()) as OrderDraft;
-  yield this.page.save(values);       // page.save 是 flow
+async submit(): Promise<void> {
+  const values = await this.#form!.validateFields();
+  await this.page.save(values);       // page.save 是 async 方法
   this.open = false;                  // 一定是最新的 this
   this.page.app.feedback.success('已保存');
 }
@@ -110,7 +110,7 @@ React 里 HOC 解决的「横切能力」，这里有两个更直接的替代：
 | --- | --- |
 | 计数器 | 字段即状态、方法即回调 |
 | 待办 | 一对多、computed、一对一引用 |
-| 订单 | 表格受控状态、表单实例交给对象、`flow`、校验 |
+| 订单 | 表格受控状态、表单实例交给对象、`async` 提交、校验 |
 | 井字棋 | 官方教程全量作业：快照历史、computed 判胜、两层循环渲染 |
 | 图表 | 命令式库（ECharts）的薄组件封装 |
 | 动画 | CSS 过渡 + `react-spring`（hook 在岛里） |

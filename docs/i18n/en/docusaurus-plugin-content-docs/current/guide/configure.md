@@ -24,7 +24,7 @@ restore();
 ## Why there is no "swap the reactive engine" seam
 
 It was considered and rejected. The value of MobX is not the one `makeAutoObservable` line, it is computed
-invalidation, batching, `flow`, `reaction`, `toJS` and the devtools around them. Replacing it costs about as much as
+invalidation, batching, `reaction`, `toJS` and the devtools around them. Replacing it costs about as much as
 writing one, and an adapter layer in between would only distort both sides.
 
 So:

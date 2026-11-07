@@ -76,30 +76,36 @@ export class OrderEditor {
     this.#form?.resetFields();
   }
 
-  /**
-   * A MobX `flow`: validation and saving are asynchronous, and every write after
-   * the first `yield` still happens inside an action.
-   */
-  *submit(): Generator<Promise<unknown>, void, unknown> {
+  /** Ordinary async/await. The action that starts this method ends at the first
+   * `await`; the consecutive writes afterwards are grouped in `finish()` so they
+   * still arrive as one notification. */
+  async submit(): Promise<void> {
     const form = this.#form;
     if (form === null) return;
 
-    let values: OrderDraft;
-    try {
-      values = (yield form.validateFields()) as OrderDraft;
-    } catch {
-      // antd already marked the offending fields; leave the dialog open.
-      return;
-    }
-
     this.saving = true;
     try {
-      yield this.page.save(this.editing, values);
-      form.resetFields();
-      this.open = false;
-    } finally {
+      let values: OrderDraft;
+      try {
+        values = await form.validateFields();
+      } catch {
+        // antd already marked the offending fields; leave the dialog open.
+        this.saving = false;
+        return;
+      }
+
+      await this.page.save(this.editing, values);
+      this.finish(form);
+    } catch {
+      // save failed: leave the dialog open with the values intact
       this.saving = false;
     }
+  }
+
+  private finish(form: FormInstance<OrderDraft>): void {
+    form.resetFields();
+    this.open = false;
+    this.saving = false;
   }
 
   get initialValues(): Partial<OrderDraft> {

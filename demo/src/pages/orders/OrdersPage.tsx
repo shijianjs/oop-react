@@ -13,7 +13,6 @@ import {
   type TableProps,
 } from 'antd';
 import dayjs from 'dayjs';
-import {flow} from 'mobx';
 import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
@@ -107,16 +106,14 @@ export class OrdersPage implements Page {
     this.pageSize = pageSize;
   }
 
-  /**
-   * A MobX `flow` written as a field: `makeAutoObservable` turns a generator
-   * *method* into the same thing, but then TypeScript still sees a `Generator`
-   * and every caller needs a cast. As a field it is already the function it
-   * becomes at runtime — `(...args) => CancellablePromise<void>` — so the
-   * editor can simply `yield` it.
-   */
-  readonly save = flow(function* (this: OrdersPage, editing: Order | null, values: OrderDraft) {
-    yield sleep(300);
+  /** Plain async/await — the action ends at the `await`, and the writes belong
+   * to `applySave`, so they still land as one notification. */
+  async save(editing: Order | null, values: OrderDraft): Promise<void> {
+    await sleep(300);
+    this.applySave(editing, values);
+  }
 
+  private applySave(editing: Order | null, values: OrderDraft): void {
     const record = {
       customer: values.customer.trim(),
       amount: values.amount,
@@ -136,7 +133,7 @@ export class OrdersPage implements Page {
     }
 
     this.app.feedback.success(this.app.settings.t('orders.saved'));
-  });
+  }
 
   remove(id: number): void {
     this.rows = this.rows.filter((row) => row.id !== id);

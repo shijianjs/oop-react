@@ -217,47 +217,71 @@ export class Workshop {
 `selected` is *not* annotated: it really does have to trigger a re-render. Annotations change observability, not the
 meaning of the field.
 
+## Async is plain `async/await`
+
+Strict mode is off by default, so object methods just use `async/await`:
+
+```ts
+export class Cart {
+  items: Item[] = [];
+  saving = false;
+
+  async save(draft: Draft): Promise<void> {
+    this.saving = true;                    // the method itself is an action
+    try {
+      await api.persist(draft);
+      const items = await api.list();
+      this.applyResult(items);             // extracted method = one notification
+    } finally {
+      this.saving = false;                 // one write, fine on its own
+    }
+  }
+
+  private applyResult(items: Item[]): void {
+    this.items = items;
+  }
+}
+```
+
+`await` ends the action that started the method, so each write after it notifies observers separately. Most of the
+time that does not matter; when it does, **extract the consecutive writes into a method** (a method is an action) or
+wrap them in `runInAction`. That is the "transaction" in this model: on demand, not by default.
+
+### When every step needs a transaction: `flow` and `yield`
+
+MobX's `flow` is the generator form: `yield` acts like `await`, but the code after each `yield` re-enters an action.
+Only reach for it in the cases that **explicitly want `yield`** — ordinary code should stay with `async/await`:
+
+```ts
+import {flow} from 'mobx';
+
+export class Cart {
+  readonly save = flow(function* (this: Cart, draft: Draft) {
+    yield api.persist(draft);
+    this.items = yield api.list();   // this step is still inside an action
+  });
+}
+```
+
+- a generator **method** is also marked as a flow, but TypeScript still types it as a `Generator`, so every caller
+  needs an `as unknown as Promise` cast; as a field its type is the function it becomes at runtime
+  (`(draft) => CancellablePromise<void>`).
+- it returns a `CancellablePromise` (`.cancel()`), and stays warning-free if a host turns strict mode back on.
+
+In short: **default to `async/await`; use `yield` / `flow` only when every step of a multi-step sequence must be
+batched, or when the work must be cancellable.**
+
 ## The rest of MobX, directly
 
 The package does not wrap these; import them from `mobx`:
 
 ```ts
-import {autorun, flow, reaction, toJS} from 'mobx';
+import {autorun, reaction, toJS} from 'mobx';
 ```
 
-- `flow` / `flowResult`: asynchronous actions, good for multi-step forms;
 - `reaction` / `autorun`: side effects (local storage, analytics, sync to the URL);
 - `toJS`: turn state into a plain object before sending or persisting it;
 - the `computed` / `observable` / `action` decorators: finer control, and they coexist with `@OopReactRender()`.
-
-Write `flow` as a **field**, not as a generator method:
-
-```ts
-export class Cart {
-  readonly save = flow(function* (this: Cart, draft: Draft) {
-    yield api.persist(draft);
-    this.items = yield api.list();
-  });
-}
-```
-
-`makeAutoObservable` does turn a generator method (`*save()`) into a flow, but TypeScript still types it as a
-`Generator`, so every caller needs an `as unknown as Promise` cast. As a field its type is the function it becomes at
-runtime: `(draft) => CancellablePromise<void>`.
-
-**`flow` is optional.** Strict mode is off by default, so `async/await` in an object method works fine: writing a
-field after `await` raises no warning, it just notifies observers once per write.
-
-What `flow` buys you is "**every step of a multi-step sequence is its own action**":
-
-- `loading = true` → request → write the result → clean up: the code after each `yield` runs inside an action, so
-  intermediate state lands in one notification;
-- it returns a `CancellablePromise`, so the work can be cancelled when a page goes away;
-- if a host application turns strict mode back on, writes after an `await` warn one by one
-  (`Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed`),
-  while `flow` is unaffected — the reason it is the safer choice for "strict mode + multi-step async".
-
-In short: **one `await` and one write → `async` is shorter; several steps, each writing state → `flow`.**
 
 ## Options
 

@@ -5,7 +5,7 @@ slug: /compare/useoptimistic
 ---
 
 **React**：先显示乐观结果，请求失败再回滚。
-**这里**：就是「先改字段，失败改回来」，写在 `flow` 里 —— 回滚逻辑和提交逻辑在同一个方法，读起来是一件事。
+**这里**：就是「先改字段，失败改回来」，写在 `async` 方法里 —— 回滚逻辑和提交逻辑在同一个方法，读起来是一件事。
 
 ## 原生写法
 
@@ -22,10 +22,10 @@ await save(item);
 class Todos {
   items: Todo[] = [];
 
-  *add(todo: Todo): Generator<Promise<unknown>, void, unknown> {
+  async add(todo: Todo): Promise<void> {
     this.items.push(todo);                 // 乐观
     try {
-      yield this.api.create(todo);
+      await this.api.create(todo);
     } catch (error) {
       this.items = this.items.filter((item) => item !== todo);   // 回滚
       throw error;

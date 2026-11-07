@@ -5,7 +5,7 @@ slug: /compare/use
 ---
 
 **React 19**：在渲染中读 Promise，配合 `Suspense`。
-**这里**：渲染方法里不 `await` —— 异步放在 `flow`（或普通 `async` 方法）里做完再写字段。渲染方法只读字段，永远同步。
+**这里**：渲染方法永远同步；异步放在普通的 `async` 方法里做完，再写字段。
 
 ## 原生写法
 
@@ -21,10 +21,10 @@ class Profile {
   data: Profile | null = null;
   loading = false;
 
-  *load(): Generator<Promise<unknown>, void, unknown> {
+  async load(): Promise<void> {
     this.loading = true;
     try {
-      this.data = (yield this.api.profile()) as Profile;
+      this.data = await this.api.profile();
     } finally {
       this.loading = false;
     }
@@ -38,51 +38,35 @@ class Profile {
 }
 ```
 
-## 这一页为什么用 generator（它是可选的）
+严格模式默认关着，`await` 之后写字段不会告警；每次写入各自通知一次观察者，通常无所谓。要把连续几行合成
+一次通知，抽成一个方法（方法本身是 action）或用 `runInAction` 包起来。
 
-`*load()` 是 generator，但调用方拿到的是普通 Promise：`@OopReactState`（以及 `OopReactObservable`）把
-generator 方法标成 MobX 的 `flow`，`yield` 的语义和 `await` 一样。
+## 明确要用 `yield` 时：`flow`
 
-**严格模式默认关着，所以这里完全可以用 `async/await`**：`await` 之后写字段不会告警。这一页选 `flow` 是因为它是
-一次多步流程 —— 每个 `yield` 之后的代码都在一个 action 里，`loading → 数据 → 收尾` 每一步是一次通知，
-返回的 `CancellablePromise` 还能在离开页面时取消。
-
-换成 `async` 就是：
+MobX 的 `flow` 是 generator 写法，`yield` 等于 `await`，区别是**每个 `yield` 之后的代码会重新进入一个 action**：
 
 ```ts
-async load(): Promise<void> {
-  this.loading = true;
-  try {
-    this.data = await this.api.profile();
-  } finally {
-    this.loading = false;
-  }
-}
-```
+import {flow} from 'mobx';
 
-同样能跑，只是这几处写入各自通知一次观察者；想合成一次就用 `runInAction` 把收尾包起来。
-
-如果宿主项目把严格模式打开了（`OopReactConfigure({enforceActions: 'always'})`），`await` 之后的每次写入
-会逐条 `console.warn`（MobX 7 是警告，不是异常），这时 `flow` 更省心。
-
-如果公开的方法签名不想出现 `Generator`，写成字段形式 —— 类型就是运行时那个函数：
-
-```ts
 readonly load = flow(function* (this: Profile) {
   this.loading = true;
   try {
-    this.data = yield this.api.profile();
+    this.data = yield this.api.profile();   // 这一步也在 action 里
   } finally {
     this.loading = false;
   }
 });
 ```
 
+它换来的是：多步流程每一步都是事务、返回 `CancellablePromise` 可取消、宿主打开严格模式时也不会逐条告警。
+只有确实需要这些时才用；普通异步一律 `async/await`。generator **方法**也会被标成 flow，但 TypeScript 眼里
+它还是 `Generator`，调用方得断言，所以写成字段更好。
+
 ## 注意
 
-- `await` 之后 `this.data` 一定是最新值，没有闭包过期的问题；取消/竞态用一个 `#token` 字段判断即可。
+- `await` / `yield` 之后 `this.data` 一定是最新值，没有闭包过期的问题；取消/竞态用一个 `#token` 字段判断即可。
 - 渲染方法保持同步是硬规则：它可能被 React 重跑任意次。
 
 ## 演示
 
-订单（`#/orders`）：`flow` 提交 + `saving`
+订单（`#/orders`）：`async` 提交 + `saving`

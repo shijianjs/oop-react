@@ -29,8 +29,8 @@ yet.
 | `useTransition` / `useDeferredValue` | not wrapped; state lives on the object, use the official hook inside an island if needed | ⏳ |
 | [`useId`](./useid.md) | not wrapped; labels of form controls come from antd | ⏳ |
 | [`useSyncExternalStore`](./usesyncexternalstore.md) | not needed: subscribing is `observer`'s job | — |
-| `useOptimistic` / `useActionState` / `useFormStatus` | optimistic updates = change the field first, revert on failure, inside a `flow` | ⏳ |
-| `use` (React 19, reading a Promise) | `await` in an object method, then write fields; never `await` in a render method | Orders (`flow` submit) |
+| `useOptimistic` / `useActionState` / `useFormStatus` | optimistic updates = change the field first, revert on failure, inside an `async` method | ⏳ |
+| `use` (React 19, reading a Promise) | `await` in an object method, then write fields; never `await` in a render method | Orders (`async` method submit) |
 | `Suspense` / `lazy` | not wrapped: routes and pages are synchronous objects; `import()` stays at the boundary | ⏳ |
 | error boundaries | one per island, plus `OopReactErrorBoundary` | Failure |
 | `createPortal` | use it directly in a render method when needed | dialogs (antd `Modal`) |
@@ -80,7 +80,7 @@ inherit the mark.
 | Job | Here |
 | --- | --- |
 | subscribe to outside state (theme, language, routing) | a `reaction` owned by the object, created in the constructor, released by `dispose()` |
-| fetch data | a `flow` in a method (`yield` the promise; before and after are both actions) |
+| fetch data | an `async` method on the object |
 | touch the DOM or a third-party instance | `useEffect` in a thin component (`EChart`), or hand the instance to an object (`OopReactBridge`) |
 
 ### Async: `await` stops being a trap
@@ -89,9 +89,9 @@ In React, the value you see after an `await` is the one captured by the closure 
 bug starts there. In an object method, `this.x` is always current:
 
 ```ts
-*submit(): Generator<Promise<unknown>, void, unknown> {
-  const values = (yield this.#form!.validateFields()) as OrderDraft;
-  yield this.page.save(values);       // page.save is a flow
+async submit(): Promise<void> {
+  const values = await this.#form!.validateFields();
+  await this.page.save(values);       // page.save is a async method
   this.open = false;                  // still the current `this`
   this.page.app.feedback.success('Saved');
 }
@@ -114,7 +114,7 @@ You only need `OopReactComponent` / `OopReactObserver` when reusing a piece of U
 | --- | --- |
 | Counter | fields are state, methods are callbacks |
 | Todos | one-to-many, computed, a one-to-one reference |
-| Orders | controlled table state, form instance handed to the object, `flow`, validation |
+| Orders | controlled table state, form instance handed to the object, `async` method, validation |
 | Tic-tac-toe | the whole official tutorial: snapshot history, computed winner, two-loop board |
 | Chart | a thin component around an imperative library (ECharts) |
 | Animation | CSS transitions + `react-spring` (hook inside one island) |

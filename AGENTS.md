@@ -24,7 +24,7 @@ demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `A
 
 `pages/orders/` 是**能力边界的试验场**：antd `Table`（受控分页/排序/选中/筛选）+ `Form`（校验、自定义
 validator）+ 嵌套 `ConfigProvider` + `Form.useForm`/`Modal.useModal` 在渲染方法里 + `App.useApp()` 通过
-`Feedback` 桥进入对象 + mobx `flow` 处理异步提交。改这页时先读 `docs/docs/guide/complex-components.md`，
+`Feedback` 桥进入对象 + 普通 `async/await` 处理异步提交。改这页时先读 `docs/docs/guide/complex-components.md`，
 那张表就是「什么东西放哪」的答案；没覆盖到的组件用法先加到这页，再把结论补进文档。
 
 其余页面各自对着一种「React 里很麻烦」的场景：`pages/tictactoe/` 是官方教程 + 全部作业（快照历史、
@@ -55,7 +55,10 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    不能上提到组件整体 —— 上提会让一次局部更新重渲染整棵子树，一次失败吃掉整页。
 2. **渲染方法只读状态。** 它在 React 渲染过程中执行，写状态会在渲染中触发失效。想统计渲染次数之类的
    副作用，用不进入实例的普通对象（demo 的 `renderStats.ts` 就是例子）。
-3. **严格模式默认关，事务按需开。** 库在 `config.tsx` 加载时执行 `configure({enforceActions: 'never'})` ——
+3. **异步默认写 `async/await`。** 文档、demo、README 里的示例一律 `async/await`；只有「明确在讲 `yield`」
+   的段落（状态页的 flow 小节、`/compare/use` 的 yield 小节）才允许出现 generator / `flow`。
+   `await` 会结束 action，之后的连续几行写入抽成一个方法就仍是一次通知 —— 别为此把整个方法改成 generator。
+   **严格模式默认关，事务按需开。** 库在 `config.tsx` 加载时执行 `configure({enforceActions: 'never'})` ——
    这是**唯一**允许替宿主做的全局 MobX 配置，因为「字段直接写」就是这套模型，MobX 默认会为它逐条 `console.warn`。
    `OopReactConfigure({enforceActions: 'always' | 'observed'})` 可以打开。关的是警察不是事务：方法本来就是
    action（多次写入一次通知），块级事务用 `runInAction`，显式声明用 `@OopReactAction()`。
@@ -66,7 +69,7 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
 5. **绑死 mobx，不留响应式抽象层。** `config` 只有 `fallback` / `onError` / `enforceActions`（后者是全局
    开关，见第 3 条），没有「换一个响应式实现」的口子；对 `makeAutoObservable` 的封装
    只提供类型和幂等（`OopReactObservable`），不要重新引入 `observe` / `observable` 口子，也不要包
-   `computed` / `flow` / `reaction` —— 用户直接从 `mobx` import。
+   `computed` / `reaction` / `runInAction` —— 用户直接从 `mobx` import。
    **React 绑定用官方的 `mobx-react-lite` 的 `observer`**（`src/render/TrackedRender.tsx`），不要退回手写
    `Reaction` 循环：订阅、批处理、并发调度都该由官方实现负责。岛外面的 `memo` 是我们自己的，因为
    `observer` 的 memo 按 props 浅比较，而 `args` 每次都是新数组。

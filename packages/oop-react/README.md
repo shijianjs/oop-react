@@ -86,7 +86,7 @@ React 绑定用官方的 `mobx-react-lite`（`observer`）。
 
 ## 依赖
 
-追踪层是 [MobX](https://mobx.js.org/)，直接使用：`computed`、`flow`、`reaction`、`toJS` 从 `mobx` import
+追踪层是 [MobX](https://mobx.js.org/)，直接使用：`computed`、`reaction`、`toJS` 从 `mobx` import
 即可，库不包装它们。库本身不依赖任何 UI 组件库。
 
 ## 许可

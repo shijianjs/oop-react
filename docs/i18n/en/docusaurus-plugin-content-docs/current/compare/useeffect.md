@@ -41,7 +41,7 @@ class Settings {
 
 - "Most cases need no `reaction`" is right: whoever changes the state performs the effect in that method — more direct, easier to test.
 - When a following effect is genuinely needed (cross-object, batched, throttled), create the `reaction` in `init()` and expose `dispose()`; never create one in a render method — that leaks one per render.
-- Data fetching belongs in a `flow` (see [use](./use.md)), not in an effect.
+- Data fetching belongs in an `async` method (see [use](./use.md)), not in an effect.
 
 ## 演示
 

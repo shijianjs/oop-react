@@ -206,45 +206,70 @@ export class Workshop {
 
 `selected` 不标 `false`，因为它确实要触发重渲染 —— 这就是「注解只影响可观察性，不改变字段语义」。
 
+## 异步就是普通的 `async/await`
+
+严格模式默认关着，对象方法里直接写 `async/await` 就行：
+
+```ts
+export class Cart {
+  items: Item[] = [];
+  saving = false;
+
+  async save(draft: Draft): Promise<void> {
+    this.saving = true;                    // 方法本身是 action
+    try {
+      await api.persist(draft);
+      const items = await api.list();
+      this.applyResult(items);             // 抽出来的方法 = 一次通知
+    } finally {
+      this.saving = false;                 // 单行写入，直接写没问题
+    }
+  }
+
+  private applyResult(items: Item[]): void {
+    this.items = items;
+  }
+}
+```
+
+`await` 会结束启动这个方法的那个 action，所以 `await` 之后的每次写入各自通知一次观察者 —— 大多数时候
+这无所谓；确实要打包，就**把连续几行抽成一个方法**（它本身是 action），或者用 `runInAction` 包起来。
+这就是这个模型里的「事务」：按需，不默认。
+
+### 需要每一步都是事务时：`flow` 与 `yield`
+
+MobX 的 `flow` 是 generator 写法：`yield` 等于 `await`，但每个 `yield` 之后的代码会重新进入一个 action。
+这是**明确要用 `yield` 的场景**才需要的东西，普通代码不要用：
+
+```ts
+import {flow} from 'mobx';
+
+export class Cart {
+  readonly save = flow(function* (this: Cart, draft: Draft) {
+    yield api.persist(draft);
+    this.items = yield api.list();   // 这一步仍然在 action 里
+  });
+}
+```
+
+- generator **方法**也会被标成 flow，但 TS 眼里它还是 `Generator`，每个调用方得写
+  `as unknown as Promise`；写成字段时类型就是运行时那个函数（`(draft) => CancellablePromise<void>`）。
+- 返回 `CancellablePromise`，能 `.cancel()`；宿主打开严格模式时，`await` 之后的写入会逐条告警，
+  `flow` 不受影响。
+
+一句话：**默认 `async/await`；只有「多步流程每一步都要打包」或「要可取消」时才用 `yield` / `flow`。**
+
 ## MobX 的其它能力直接用
 
 库不包装这些，需要就从 `mobx` 里 import：
 
 ```ts
-import {autorun, flow, reaction, toJS} from 'mobx';
+import {autorun, reaction, toJS} from 'mobx';
 ```
 
-- `flow` / `flowResult`：异步动作，适合多步表单；
 - `reaction` / `autorun`：副作用（本地存储、埋点、同步到 URL）；
 - `toJS`：把状态转成普通对象再发请求或存盘；
 - `computed` / `observable` / `action` 装饰器：想更细粒度时用，和 `@OopReactRender()` 共存。
-
-`flow` 建议写成**字段**而不是 generator 方法：
-
-```ts
-export class Cart {
-  readonly save = flow(function* (this: Cart, draft: Draft) {
-    yield api.persist(draft);
-    this.items = yield api.list();
-  });
-}
-```
-
-`makeAutoObservable` 会把 `*save()` 这样的 generator 方法也变成 flow，但 TypeScript 仍然把它当 `Generator`，
-每个调用方都得 `as unknown as Promise`。写成字段时，它的类型就是运行时那个函数：`(draft) => CancellablePromise<void>`。
-
-**`flow` 是可选的。** 严格模式默认关着，所以 `async/await` 在对象方法里完全能用：`await` 之后写字段不会告警，
-只是每次写入各自通知一次观察者。
-
-`flow` 换来的东西是「**一段多步流程里，每一步都是一个独立的 action**」：
-
-- `loading = true` → 请求 → 写结果 → 收尾，每个 `yield` 之后的代码都在一个 action 里，中间状态一次到位；
-- 返回的是 `CancellablePromise`，可以 `.cancel()`，离开页面时能掐断；
-- 如果宿主项目把严格模式打开了，`await` 之后的写入会逐条告警（`Since strict-mode is enabled, changing
-  (observed) observable values without using an action is not allowed`），`flow` 不受影响 —— 这也是它在
-  「严格模式 + 多步异步」组合下更省心的原因。
-
-一句话：**单次 `await` + 一次写入用 `async` 更短；多步、每步都要写状态就用 `flow`。**
 
 ## 选项
 

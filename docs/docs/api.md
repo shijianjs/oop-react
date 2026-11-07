@@ -89,7 +89,8 @@ OopReactObservable<T extends object>(
 ): T
 ```
 
-在状态类的构造器里调用：字段变可观察、方法变 action 并绑定、getter 变 computed、generator 变 flow。
+在状态类的构造器里调用：字段变可观察、方法变 action 并绑定、getter 变 computed。用 `yield` 写的 generator
+方法仍然会变成 MobX 的 `flow`（见[状态](./guide/state.md)），但普通异步请用 `async/await`。
 `annotations` 的键就是真实字段名，写错是编译错误。
 
 两个与 MobX `makeAutoObservable` 不同的地方：
@@ -129,7 +130,8 @@ reset(): void {
 把一个方法**显式**声明成事务：里面的写入打包成一次通知。多数类里这是冗余的（方法本来就是 action），
 它用于 `autoBind: false`、注解表把方法排除掉、或者只是想把意图写清楚。
 
-它不能让 `async` 方法在 `await` 之后仍然是 action —— 那需要 `flow`（generator 方法）或 `runInAction`。
+严格模式默认关着，`await` 之后可以直接写字段；要把连续几行写入合成一次通知，就抽成一个方法（方法本身是
+action）或用 `runInAction`。`@OopReactAction()` 只作用于它标注的那个方法，管不到别的异步续行。
 
 ## 错误
 

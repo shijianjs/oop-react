@@ -41,7 +41,7 @@ class OrderEditor {
     );
   }
 
-  *submit() { /* validateFields / resetFields 都能调 */ }
+  async submit() { /* validateFields / resetFields 都能调 */ }
 }
 ```
 

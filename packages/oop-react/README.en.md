@@ -93,7 +93,7 @@ Live demo: https://shijianjs.github.io/oop-react/demo/ .
 
 ## Dependencies
 
-Tracking is [MobX](https://mobx.js.org/), used directly: import `computed`, `flow`, `reaction`, `toJS` from `mobx` —
+Tracking is [MobX](https://mobx.js.org/), used directly: import `computed`, `reaction`, `toJS` from `mobx` —
 the library does not wrap them. The library itself depends on no UI kit.
 
 ## License

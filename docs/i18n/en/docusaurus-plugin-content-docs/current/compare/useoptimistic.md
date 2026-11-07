@@ -5,7 +5,7 @@ slug: /compare/useoptimistic
 ---
 
 **React**: show the optimistic result first, roll back if the request fails.
-**Here**: change the field first and change it back on failure, inside a `flow` — submit and rollback sit in one method.
+**Here**: change the field first and change it back on failure, inside an `async` method — submit and rollback sit in one method.
 
 ## 原生写法
 
@@ -22,10 +22,10 @@ await save(item);
 class Todos {
   items: Todo[] = [];
 
-  *add(todo: Todo): Generator<Promise<unknown>, void, unknown> {
+  async add(todo: Todo): Promise<void> {
     this.items.push(todo);                 // optimistic
     try {
-      yield this.api.create(todo);
+      await this.api.create(todo);
     } catch (error) {
       this.items = this.items.filter((item) => item !== todo);   // rollback
       throw error;

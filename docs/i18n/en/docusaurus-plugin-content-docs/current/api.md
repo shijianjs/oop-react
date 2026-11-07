@@ -92,8 +92,10 @@ OopReactObservable<T extends object>(
 ): T
 ```
 
-Called in a state class's constructor: fields become observable, methods actions bound to the instance, getters
-computeds, generators flows. The keys of `annotations` are the real field names, so a typo is a compile error.
+Called in a state class's constructor: fields become observable, methods become actions bound to the instance, getters
+computeds. A generator method written with `yield` is still marked as a MobX `flow` (see [state](./guide/state.md)),
+but ordinary async code should use `async/await`. The keys of `annotations` are the real field names, so a typo is a
+compile error.
 
 Two differences from MobX's `makeAutoObservable`:
 
@@ -134,8 +136,9 @@ Explicitly declares a method as one transaction: its writes are batched into a s
 this is redundant (methods are actions already); it is there for `autoBind: false`, an annotation map that opts the
 method out, or simply to spell out the intent.
 
-It cannot keep an `async` method inside an action past its first `await` — that needs a `flow` (generator method) or
-`runInAction`.
+Strict mode is off by default, so writing fields after an `await` just works; to batch several consecutive writes,
+extract them into a method (a method is an action) or use `runInAction`. `@OopReactAction()` only covers the method it
+annotates, not the continuations of an `async` one.
 
 ## Errors
 

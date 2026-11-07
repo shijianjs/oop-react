@@ -60,7 +60,7 @@ granularity is yours.
 ## What it gives up
 
 - **It is bound to MobX.** Tracking is MobX, and the library offers no "swap the reactive engine" seam — replacing
-  it costs about as much as writing one. `makeAutoObservable`, `computed`, `flow` and `reaction` are used directly;
+  it costs about as much as writing one. `makeAutoObservable`, `computed` and `reaction` are used directly;
   see [state](./guide/state.md).
 - **Decorators use the legacy semantics** (`experimentalDecorators`). Prefer not to? `OopReactObserver` and
   `OopReactCallback` are the equivalent function entry points.

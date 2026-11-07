@@ -5,7 +5,7 @@ slug: /compare/useactionstate
 ---
 
 **React 19**：把表单提交 + 结果状态（error/pending）收进一个 action。
-**这里**：对象方法 + 字段。`saving` / `error` 是字段，提交是 `flow`。
+**这里**：对象方法 + 字段。`saving` / `error` 是字段，提交是 `async` 方法。
 
 ## 原生写法
 
@@ -24,11 +24,11 @@ class Form {
   saving = false;
   error = '';
 
-  *submit(values: Values): Generator<Promise<unknown>, void, unknown> {
+  async submit(values: Values): Promise<void> {
     this.saving = true;
     this.error = '';
     try {
-      yield this.api.save(values);
+      await this.api.save(values);
     } catch (error) {
       this.error = error instanceof Error ? error.message : String(error);
     } finally {

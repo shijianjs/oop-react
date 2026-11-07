@@ -56,7 +56,7 @@ React 代码使用」时，才需要 [`OopReactComponent`](./guide/react-bridge.
 ## 它放弃了什么
 
 - **绑定 MobX。** 追踪靠 MobX，库不提供「换成别的响应式实现」的口子 —— 换掉的成本约等于自己造一个 MobX。
-  `makeAutoObservable`、`computed`、`flow`、`reaction` 都是直接用，见[状态](./guide/state.md)。
+  `makeAutoObservable`、`computed`、`reaction` 都是直接用，见[状态](./guide/state.md)。
 - **装饰器是旧版语义**（`experimentalDecorators`）。不想开的话，`OopReactObserver` 和 `OopReactCallback`
   是等价的函数入口。
 - **`props` 不是主要通道。** 对象之间相互持有，`props` 只用来给构造函数喂初始值、以及和外部 React 代码交接。

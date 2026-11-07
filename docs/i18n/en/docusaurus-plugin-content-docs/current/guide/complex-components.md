@@ -126,20 +126,20 @@ export class OrderEditor {
   }
 
   /** the object validates, then hands the values to the page */
-  *submit(): Generator<Promise<unknown>, void, unknown> {
+  async submit(): Promise<void> {
     const form = this.#form;
     if (form === null) return;
 
     let values: OrderDraft;
     try {
-      values = (yield form.validateFields()) as OrderDraft;
+      values = await form.validateFields();
     } catch {
       return; // antd already marked the fields; keep the dialog open
     }
 
     this.saving = true;
     try {
-      yield this.page.save(values);
+      await this.page.save(values);
       form.resetFields();
       this.open = false;
     } finally {

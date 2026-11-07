@@ -5,7 +5,7 @@ slug: /compare/useactionstate
 ---
 
 **React 19**: fold form submission and its result state (error/pending) into one action.
-**Here**: an object method plus fields — `saving` / `error` are fields, submitting is a `flow`.
+**Here**: an object method plus fields — `saving` / `error` are fields, submitting is an `async` method.
 
 ## 原生写法
 
@@ -24,11 +24,11 @@ class Form {
   saving = false;
   error = '';
 
-  *submit(values: Values): Generator<Promise<unknown>, void, unknown> {
+  async submit(values: Values): Promise<void> {
     this.saving = true;
     this.error = '';
     try {
-      yield this.api.save(values);
+      await this.api.save(values);
     } catch (error) {
       this.error = error instanceof Error ? error.message : String(error);
     } finally {

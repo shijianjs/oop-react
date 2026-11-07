@@ -41,7 +41,7 @@ class OrderEditor {
     );
   }
 
-  *submit() { /* validateFields / resetFields are fair game */ }
+  async submit() { /* validateFields / resetFields are fair game */ }
 }
 ```
 

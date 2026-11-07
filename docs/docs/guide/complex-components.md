@@ -116,20 +116,20 @@ export class OrderEditor {
   }
 
   /** 校验由对象发起，通过之后再交给页面保存 */
-  *submit(): Generator<Promise<unknown>, void, unknown> {
+  async submit(): Promise<void> {
     const form = this.#form;
     if (form === null) return;
 
     let values: OrderDraft;
     try {
-      values = (yield form.validateFields()) as OrderDraft;
+      values = await form.validateFields();
     } catch {
       return; // antd 已经把错误标在字段上了，弹窗留着
     }
 
     this.saving = true;
     try {
-      yield this.page.save(values);
+      await this.page.save(values);
       form.resetFields();
       this.open = false;
     } finally {
