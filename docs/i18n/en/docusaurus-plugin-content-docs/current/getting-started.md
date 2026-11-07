@@ -8,10 +8,6 @@ sidebar_position: 2
 ## Install
 
 ```bash
-pnpm add oop-react
-```
-
-```bash
 pnpm add oop-react mobx mobx-react-lite
 ```
 
@@ -22,6 +18,23 @@ from the host project — see "only one mobx" below. Tracking is MobX, and the R
 **Latest major only.** mobx 6 needs `mobx-react-lite@4`, a different set of peers; mixing the two ranges in one
 package only resolves to combinations that cannot work. So there is no compatibility branch here — upgrade the host
 to mobx 7, or stay on the old version of the old package.
+
+## The first configuration: strict mode is already off
+
+`oop-react` runs `configure({enforceActions: 'never'})` as it loads — the one global setting it makes for you.
+
+MobX normally prints a `console.warn` for every write outside an action, and this model writes state exactly like
+`this.count += 1`: a field is state, that line is how it changes. Those warnings are pure noise here.
+**What you lose is the police, not the transaction**: methods are actions already (three writes in one call notify
+once), `runInAction` covers a block, and `@OopReactAction()` marks a method explicitly.
+
+To restore strict mode:
+
+```ts
+OopReactConfigure({enforceActions: 'always'});   // or 'observed'
+```
+
+See [state](./guide/state.md).
 
 ## Turn on decorators
 

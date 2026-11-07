@@ -1,4 +1,5 @@
 import {isObservable, makeObservable} from 'mobx';
+import {collectActions} from './action';
 import {reportDuplicateMobx} from './duplicates';
 import {collectIgnored} from './ignore';
 
@@ -68,6 +69,14 @@ function buildAnnotations(
         continue;
       }
       map[key] = annotation;
+    }
+  }
+
+  // `@OopReactAction()` wins over everything above: the method is one transaction
+  // even if the map (or `autoBind: false`) would have left it plain.
+  for (const key of collectActions(instance)) {
+    if (typeof (instance as Record<string, unknown>)[key] === 'function') {
+      map[key] = true;
     }
   }
 

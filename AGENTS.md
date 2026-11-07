@@ -55,12 +55,16 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    不能上提到组件整体 —— 上提会让一次局部更新重渲染整棵子树，一次失败吃掉整页。
 2. **渲染方法只读状态。** 它在 React 渲染过程中执行，写状态会在渲染中触发失效。想统计渲染次数之类的
    副作用，用不进入实例的普通对象（demo 的 `renderStats.ts` 就是例子）。
-3. **改状态走方法。** 方法是 MobX 的 action，`onClick={this.save}` 不会有 `enforceActions` 告警；
-   JSX 里的内联箭头直接赋值会有告警，文档里明确写了这一条，不要在库里偷偷 `configure` 全局 MobX。
+3. **严格模式默认关，事务按需开。** 库在 `config.tsx` 加载时执行 `configure({enforceActions: 'never'})` ——
+   这是**唯一**允许替宿主做的全局 MobX 配置，因为「字段直接写」就是这套模型，MobX 默认会为它逐条 `console.warn`。
+   `OopReactConfigure({enforceActions: 'always' | 'observed'})` 可以打开。关的是警察不是事务：方法本来就是
+   action（多次写入一次通知），块级事务用 `runInAction`，显式声明用 `@OopReactAction()`。
+   别再加别的全局 `configure`（`reactionScheduler` / `enforceActions` 之外的开关一律不动）。
 4. **对象图是主体，`OopReactComponent` 只是桥。** 主路径是「状态类在应用入口 `new`、相互持有、普通组件
    返回 `obj.view()`」；`OopReactComponent` 只服务渐进式采用和「必须是一个组件」的场合。加新 API 前先问：
    这是不是在把对象图往组件树上搬？是就别加。
-5. **绑死 mobx，不留响应式抽象层。** `config` 只有 `fallback` / `onError`；对 `makeAutoObservable` 的封装
+5. **绑死 mobx，不留响应式抽象层。** `config` 只有 `fallback` / `onError` / `enforceActions`（后者是全局
+   开关，见第 3 条），没有「换一个响应式实现」的口子；对 `makeAutoObservable` 的封装
    只提供类型和幂等（`OopReactObservable`），不要重新引入 `observe` / `observable` 口子，也不要包
    `computed` / `flow` / `reaction` —— 用户直接从 `mobx` import。
    **React 绑定用官方的 `mobx-react-lite` 的 `observer`**（`src/render/TrackedRender.tsx`），不要退回手写

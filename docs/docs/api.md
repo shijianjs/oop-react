@@ -115,6 +115,22 @@ class Cart {
 字段级黑名单：被标记的字段保持普通字段，不建 observable、不参与订阅，子类继承这个标记。
 `OopReactObservable` 的 `annotations` 仍然可用，并且优先级高于标记。
 
+### `OopReactAction()`
+
+```ts
+@OopReactAction()
+reset(): void {
+  this.customer = '';
+  this.amount = 0;
+  this.saving = false;   // 三次写入，一次渲染
+}
+```
+
+把一个方法**显式**声明成事务：里面的写入打包成一次通知。多数类里这是冗余的（方法本来就是 action），
+它用于 `autoBind: false`、注解表把方法排除掉、或者只是想把意图写清楚。
+
+它不能让 `async` 方法在 `await` 之后仍然是 action —— 那需要 `flow`（generator 方法）或 `runInAction`。
+
 ## 错误
 
 ### `OopReactErrorBoundary`
@@ -132,9 +148,13 @@ class Cart {
 ```ts
 OopReactConfigure(patch: Partial<OopReactConfig>): () => void
 
+type OopReactEnforceActions = 'never' | 'observed' | 'always';
+
 interface OopReactConfig {
   fallback: ComponentType<OopReactFallbackProps>;
   onError(error: unknown, name?: string): void;
+  /** 默认 `'never'`：库加载时就关掉 MobX 严格模式。 */
+  enforceActions: OopReactEnforceActions;
 }
 
 interface OopReactFallbackProps {
@@ -144,7 +164,9 @@ interface OopReactFallbackProps {
 }
 ```
 
-返回恢复函数。响应式实现不可替换，原因见[全局配置](./guide/configure.md)。
+返回恢复函数。`enforceActions` 默认 `'never'` —— 库加载时自动关掉 MobX 严格模式，因为「字段直接写」是这套模型
+的基础；要把它打开就 `OopReactConfigure({enforceActions: 'always'})`，见[状态](./guide/state.md)。
+响应式实现不可替换，原因见[全局配置](./guide/configure.md)。
 
 ## 类型
 

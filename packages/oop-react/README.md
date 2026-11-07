@@ -74,7 +74,12 @@ React 绑定用官方的 `mobx-react-lite`（`observer`）。
 | `OopReactBridge` | 把组件里的实例（`Form`、`message`、`modal`）交给对象，之后对象方法直接调 |
 | `OopReactComponent(Class, method, options?)` | 桥：把一个类挂成 React 组件（渐进式采用时用） |
 | `OopReactErrorBoundary` | 手动包一段 JSX 的错误边界 |
-| `OopReactConfigure({fallback, onError})` | 全局的失败展示与上报 |
+| `OopReactConfigure({fallback, onError, enforceActions})` | 全局的失败展示、上报与 MobX 严格模式开关 |
+| `OopReactAction()` | 把一个方法显式声明成事务（多次写入一次通知） |
+
+> **严格模式默认关闭。** 库加载时执行 `configure({enforceActions: 'never'})`：这套模型就是 `this.count += 1`，
+> MobX 默认的逐条 `console.warn` 在这里全是噪音。关的是警察不是事务 —— 方法本来就是 action；要开回来用
+> `OopReactConfigure({enforceActions: 'always'})`。
 
 完整文档：[中文](https://shijianjs.github.io/oop-react/) · [English](https://shijianjs.github.io/oop-react/en/) 。
 在线演示：https://shijianjs.github.io/oop-react/demo/ 。

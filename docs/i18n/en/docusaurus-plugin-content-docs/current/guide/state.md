@@ -91,6 +91,47 @@ class Derived extends Base {
 
 Base getters become computeds, base methods become actions, and a base `@OopReactIgnore` still applies.
 
+## Strict mode is off by default
+
+The first thing `oop-react` does when it loads is set MobX's `enforceActions` to `'never'`:
+
+```ts
+// done by the library entry, nothing to write
+configure({enforceActions: 'never'});
+```
+
+The reason is that this model writes state exactly like this: a field is state, and changing it is
+`this.count += 1`. MobX's default strict mode prints a `console.warn` for every write that happens outside an action:
+
+```
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
+```
+
+Under this model those warnings are pure noise, so they are off by default.
+
+**What you lose is the police, not the transaction.** Methods being actions is unrelated to this flag:
+
+```ts
+class Batch {
+  a = 0;
+  b = 0;
+
+  both(): void {
+    this.a += 1;
+    this.b += 1;   // two writes, one notification to observers
+  }
+}
+```
+
+Turn it back on when a team wants "every modification must be explicit":
+
+```ts
+OopReactConfigure({enforceActions: 'always'});   // or 'observed'
+```
+
+Note that in MobX 7 a violation is a `console.warn`, not an exception — with strict mode on the symptom is a flooded
+console, not a crash.
+
 ## Change state in methods
 
 ```ts
@@ -112,14 +153,32 @@ export class Cart {
 }
 ```
 
-Methods become actions, so `onClick={this.add}` raises no `enforceActions` warning.
+Methods become actions: writing several fields in one call notifies observers once, just like one `runInAction` block.
+To make a method **explicitly** a transaction (for example when a class turned automatic annotations off), mark it:
+
+```ts
+@OopReactAction()
+reset(): void {
+  this.customer = '';
+  this.amount = 0;
+  this.saving = false;   // three writes, one render
+}
+```
 
 :::caution Do not mutate fields inline in JSX
 ```tsx
 <button onClick={() => (this.saving = true)}>Save</button>
 ```
-That bypasses the action and earns a MobX warning in development. It is also the wrong shape: the entry point for a
-state change is a method.
+With strict mode off this line no longer warns, but it is still wrong: each write is its own notification (three lines
+mean three re-renders), and the entry point for a state change leaks into JSX. To group a block, open a transaction
+yourself:
+
+```ts
+runInAction(() => {
+  this.saving = true;
+  this.draft = null;
+});
+```
 :::
 
 ## Derived values are getters
@@ -186,16 +245,19 @@ export class Cart {
 `Generator`, so every caller needs an `as unknown as Promise` cast. As a field its type is the function it becomes at
 runtime: `(draft) => CancellablePromise<void>`.
 
-**Why not `async/await`.** Because MobX's action boundary ends at the `await`: an `async` method is one action as a
-whole, but the code after `await` is no longer inside it, so writing an observed field is rejected by strict mode —
+**`flow` is optional.** Strict mode is off by default, so `async/await` in an object method works fine: writing a
+field after `await` raises no warning, it just notifies observers once per write.
 
-```
-[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
-```
+What `flow` buys you is "**every step of a multi-step sequence is its own action**":
 
-`flow` re-enters an action after every `yield`, so a multi-step sequence (`loading = true` → request → write the
-result → clean up) stays legal. If nothing observed is written after the `await`, or the writes are wrapped in
-`runInAction`, `async` is perfectly fine too.
+- `loading = true` → request → write the result → clean up: the code after each `yield` runs inside an action, so
+  intermediate state lands in one notification;
+- it returns a `CancellablePromise`, so the work can be cancelled when a page goes away;
+- if a host application turns strict mode back on, writes after an `await` warn one by one
+  (`Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed`),
+  while `flow` is unaffected — the reason it is the safer choice for "strict mode + multi-step async".
+
+In short: **one `await` and one write → `async` is shorter; several steps, each writing state → `flow`.**
 
 ## Options
 

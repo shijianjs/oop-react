@@ -25,5 +25,7 @@ export type {
   OopReactObservableOptions,
 } from './reactivity/reactivity';
 export {OopReactIgnore} from './reactivity/ignore';
+export {OopReactAction} from './reactivity/action';
 export {OopReactState} from './reactivity/OopReactState';
 export type {OopReactStateHooks} from './reactivity/OopReactState';
+export type {OopReactEnforceActions} from './reactivity/strictMode';

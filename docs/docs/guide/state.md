@@ -85,6 +85,46 @@ class Derived extends Base {
 
 父类的 getter 是 computed、父类的方法是 action、父类标的 `@OopReactIgnore` 照样生效。
 
+## 严格模式默认关闭
+
+`oop-react` 加载时做的第一件事，是把 MobX 的 `enforceActions` 设成 `'never'`：
+
+```ts
+// 库入口自动执行，不需要你写
+configure({enforceActions: 'never'});
+```
+
+理由是这套模型的写法本来就是这样：字段是状态，改它就是 `this.count += 1`。MobX 默认的严格模式会为每一次
+「不在 action 里的写入」打一条 `console.warn`：
+
+```
+[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
+```
+
+在这套写法里这些告警全是噪音，所以默认关掉。
+
+**关掉的是警察，不是事务。** 方法是 action 这件事跟这个开关无关：
+
+```ts
+class Batch {
+  a = 0;
+  b = 0;
+
+  both(): void {
+    this.a += 1;
+    this.b += 1;   // 两次写入，观察者只被通知一次
+  }
+}
+```
+
+要重新打开（比如团队要求「所有修改都必须显式」）：
+
+```ts
+OopReactConfigure({enforceActions: 'always'});   // 或 'observed'
+```
+
+注意 MobX 7 的违规是 `console.warn`，不是异常 —— 打开之后问题表现为控制台刷屏，而不是崩掉。
+
 ## 改状态写在方法里
 
 ```ts
@@ -106,13 +146,31 @@ export class Cart {
 }
 ```
 
-方法自动成为 action，`onClick={this.add}` 不会有 `enforceActions` 告警。
+方法自动成为 action：一次调用里改多个字段只通知一次，等价于一段 `runInAction`。需要把一个方法**显式**声明成
+事务（比如类上关掉了自动注解），就标 `@OopReactAction()`：
+
+```ts
+@OopReactAction()
+reset(): void {
+  this.customer = '';
+  this.amount = 0;
+  this.saving = false;   // 三次写入，一次渲染
+}
+```
 
 :::caution 别在 JSX 里就地改字段
 ```tsx
 <button onClick={() => (this.saving = true)}>保存</button>
 ```
-这样绕过 action，开发模式下会收到 MobX 的告警。写法上也不对：改状态的入口是方法。
+严格模式关掉之后这行**不会告警**了，但它仍然是错的：每次写入都是一次独立通知（写三行就是三次重渲染），
+而且改状态的入口散落进了 JSX。需要临时包一段就自己开事务：
+
+```ts
+runInAction(() => {
+  this.saving = true;
+  this.draft = null;
+});
+```
 :::
 
 ## 派生值用 getter
@@ -175,15 +233,18 @@ export class Cart {
 `makeAutoObservable` 会把 `*save()` 这样的 generator 方法也变成 flow，但 TypeScript 仍然把它当 `Generator`，
 每个调用方都得 `as unknown as Promise`。写成字段时，它的类型就是运行时那个函数：`(draft) => CancellablePromise<void>`。
 
-**为什么不用 `async/await`。** 因为 MobX 的 action 边界在 `await` 处就断了：`async` 方法整体是一个 action，
-但 `await` 之后的代码已经不在 action 里，写被观察的字段会被严格模式拦下 ——
+**`flow` 是可选的。** 严格模式默认关着，所以 `async/await` 在对象方法里完全能用：`await` 之后写字段不会告警，
+只是每次写入各自通知一次观察者。
 
-```
-[MobX] Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed.
-```
+`flow` 换来的东西是「**一段多步流程里，每一步都是一个独立的 action**」：
 
-`flow` 每 `yield` 之后重新进入一次 action，所以多步流程（`loading = true` → 请求 → 写结果 → 收尾）每一步都合法。
-`await` 之后不写被观察的状态、或者用 `runInAction` 把写入包起来，用 `async` 也完全可以。
+- `loading = true` → 请求 → 写结果 → 收尾，每个 `yield` 之后的代码都在一个 action 里，中间状态一次到位；
+- 返回的是 `CancellablePromise`，可以 `.cancel()`，离开页面时能掐断；
+- 如果宿主项目把严格模式打开了，`await` 之后的写入会逐条告警（`Since strict-mode is enabled, changing
+  (observed) observable values without using an action is not allowed`），`flow` 不受影响 —— 这也是它在
+  「严格模式 + 多步异步」组合下更省心的原因。
+
+一句话：**单次 `await` + 一次写入用 `async` 更短；多步、每步都要写状态就用 `flow`。**
 
 ## 选项
 

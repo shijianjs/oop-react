@@ -5,7 +5,7 @@ slug: /compare/use
 ---
 
 **React 19**: read a promise during render, together with `Suspense`.
-**Here**: never `await` in a render method — finish the async work in a `flow` and write a field; render methods stay synchronous.
+**Here**: never `await` in a render method — finish async work in a `flow` (or a plain `async` method) and write a field; render methods stay synchronous.
 
 ## 原生写法
 
@@ -38,21 +38,35 @@ class Profile {
 }
 ```
 
-## Why a generator instead of `async`
+## Why this page uses a generator (it is optional)
 
 `*load()` is a generator, but callers get a plain promise: `@OopReactState` (and `OopReactObservable`) marks
-generator methods as MobX `flow`. It is not a stylistic choice — **MobX's action boundary ends at an `await`**:
+generator methods as MobX `flow`, and `yield` behaves exactly like `await`.
 
-- an `async` method is one action as a whole, but the code after `await` is no longer inside it. MobX enforces
-  actions by default, so writing an observed field there throws
-  `Since strict-mode is enabled, changing (observed) observable values without using an action is not allowed`;
-- `flow` re-enters an action after every `yield`, so "set loading → request → write the result → clean up" is legal
-  at every step, and half-finished state is never exposed to observers.
+**Strict mode is off by default, so `async/await` works fine here**: writing a field after `await` raises no
+warning. This page picks `flow` because it is a multi-step sequence — the code after each `yield` runs inside an
+action, so `loading → data → clean up` is one notification per step, and the returned `CancellablePromise` can be
+cancelled when the page goes away.
 
-`async/await` is perfectly fine in two cases:
+With `async` the same method is:
 
-1. nothing observed is written after the `await` (you only compute and return);
-2. the writes after the `await` are wrapped in `runInAction(() => { … })`.
+```ts
+async load(): Promise<void> {
+  this.loading = true;
+  try {
+    this.data = await this.api.profile();
+  } finally {
+    this.loading = false;
+  }
+}
+```
+
+It runs just as well; the difference is that those writes notify observers one by one. Wrap the tail in
+`runInAction` if they should land together.
+
+If a host application turns strict mode back on (`OopReactConfigure({enforceActions: 'always'})`), every write after
+an `await` produces a `console.warn` (MobX 7 warns, it does not throw) — `flow` is unaffected, which makes it the
+safer choice there.
 
 If the public signature should not mention `Generator`, write it as a field — its type is the function it becomes at
 runtime:

@@ -119,6 +119,24 @@ class Cart {
 A field-level denylist: a marked field stays a plain field (no observable, no subscription), and subclasses inherit
 the mark. `OopReactObservable`'s `annotations` still work and take precedence over it.
 
+### `OopReactAction()`
+
+```ts
+@OopReactAction()
+reset(): void {
+  this.customer = '';
+  this.amount = 0;
+  this.saving = false;   // three writes, one render
+}
+```
+
+Explicitly declares a method as one transaction: its writes are batched into a single notification. In most classes
+this is redundant (methods are actions already); it is there for `autoBind: false`, an annotation map that opts the
+method out, or simply to spell out the intent.
+
+It cannot keep an `async` method inside an action past its first `await` — that needs a `flow` (generator method) or
+`runInAction`.
+
 ## Errors
 
 ### `OopReactErrorBoundary`
@@ -136,9 +154,13 @@ A boundary using the global `fallback` / `onError`. `@OopReactRender()` already 
 ```ts
 OopReactConfigure(patch: Partial<OopReactConfig>): () => void
 
+type OopReactEnforceActions = 'never' | 'observed' | 'always';
+
 interface OopReactConfig {
   fallback: ComponentType<OopReactFallbackProps>;
   onError(error: unknown, name?: string): void;
+  /** Defaults to `'never'`: the library switches MobX strict mode off as it loads. */
+  enforceActions: OopReactEnforceActions;
 }
 
 interface OopReactFallbackProps {
@@ -148,8 +170,10 @@ interface OopReactFallbackProps {
 }
 ```
 
-Returns a restore function. The reactive engine is not configurable on purpose — see
-[global configuration](./guide/configure.md).
+Returns a restore function. `enforceActions` defaults to `'never'`: the library switches MobX strict mode off as it
+loads, because writing fields directly is the basis of this model. Turn it on with
+`OopReactConfigure({enforceActions: 'always'})`, see [state](./guide/state.md). The reactive engine is not
+configurable on purpose — see [global configuration](./guide/configure.md).
 
 ## Types
 

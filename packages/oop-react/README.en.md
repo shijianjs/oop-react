@@ -80,7 +80,13 @@ Decorators use the legacy semantics, so the consuming project needs:
 | `OopReactBridge` | hands a component-only instance (`Form`, `message`, `modal`) to an object, which can then call it |
 | `OopReactComponent(Class, method, options?)` | the bridge: mount a class as a React component (incremental adoption) |
 | `OopReactErrorBoundary` | a boundary to wrap a piece of hand-written JSX |
-| `OopReactConfigure({fallback, onError})` | global failure presentation and reporting |
+| `OopReactConfigure({fallback, onError, enforceActions})` | global failure presentation, reporting and the MobX strict-mode switch |
+| `OopReactAction()` | explicitly declare a method as one transaction (several writes, one notification) |
+
+> **Strict mode is off by default.** The library runs `configure({enforceActions: 'never'})` as it loads: this model
+> writes state as `this.count += 1`, and MobX's per-write `console.warn` is pure noise here. You lose the police, not
+> the transaction — methods are actions already. Turn it back on with
+> `OopReactConfigure({enforceActions: 'always'})`.
 
 Full docs: [English](https://shijianjs.github.io/oop-react/en/) · [中文](https://shijianjs.github.io/oop-react/) .
 Live demo: https://shijianjs.github.io/oop-react/demo/ .

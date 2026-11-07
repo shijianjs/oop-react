@@ -5,7 +5,7 @@ slug: /compare/use
 ---
 
 **React 19**：在渲染中读 Promise，配合 `Suspense`。
-**这里**：渲染方法里不 `await` —— 用 `flow` 把异步做完再写字段。渲染方法只读字段，永远同步。
+**这里**：渲染方法里不 `await` —— 异步放在 `flow`（或普通 `async` 方法）里做完再写字段。渲染方法只读字段，永远同步。
 
 ## 原生写法
 
@@ -38,21 +38,32 @@ class Profile {
 }
 ```
 
-## 为什么是 generator，不是 `async`
+## 这一页为什么用 generator（它是可选的）
 
-`*load()` 是 generator，但调用方拿到的是普通 Promise：`@OopReactState`（以及 `OopReactObservable`）
-把 generator 方法标成 MobX 的 `flow`。这不是语法偏好，是因为 **MobX 的 action 边界在 `await` 处就断了**：
+`*load()` 是 generator，但调用方拿到的是普通 Promise：`@OopReactState`（以及 `OopReactObservable`）把
+generator 方法标成 MobX 的 `flow`，`yield` 的语义和 `await` 一样。
 
-- `async` 方法整体是一个 action，但 `await` 之后的代码已经不在 action 里。MobX 默认开着严格模式，此时写
-  被观察的字段会直接抛 `Since strict-mode is enabled, changing (observed) observable values without using an
-  action is not allowed`。
-- `flow` 在每次 `yield` 之后重新进入一次 action，所以「先设 loading → 请求 → 写结果 → 收尾」每一步都合法，
-  中途也不会把半成品状态暴露给观察者。
+**严格模式默认关着，所以这里完全可以用 `async/await`**：`await` 之后写字段不会告警。这一页选 `flow` 是因为它是
+一次多步流程 —— 每个 `yield` 之后的代码都在一个 action 里，`loading → 数据 → 收尾` 每一步是一次通知，
+返回的 `CancellablePromise` 还能在离开页面时取消。
 
-两种情况下 `async/await` 完全没问题：
+换成 `async` 就是：
 
-1. `await` 之后不写被观察的状态（只是算一算、返回个值）；
-2. 用 `runInAction(() => { … })` 把 `await` 之后的写入包起来。
+```ts
+async load(): Promise<void> {
+  this.loading = true;
+  try {
+    this.data = await this.api.profile();
+  } finally {
+    this.loading = false;
+  }
+}
+```
+
+同样能跑，只是这几处写入各自通知一次观察者；想合成一次就用 `runInAction` 把收尾包起来。
+
+如果宿主项目把严格模式打开了（`OopReactConfigure({enforceActions: 'always'})`），`await` 之后的每次写入
+会逐条 `console.warn`（MobX 7 是警告，不是异常），这时 `flow` 更省心。
 
 如果公开的方法签名不想出现 `Generator`，写成字段形式 —— 类型就是运行时那个函数：
 

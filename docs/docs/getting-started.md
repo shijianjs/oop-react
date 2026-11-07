@@ -8,10 +8,6 @@ sidebar_position: 2
 ## 安装
 
 ```bash
-pnpm add oop-react
-```
-
-```bash
 pnpm add oop-react mobx mobx-react-lite
 ```
 
@@ -21,6 +17,22 @@ pnpm add oop-react mobx mobx-react-lite
 
 **只跟最新大版本。** mobx 6 要配 `mobx-react-lite@4`，那是另一套 peer，混在一起只会解析出不能用的组合，
 所以这里不做兼容分支 —— 宿主升级到 mobx 7，或者继续用旧版本的旧包。
+
+## 第一条配置：严格模式已经关好了
+
+`oop-react` 加载时会自动执行 `configure({enforceActions: 'never'})` —— 这是它唯一替你做的全局配置。
+
+MobX 默认会为「不在 action 里的写入」逐条打印 `console.warn`，而这套模型的写法本来就是 `this.count += 1`：
+字段是状态，改它就是这一行。那些告警在这里全是噪音。**关掉的只是警察，不是事务**：方法本来就是 action
+（一次调用里写三个字段只通知一次），需要块级事务就 `runInAction`，想把方法显式标成事务就 `@OopReactAction()`。
+
+要恢复严格模式：
+
+```ts
+OopReactConfigure({enforceActions: 'always'});   // 或 'observed'
+```
+
+详见[状态](./guide/state.md)。
 
 ## 打开装饰器
 
