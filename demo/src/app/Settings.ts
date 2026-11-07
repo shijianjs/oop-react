@@ -1,5 +1,4 @@
-import {reaction} from 'mobx';
-import {OopReactObservable} from 'oop-react';
+import {OopReactState} from 'oop-react';
 import {MESSAGES, type Locale, type MessageKey} from '../i18n/messages';
 
 export type Theme = 'light' | 'dark';
@@ -9,40 +8,36 @@ export type Theme = 'light' | 'dark';
  * of in a context or a hook. Everything that reads `t()` subscribes to `locale`;
  * everything that reads `theme` subscribes to it.
  *
- * The side effect that pushes them onto `<html>` is a `reaction` owned by this
- * object — created in the constructor, disposed with the object. Reactions do
- * not have to live at the application root; an object that owns a piece of state
- * can own the effect that follows it.
+ * The `<html>` attributes are written by the setters, not by a `reaction`: the
+ * effect happens exactly where the state changes, which is both shorter and the
+ * conventional object-oriented shape. `init()` covers the one case a setter cannot
+ * — the value the object starts with.
  */
+@OopReactState
 export class Settings {
   theme: Theme = globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   locale: Locale = 'zh';
-  #dispose: (() => void) | null = null;
 
-  constructor() {
-    OopReactObservable(this);
-
-    this.#dispose = reaction(
-      () => [this.theme, this.locale] as const,
-      ([theme, locale]) => {
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.lang = locale === 'zh' ? 'zh-Hans' : 'en';
-      },
-      {fireImmediately: true},
-    );
-  }
-
-  dispose(): void {
-    this.#dispose?.();
-    this.#dispose = null;
+  init(): void {
+    this.apply();
   }
 
   toggleTheme(): void {
-    this.theme = this.theme === 'light' ? 'dark' : 'light';
+    this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+  }
+
+  setTheme(theme: Theme): void {
+    this.theme = theme;
+    this.apply();
   }
 
   toggleLocale(): void {
-    this.locale = this.locale === 'zh' ? 'en' : 'zh';
+    this.setLocale(this.locale === 'zh' ? 'en' : 'zh');
+  }
+
+  setLocale(locale: Locale): void {
+    this.locale = locale;
+    this.apply();
   }
 
   /** Reads `locale`, so a render method calling this re-renders on a switch. */
@@ -52,5 +47,10 @@ export class Settings {
       message = message.replace(`{${name}}`, String(value));
     }
     return message;
+  }
+
+  private apply(): void {
+    document.documentElement.dataset.theme = this.theme;
+    document.documentElement.lang = this.locale === 'zh' ? 'zh-Hans' : 'en';
   }
 }

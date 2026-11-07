@@ -1,6 +1,6 @@
 import {autorun, isObservableProp, reaction} from 'mobx';
-import {describe, expect, it} from 'vitest';
-import {OopReactIgnore, OopReactObservable} from '../src/index';
+import {describe, expect, it, vi} from 'vitest';
+import {OopReactIgnore, OopReactObservable, OopReactState} from '../src/index';
 
 describe('OopReactObservable', () => {
   it('marks fields observable, methods actions and getters computed', () => {
@@ -180,5 +180,83 @@ describe('OopReactObservable', () => {
     run();
 
     expect(loader.state).toBe('done');
+  });
+});
+
+describe('@OopReactState', () => {
+  it('makes a decorated class observable without a constructor', () => {
+    @OopReactState
+    class Panels {
+      @OopReactIgnore readonly api = {calls: 0};
+      open = false;
+
+      toggle(): void {
+        this.open = !this.open;
+      }
+
+      get label(): string {
+        return this.open ? 'open' : 'closed';
+      }
+    }
+
+    const panels = new Panels();
+    const seen: string[] = [];
+    const stop = autorun(() => seen.push(panels.label));
+
+    const {toggle} = panels;
+    toggle();
+    stop();
+
+    expect(isObservableProp(panels, 'open')).toBe(true);
+    expect(isObservableProp(panels, 'api')).toBe(false);
+    expect(seen).toEqual(['closed', 'open']);
+  });
+
+  it('calls init() once the instance is observable', () => {
+    let observableInInit = false;
+
+    @OopReactState
+    class Boots {
+      ready = false;
+
+      init(): void {
+        observableInInit = isObservableProp(this, 'ready');
+        this.ready = true;
+      }
+    }
+
+    const boots = new Boots();
+
+    expect(observableInInit).toBe(true);
+    expect(boots.ready).toBe(true);
+  });
+
+  it('keeps the class name and works through inheritance', () => {
+    @OopReactState
+    class Base {
+      base = 0;
+
+      bump(): void {
+        this.base += 1;
+      }
+    }
+
+    @OopReactState
+    class Derived extends Base {
+      extra = 0;
+    }
+
+    const instance = new Derived();
+    const seen: number[] = [];
+    const stop = autorun(() => seen.push(instance.base));
+
+    const {bump} = instance;
+    bump();
+    stop();
+
+    expect(Derived.name).toBe('Derived');
+    expect(instance).toBeInstanceOf(Base);
+    expect(isObservableProp(instance, 'extra')).toBe(true);
+    expect(seen).toEqual([0, 1]);
   });
 });

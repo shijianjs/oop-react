@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import {useState} from 'react';
 import {describe, expect, it} from 'vitest';
 import {OopReactObservable, OopReactRender} from '../src/index';
 
@@ -143,5 +144,40 @@ describe('island isolation', () => {
 
     expect(renders.sibling).toBe(before + 1);
     expect(screen.getByText('row 1')).toBeTruthy();
+  });
+
+  it('gives every island its own identity when a parent swaps one for another', () => {
+    // Every island element has the same component type, so React reuses the fiber
+    // for whatever occupies the same position. Without the default key, swapping
+    // in a method that calls a different number of hooks throws
+    // "Rendered more hooks than during the previous render".
+    class WithHook {
+      @OopReactRender()
+      view() {
+        const [count] = useState(0);
+        return <p>hook: {count}</p>;
+      }
+    }
+
+    class WithoutHook {
+      @OopReactRender()
+      view() {
+        return <p>plain</p>;
+      }
+    }
+
+    const withHook = new WithHook();
+    const withoutHook = new WithoutHook();
+    const Page = ({which}: {which: 'hook' | 'plain'}) =>
+      which === 'hook' ? withHook.view() : withoutHook.view();
+
+    const {rerender} = render(<Page which="hook" />);
+    expect(screen.getByText('hook: 0')).toBeTruthy();
+
+    rerender(<Page which="plain" />);
+    expect(screen.getByText('plain')).toBeTruthy();
+
+    rerender(<Page which="hook" />);
+    expect(screen.getByText('hook: 0')).toBeTruthy();
   });
 });

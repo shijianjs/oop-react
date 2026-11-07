@@ -1,6 +1,6 @@
 import {animated, useSpring} from '@react-spring/web';
 import {Button, Card, Space, Typography} from 'antd';
-import {OopReactIgnore, OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
@@ -14,12 +14,13 @@ import {PageHeader} from '../PageHeader';
  * - **react-spring**: the hook lives inside one island, and the spring follows a
  *   field like any other value.
  */
+@OopReactState
 export class AnimationPage implements Page {
   readonly path = 'animation';
   readonly titleKey = 'route.animation';
   readonly sourcePath = 'demo/src/pages/animation/AnimationPage.tsx';
   @OopReactIgnore
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
 
   /** CSS demo: the box slides and fades with this flag. */
   shifted = false;
@@ -34,7 +35,6 @@ export class AnimationPage implements Page {
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this);
   }
 
   toggleShifted(): void {

@@ -1,7 +1,7 @@
 import {App as AntApp, Button, ConfigProvider, Menu, Space, theme} from 'antd';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import {ActivityLog} from '../log/ActivityLog';
 import {AnimationPage} from '../pages/animation/AnimationPage';
 import {ChartPage} from '../pages/chart/ChartPage';
@@ -25,12 +25,13 @@ import {Settings} from './Settings';
  * layout is split into, so that switching a page does not re-render the header
  * and writing to the log does not re-render the menu.
  */
+@OopReactState
 export class App {
-  readonly settings: Settings;
-  readonly log: ActivityLog;
-  readonly feedback: Feedback;
-  readonly router: Router;
-  readonly pages: Page[];
+  @OopReactIgnore readonly settings: Settings;
+  @OopReactIgnore readonly log: ActivityLog;
+  @OopReactIgnore readonly feedback: Feedback;
+  @OopReactIgnore readonly router: Router;
+  @OopReactIgnore readonly pages: Page[];
 
   constructor() {
     this.settings = new Settings();
@@ -49,14 +50,6 @@ export class App {
     ];
     this.router = new Router(this.pages);
 
-    // Everything above is a collaborator this object holds, not state it owns.
-    OopReactObservable(this, {
-      settings: false,
-      log: false,
-      feedback: false,
-      router: false,
-      pages: false,
-    });
   }
 
   /**

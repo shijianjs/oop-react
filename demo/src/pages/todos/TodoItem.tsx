@@ -1,20 +1,20 @@
 import {Button} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {TodosPage} from './TodosPage';
 
 /**
  * The deep end: an item holds the page that owns it and, through it, the whole
  * App — so it writes the shared log without a callback or a context.
  */
+@OopReactState
 export class TodoItem {
-  readonly title: string;
-  readonly page: TodosPage;
+  @OopReactIgnore readonly title: string;
+  @OopReactIgnore readonly page: TodosPage;
   done = false;
 
   constructor(title: string, page: TodosPage) {
     this.title = title;
     this.page = page;
-    OopReactObservable(this, {title: false, page: false});
   }
 
   toggle(): void {

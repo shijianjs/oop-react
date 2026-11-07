@@ -1,4 +1,4 @@
-import {OopReactObservable} from 'oop-react';
+import {OopReactIgnore, OopReactState} from 'oop-react';
 import type {Page} from '../pages/Page';
 
 /**
@@ -8,9 +8,10 @@ import type {Page} from '../pages/Page';
  * so `/demo/todos` would 404 on a refresh unless the host knew about it. `#/todos`
  * needs no server configuration and survives a reload.
  */
+@OopReactState
 export class Router {
-  readonly pages: Page[];
-  readonly fallback: Page;
+  @OopReactIgnore readonly pages: Page[];
+  @OopReactIgnore readonly fallback: Page;
   /** The observable bit: the current route is a path, resolved by a computed. */
   path: string;
 
@@ -28,7 +29,6 @@ export class Router {
     // fine here; an application that can rebuild its graph would dispose it.
     window.addEventListener('hashchange', () => this.sync());
 
-    OopReactObservable(this, {pages: false, fallback: false});
   }
 
   get current(): Page {

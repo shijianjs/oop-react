@@ -23,6 +23,28 @@ function sameArgs(left: unknown[], right: unknown[]): boolean {
   return left.every((value, index) => Object.is(value, right[index]));
 }
 
+let nextInstanceId = 0;
+const instanceIds = new WeakMap<object, number>();
+
+/**
+ * A stable id per object, used in the default React key.
+ *
+ * Every island element has the same component type, so without a key React
+ * reuses the fiber when a parent swaps one island for another — for instance when
+ * the router renders a different page: the same fiber would then run a different
+ * render method, and any hooks the two methods call (a `Modal.useModal` here, none
+ * there) would change the hook count mid-fiber, which React rejects with
+ * "Rendered more hooks than during the previous render".
+ */
+function instanceId(instance: object): number {
+  let id = instanceIds.get(instance);
+  if (id === undefined) {
+    id = (nextInstanceId += 1);
+    instanceIds.set(instance, id);
+  }
+  return id;
+}
+
 /**
  * Islands are memoized on what actually identifies them: the instance, the
  * method, the name and the call arguments. So a parent island re-rendering does
@@ -146,7 +168,10 @@ export function OopReactRender(options: OopReactRenderOptions = {}): MethodDecor
 
       return (
         <OopReactRenderIsland
-          key={options.key?.(this, ...args)}
+          // Without a key React would reuse the fiber for a *different* island in
+          // the same position. The default key therefore identifies the object
+          // and the method; a list of islands still wants `options.key`.
+          key={options.key?.(this, ...args) ?? `${instanceId(this)}.${String(propertyKey)}`}
           instance={this}
           method={method}
           args={args}

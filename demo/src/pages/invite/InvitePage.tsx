@@ -1,5 +1,5 @@
 import {Button, Card, Input, Modal, Space, Tag, Typography} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
@@ -10,11 +10,12 @@ interface Invite {
   email: string;
 }
 
+@OopReactState
 export class InvitePage implements Page {
   readonly path = 'invite';
   readonly titleKey = 'route.invite';
   readonly sourcePath = 'demo/src/pages/invite/InvitePage.tsx';
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
   open = false;
   name = '';
   email = '';
@@ -22,7 +23,6 @@ export class InvitePage implements Page {
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this, {app: false});
   }
 
   get canSubmit(): boolean {

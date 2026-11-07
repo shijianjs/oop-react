@@ -1,5 +1,5 @@
 import {Card} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../app/App';
 
 /**
@@ -7,13 +7,13 @@ import type {App} from '../app/App';
  * not inside any of them. Entries are written as traces (`todos.item("x").done = true`)
  * rather than sentences, so the panel shows *who called whom*.
  */
+@OopReactState
 export class ActivityLog {
   entries: string[] = [];
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this, {app: false});
   }
 
   add(entry: string): void {

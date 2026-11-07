@@ -1,16 +1,17 @@
 import {Button, Card, Input, Space, Typography} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
 import {PageHeader} from '../PageHeader';
 import {TodoItem} from './TodoItem';
 
+@OopReactState
 export class TodosPage implements Page {
   readonly path = 'todos';
   readonly titleKey = 'route.todos';
   readonly sourcePath = 'demo/src/pages/todos/TodosPage.tsx';
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
   draft = '';
   items: TodoItem[] = [];
   /** One-to-one: a reference to somebody else's child, rendered by its own island. */
@@ -18,7 +19,6 @@ export class TodosPage implements Page {
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this, {app: false});
   }
 
   get remaining(): number {

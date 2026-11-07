@@ -67,7 +67,9 @@ pnpm site             # scripts/build-site.mjs：库 → 文档 → demo，产�
    `Reaction` 循环：订阅、批处理、并发调度都该由官方实现负责。岛外面的 `memo` 是我们自己的，因为
    `observer` 的 memo 按 props 浅比较，而 `args` 每次都是新数组。
    版本策略见下面的「只跟最新大版本」——不为了 mobx 6 / lite 4 写兼容分支。
-6. **可观察性由类自己声明。** 状态类在构造器里调 `OopReactObservable(this)`（放最后一行）；
+6. **可观察性用 `@OopReactState` 声明。** 类上标 `@OopReactState`，不再写构造器里的 `OopReactObservable(this)`
+   （demo 里已经全部改成这样）；需要「实例可观察之后再做的事」就实现 `init()`。`OopReactObservable` 仍然公开，
+   给「不能加类装饰器」的场合用（放构造器最后一行）。
    `OopReactComponent` 的 `autoObservable` 只是给「没声明过的老类」兜底。
    排除字段用 `@OopReactIgnore`（在字段旁边，子类继承），注解表仍可用且优先级更高。
    `OopReactObservable` 自己 walk 整条原型链、按 `true` 交给 MobX 的 auto 注解：这是为了绕开

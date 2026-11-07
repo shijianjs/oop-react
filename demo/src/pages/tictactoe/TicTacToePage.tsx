@@ -1,5 +1,5 @@
 import {Alert, Button, Card, Space, Tag, Typography} from 'antd';
-import {OopReactIgnore, OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
@@ -49,12 +49,13 @@ const row = (index: number) => Math.floor(index / 3) + 1;
  * 3. the board is two loops, not nine hard-coded squares; 4. a toggle for the
  * history direction; 5. the winning line is highlighted; 6. a draw message.
  */
+@OopReactState
 export class TicTacToePage implements Page {
   readonly path = 'tictactoe';
   readonly titleKey = 'route.tictactoe';
   readonly sourcePath = 'demo/src/pages/tictactoe/TicTacToePage.tsx';
   @OopReactIgnore
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
 
   history: Snapshot[] = [{squares: Array<Square>(9).fill(null), move: -1}];
   step = 0;
@@ -62,7 +63,6 @@ export class TicTacToePage implements Page {
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this);
   }
 
   get current(): Snapshot {

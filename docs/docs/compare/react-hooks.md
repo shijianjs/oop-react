@@ -12,22 +12,22 @@ sidebar_position: 1
 
 | React | 这里的做法 | demo |
 | --- | --- | --- |
-| `useState` | 字段；多个 state 就是多个字段 | 计数器、待办、订单 |
-| `useReducer` | 一个方法（或几个方法）改一组字段；复杂时用一个专门的「状态」子对象 | 订单（`OrdersPage`） |
-| `useContext` | 直接持有那个对象（`this.app.settings`） | 全站：`t()` 来自 `App.settings` |
+| [`useState`](./usestate.md) | 字段；多个 state 就是多个字段 | 计数器、待办、订单 |
+| [`useReducer`](./usereducer.md) | 一个方法（或几个方法）改一组字段；复杂时用一个专门的「状态」子对象 | 订单（`OrdersPage`） |
+| [`useContext`](./usecontext.md) | 直接持有那个对象（`this.app.settings`） | 全站：`t()` 来自 `App.settings` |
 | `useRef`（存值） | 普通字段；不想被观察就 `@OopReactIgnore` | 订单（`OrderEditor` 持有表单实例） |
 | `useRef`（拿 DOM） | 只在需要 DOM 的薄组件里用 | 图表（`EChart` 内部） |
 | `useImperativeHandle` / `forwardRef` | 把实例交给对象（`OopReactBridge`），调用方直接调方法 | 订单（`OrderEditor`） |
-| `useEffect` | 对象的 `reaction` / 方法里的副作用；组件卸载由对象生命周期管 | 设置（`Settings` 里的主题同步） |
-| `useLayoutEffect` | 同上，需要同步测量时仍在薄组件里 | ⏳ |
-| `useInsertionEffect` | 不需要：样式由 `ConfigProvider` / CSS-in-JS 负责 | — |
-| `useDebugValue` | 不需要：对象在 DevTools 里就是普通对象 | — |
-| `useMemo` | `get` 访问器（computed） | 订单（`paged` / `columns`）、图表（`option`） |
-| `useCallback` | 实例方法（构造器里已绑定，引用稳定） | 全站：`onClick={this.bump}` |
-| `memo` | 岛自己就是 memo 的（实例 + 方法 + 名字 + 参数） | 所有页面 |
+| [`useEffect`](./useeffect.md) | 对象的 `reaction` / 方法里的副作用；组件卸载由对象生命周期管 | 设置（`Settings` 里的主题同步） |
+| [`useLayoutEffect`](./uselayouteffect.md) | 同上，需要同步测量时仍在薄组件里 | ⏳ |
+| [`useInsertionEffect`](./useinsertioneffect.md) | 不需要：样式由 `ConfigProvider` / CSS-in-JS 负责 | — |
+| [`useDebugValue`](./usedebugvalue.md) | 不需要：对象在 DevTools 里就是普通对象 | — |
+| [`useMemo`](./usememo.md) | `get` 访问器（computed） | 订单（`paged` / `columns`）、图表（`option`） |
+| [`useCallback`](./usecallback.md) | 实例方法（构造器里已绑定，引用稳定） | 全站：`onClick={this.bump}` |
+| [`memo`](./memo.md) | 岛自己就是 memo 的（实例 + 方法 + 名字 + 参数） | 所有页面 |
 | `useTransition` / `useDeferredValue` | 未封装；状态在对象上，需要时在岛里用官方 hook | ⏳ |
-| `useId` | 未封装；表单控件的 label 由 antd 生成 | ⏳ |
-| `useSyncExternalStore` | 不需要：订阅由 `observer` 负责 | — |
+| [`useId`](./useid.md) | 未封装；表单控件的 label 由 antd 生成 | ⏳ |
+| [`useSyncExternalStore`](./usesyncexternalstore.md) | 不需要：订阅由 `observer` 负责 | — |
 | `useOptimistic` / `useActionState` / `useFormStatus` | 乐观更新 = 先改对象字段，失败再改回来（`flow` 里做） | ⏳ |
 | `use`（React 19，读 Promise） | 对象方法 `await` 之后写字段；渲染方法里不 `await` | 订单（`flow` 提交） |
 | `Suspense` / `lazy` | 未封装：路由与页面都是同步对象，按需 `import()` 仍在边界用 | ⏳ |

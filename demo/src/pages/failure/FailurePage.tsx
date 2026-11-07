@@ -1,21 +1,21 @@
 import {Alert, Button, Card, Space, Typography} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {ReactNode} from 'react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
 import {PageHeader} from '../PageHeader';
 
+@OopReactState
 export class FailurePage implements Page {
   readonly path = 'failure';
   readonly titleKey = 'route.failure';
   readonly sourcePath = 'demo/src/pages/failure/FailurePage.tsx';
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
   broken = false;
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this, {app: false});
   }
 
   arm(): void {

@@ -14,7 +14,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import {flow} from 'mobx';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
@@ -27,12 +27,13 @@ import {OrderEditor} from './OrderEditor';
  * fields here, `dataSource` is derived from them, and the dialog is a separate
  * object (`OrderEditor`) that this page merely opens.
  */
+@OopReactState
 export class OrdersPage implements Page {
   readonly path = 'orders';
   readonly titleKey = 'route.orders';
   readonly sourcePath = 'demo/src/pages/orders/OrdersPage.tsx';
-  readonly app: App;
-  readonly editor: OrderEditor;
+  @OopReactIgnore readonly app: App;
+  @OopReactIgnore readonly editor: OrderEditor;
 
   rows: Order[] = seed();
   keyword = '';
@@ -47,7 +48,6 @@ export class OrdersPage implements Page {
     this.app = app;
     // Children first, then declare our own state.
     this.editor = new OrderEditor(this);
-    OopReactObservable(this, {app: false, editor: false});
   }
 
   get filtered(): Order[] {

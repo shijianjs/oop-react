@@ -1,21 +1,21 @@
 import {Button, Card, Space, Typography} from 'antd';
-import {OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import {sourceUrl} from '../../app/links';
 import {bumpRender} from '../../app/renderStats';
 import type {Page} from '../Page';
 import {PageHeader} from '../PageHeader';
 
+@OopReactState
 export class CounterPage implements Page {
   readonly path = 'counter';
   readonly titleKey = 'route.counter';
   readonly sourcePath = 'demo/src/pages/counter/CounterPage.tsx';
-  readonly app: App;
+  @OopReactIgnore readonly app: App;
   count = 0;
 
   constructor(app: App) {
     this.app = app;
-    OopReactObservable(this, {app: false});
   }
 
   increment(): void {

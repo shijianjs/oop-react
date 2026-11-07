@@ -10,7 +10,7 @@ import {
   type FormInstance,
 } from 'antd';
 import dayjs, {type Dayjs} from 'dayjs';
-import {OopReactBridge, OopReactObservable, OopReactRender} from 'oop-react';
+import {OopReactBridge, OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
 import type {Order, OrderDraft} from './model';
 import type {OrdersPage} from './OrdersPage';
 
@@ -30,8 +30,9 @@ import type {OrdersPage} from './OrdersPage';
  * it. That is the difference from putting `useForm()` in a method and calling it
  * a day.
  */
+@OopReactState
 export class OrderEditor {
-  readonly page: OrdersPage;
+  @OopReactIgnore readonly page: OrdersPage;
   open = false;
   saving = false;
   editing: Order | null = null;
@@ -43,7 +44,6 @@ export class OrderEditor {
 
   constructor(page: OrdersPage) {
     this.page = page;
-    OopReactObservable(this, {page: false});
   }
 
   bindForm(form: FormInstance<OrderDraft> | null): void {

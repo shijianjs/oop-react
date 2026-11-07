@@ -13,22 +13,22 @@ yet.
 
 | React | Here | demo |
 | --- | --- | --- |
-| `useState` | a field; several states are several fields | Counter, Todos, Orders |
-| `useReducer` | one method (or a few) changing a group of fields; for complex cases, a dedicated state object | Orders (`OrdersPage`) |
-| `useContext` | hold that object (`this.app.settings`) | everywhere: `t()` comes from `App.settings` |
+| [`useState`](./usestate.md) | a field; several states are several fields | Counter, Todos, Orders |
+| [`useReducer`](./usereducer.md) | one method (or a few) changing a group of fields; for complex cases, a dedicated state object | Orders (`OrdersPage`) |
+| [`useContext`](./usecontext.md) | hold that object (`this.app.settings`) | everywhere: `t()` comes from `App.settings` |
 | `useRef` (a value) | a plain field; mark it `@OopReactIgnore` if it must not be observed | Orders (`OrderEditor` holds the form instance) |
 | `useRef` (a DOM node) | only inside a thin component that needs the DOM | Chart (`EChart`) |
 | `useImperativeHandle` / `forwardRef` | hand the instance to an object (`OopReactBridge`) and call its methods | Orders (`OrderEditor`) |
-| `useEffect` | a `reaction` owned by the object, or work inside a method; teardown is the object's lifetime | Settings (theme → `<html>`) |
-| `useLayoutEffect` | same; synchronous measurement still lives in a thin component | ⏳ |
-| `useInsertionEffect` | not needed: styles belong to `ConfigProvider` / CSS-in-JS | — |
-| `useDebugValue` | not needed: the object is a plain object in DevTools | — |
-| `useMemo` | a `get` accessor (computed) | Orders (`paged`, `columns`), Chart (`option`) |
-| `useCallback` | an instance method, bound once in the constructor | everywhere: `onClick={this.bump}` |
-| `memo` | islands are memoized by (instance + method + name + args) | every page |
+| [`useEffect`](./useeffect.md) | a `reaction` owned by the object, or work inside a method; teardown is the object's lifetime | Settings (theme → `<html>`) |
+| [`useLayoutEffect`](./uselayouteffect.md) | same; synchronous measurement still lives in a thin component | ⏳ |
+| [`useInsertionEffect`](./useinsertioneffect.md) | not needed: styles belong to `ConfigProvider` / CSS-in-JS | — |
+| [`useDebugValue`](./usedebugvalue.md) | not needed: the object is a plain object in DevTools | — |
+| [`useMemo`](./usememo.md) | a `get` accessor (computed) | Orders (`paged`, `columns`), Chart (`option`) |
+| [`useCallback`](./usecallback.md) | an instance method, bound once in the constructor | everywhere: `onClick={this.bump}` |
+| [`memo`](./memo.md) | islands are memoized by (instance + method + name + args) | every page |
 | `useTransition` / `useDeferredValue` | not wrapped; state lives on the object, use the official hook inside an island if needed | ⏳ |
-| `useId` | not wrapped; labels of form controls come from antd | ⏳ |
-| `useSyncExternalStore` | not needed: subscribing is `observer`'s job | — |
+| [`useId`](./useid.md) | not wrapped; labels of form controls come from antd | ⏳ |
+| [`useSyncExternalStore`](./usesyncexternalstore.md) | not needed: subscribing is `observer`'s job | — |
 | `useOptimistic` / `useActionState` / `useFormStatus` | optimistic updates = change the field first, revert on failure, inside a `flow` | ⏳ |
 | `use` (React 19, reading a Promise) | `await` in an object method, then write fields; never `await` in a render method | Orders (`flow` submit) |
 | `Suspense` / `lazy` | not wrapped: routes and pages are synchronous objects; `import()` stays at the boundary | ⏳ |
