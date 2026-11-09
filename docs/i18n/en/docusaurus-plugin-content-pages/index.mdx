@@ -1,0 +1,117 @@
+---
+title: oop-react
+description: State and behaviour stay in a plain class, objects hold each other, and React appears once at the edge.
+hide_table_of_contents: true
+wrapperClassName: dfk-home
+---
+
+import Link from '@docusaurus/Link';
+import DemoLink from '@site/src/components/DemoLink';
+
+import styles from '@site/src/pages/index.module.css';
+
+{/* `MDXPage` supplies the `<Layout>` and the page grid; `dfk-home` is what
+    lets `src/css/home.css` give the page the full width it needs. */}
+
+<header className={styles.hero}>
+
+<h1 className={styles.title}>oop-react</h1>
+
+<p className={styles.tagline}>
+State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. Objects hold each other and call methods directly; React appears once, at the edge.
+</p>
+
+<div className={styles.actions}>
+
+<Link className="button button--primary button--lg" to="/getting-started">Get started</Link>
+
+<DemoLink>Live demo</DemoLink>
+
+</div>
+
+<div className={styles.code}>
+
+```tsx title="counter.tsx"
+class Counter {
+  count = 0;
+
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  increment(): void {
+    this.count += 1;
+  }
+
+  @OopReactRender()
+  view() {
+    return <button onClick={this.increment}>{this.count}</button>;
+  }
+}
+
+const counter = new Counter();
+
+export function CounterView() {
+  return counter.view();
+}
+```
+
+</div>
+
+</header>
+
+<div className={styles.section}>
+
+<div className={styles.grid}>
+
+<div className={styles.card}>
+
+### Fields are state
+
+No useState, no setter functions. Changing state is this.count += 1.
+
+</div>
+
+<div className={styles.card}>
+
+### Methods are callbacks
+
+this.save is the onClick handler. Methods are bound once, so the reference never changes.
+
+</div>
+
+<div className={styles.card}>
+
+### Re-renders stay in the island
+
+An @OopReactRender() method subscribes only to the fields it reads. Its siblings do not move.
+
+</div>
+
+<div className={styles.card}>
+
+### One boundary per island
+
+If a render method throws, only that island becomes a fallback. The rest keeps working.
+
+</div>
+
+<div className={styles.card}>
+
+### Logic does not move
+
+Objects hold each other and call methods directly — no lifting state, no threading callbacks down.
+
+</div>
+
+<div className={styles.card}>
+
+### Defaults are replaceable
+
+Subscription, observability, fallback and error reporting are configuration, not hidden implementation.
+
+</div>
+
+</div>
+
+</div>

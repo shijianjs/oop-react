@@ -34,6 +34,12 @@ const config: Config = {
   trailingSlash: true,
   onBrokenLinks: 'throw',
 
+  // The home page's "Live demo" button reads this: `demoHref` is an absolute
+  // URL, and an MDX page cannot compute it.
+  customFields: {
+    demoUrl: demoHref,
+  },
+
   // Chinese is the default: it is served from `/`, English from `/en/`. The
   // navbar dropdown is what makes the two reachable from each other.
   i18n: {

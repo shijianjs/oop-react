@@ -325,53 +325,5 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "The title of the tag list page"
-  },
-  "home.feature.state.title": {
-    "message": "Fields are state"
-  },
-  "home.feature.state.body": {
-    "message": "No useState, no setter functions. Changing state is this.count += 1."
-  },
-  "home.feature.callbacks.title": {
-    "message": "Methods are callbacks"
-  },
-  "home.feature.callbacks.body": {
-    "message": "this.save is the onClick handler. Methods are bound once, so the reference never changes."
-  },
-  "home.feature.islands.title": {
-    "message": "Re-renders stay in the island"
-  },
-  "home.feature.islands.body": {
-    "message": "An @OopReactRender() method subscribes only to the fields it reads. Its siblings do not move."
-  },
-  "home.feature.boundaries.title": {
-    "message": "One boundary per island"
-  },
-  "home.feature.boundaries.body": {
-    "message": "If a render method throws, only that island becomes a fallback. The rest keeps working."
-  },
-  "home.feature.structure.title": {
-    "message": "Logic does not move"
-  },
-  "home.feature.structure.body": {
-    "message": "Objects hold each other and call methods directly — no lifting state, no threading callbacks down."
-  },
-  "home.feature.replaceable.title": {
-    "message": "Defaults are replaceable"
-  },
-  "home.feature.replaceable.body": {
-    "message": "Subscription, observability, fallback and error reporting are configuration, not hidden implementation."
-  },
-  "home.description": {
-    "message": "State and behaviour stay in a plain class, objects hold each other, and React appears once at the edge."
-  },
-  "home.tagline": {
-    "message": "State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. Objects hold each other and call methods directly; React appears once, at the edge."
-  },
-  "home.cta.start": {
-    "message": "Get started"
-  },
-  "home.cta.demo": {
-    "message": "Live demo"
   }
 }

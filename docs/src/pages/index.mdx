@@ -1,0 +1,117 @@
+---
+title: oop-react
+description: 状态和行为留在一个普通类里，对象之间相互持有，React 只在最外层出现一次。
+hide_table_of_contents: true
+wrapperClassName: dfk-home
+---
+
+import Link from '@docusaurus/Link';
+import DemoLink from '@site/src/components/DemoLink';
+
+import styles from '@site/src/pages/index.module.css';
+
+{/* `MDXPage` supplies the `<Layout>` and the page grid; `dfk-home` is what
+    lets `src/css/home.css` give the page the full width it needs. */}
+
+<header className={styles.hero}>
+
+<h1 className={styles.title}>oop-react</h1>
+
+<p className={styles.tagline}>
+状态和行为留在一个普通类里，只有被 @OopReactRender() 注解的方法参与重渲染。对象之间相互持有、直接调用，React 只在最外层出现一次。
+</p>
+
+<div className={styles.actions}>
+
+<Link className="button button--primary button--lg" to="/getting-started">快速开始</Link>
+
+<DemoLink>在线演示</DemoLink>
+
+</div>
+
+<div className={styles.code}>
+
+```tsx title="counter.tsx"
+class Counter {
+  count = 0;
+
+  constructor() {
+    OopReactObservable(this);
+  }
+
+  increment(): void {
+    this.count += 1;
+  }
+
+  @OopReactRender()
+  view() {
+    return <button onClick={this.increment}>{this.count}</button>;
+  }
+}
+
+const counter = new Counter();
+
+export function CounterView() {
+  return counter.view();
+}
+```
+
+</div>
+
+</header>
+
+<div className={styles.section}>
+
+<div className={styles.grid}>
+
+<div className={styles.card}>
+
+### 字段就是状态
+
+没有 useState，也没有 setter 函数。改状态就是 this.count += 1。
+
+</div>
+
+<div className={styles.card}>
+
+### 方法就是回调
+
+this.save 直接当 onClick。实例方法已经绑好，引用永远稳定。
+
+</div>
+
+<div className={styles.card}>
+
+### 重渲染只在岛里
+
+@OopReactRender() 方法只订阅自己读到的字段，兄弟节点一动不动。
+
+</div>
+
+<div className={styles.card}>
+
+### 一个岛一个边界
+
+某个渲染方法抛错，只有它变成 fallback，其余部分照常工作。
+
+</div>
+
+<div className={styles.card}>
+
+### 逻辑不搬家
+
+对象之间相互持有、直接调用方法，不需要状态提升和回调下传。
+
+</div>
+
+<div className={styles.card}>
+
+### 默认实现可替换
+
+订阅、可观察化、fallback、错误上报都是配置项，换掉不留后门。
+
+</div>
+
+</div>
+
+</div>
