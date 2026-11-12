@@ -460,39 +460,21 @@ body {
   text-decoration: line-through;
 }
 
-/* Loading state: one bar for the whole screen, width driven by a field. */
-.loading-slot {
-  align-items: center;
-  display: flex;
-  min-height: 22px;
+/* Global top bar (NProgress-style): fixed, width driven by a field. */
+.nprogress {
+  background: rgba(22, 119, 255, 0.16);
+  height: 3px;
+  inset-inline: 0;
+  position: fixed;
+  top: 0;
+  z-index: 1100;
 }
 
-.loading-row {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  width: 100%;
-}
-
-.loading-bar {
-  background: rgba(22, 119, 255, 0.14);
-  border-radius: 999px;
-  flex: 1;
-  height: 8px;
-  overflow: hidden;
-}
-
-.loading-bar-fill {
+.nprogress-fill {
   background: linear-gradient(90deg, #1677ff, #69b1ff);
-  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(22, 119, 255, 0.6);
   height: 100%;
-  transition: width 0.16s linear;
-}
-
-.loading-bar-label {
-  color: var(--muted);
-  font-size: 12px;
-  white-space: nowrap;
+  transition: width 0.18s linear;
 }
 
 @media (max-width: 860px) {

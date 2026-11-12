@@ -172,21 +172,21 @@ const zh = {
 
   'loading.title': '加载状态',
   'loading.description':
-    '四个按钮走同一个 LoadingState：开条、假进度、catch 统一弹提示、finally 收条，都写在它里面。下面那张卡片是另一个对象，用的是同一个实例。',
-  'loading.busy': '处理中…',
+    '每个按钮是一个对象，各带一个 LoadingState：转圈和不可点交给 antd 的 loading，失败统一弹提示，超时按失败算，顶上那条是全局进度。',
   'loading.task.save': '保存订单',
   'loading.task.export': '导出报表',
   'loading.task.flaky': '会失败的请求',
-  'loading.task.both': '两个一起',
+  'loading.task.slow': '很慢的请求（超时）',
   'loading.task.report': '重算报表',
   'loading.done.save': '订单 {id} 已保存',
   'loading.done.export': '已导出 {rows} 行',
   'loading.done.report': '报表已重算',
   'loading.failed': '请求失败：{message}',
-  'loading.hint': '进度是假的 —— 拿不到真实进度，让它一直往 90 爬、收条时冲到 100 就够了。',
-  'loading.report.title': '另一个对象也用它',
-  'loading.report.body':
-    '这张卡片是页面持有的子对象，按钮走的是同一个 loading —— 没有 provider，也没有把回调传下来。',
+  'loading.timeout': '超时了：{ms}ms 没回来',
+  'loading.hint':
+    '点两个试试：各转各的，互不影响。顶上那条是全局的，谁先结束谁关它 —— 只是个「在动」的反应，不值得为它加引用计数。',
+  'loading.report.title': '子对象也有自己的按钮',
+  'loading.report.body': '这张卡是页面持有的子对象，它照样自己造按钮、自己带 loading —— 不用把回调传下来。',
 
   'log.title': '活动日志',
   'log.empty': '还没有操作。',
@@ -372,22 +372,22 @@ const en: Record<MessageKey, string> = {
 
   'loading.title': 'Loading state',
   'loading.description':
-    'Four buttons ran through one LoadingState: open the bar, fake the progress, catch and report in one place, close it in finally. The card below belongs to another object and uses the same instance.',
-  'loading.busy': 'Working…',
+    'Every button is an object with its own LoadingState: the spinner and the disabled state come from antd’s loading prop, failures report in one place, a timeout counts as a failure, and the bar at the top is global.',
   'loading.task.save': 'Save order',
   'loading.task.export': 'Export report',
   'loading.task.flaky': 'A request that fails',
-  'loading.task.both': 'Both at once',
+  'loading.task.slow': 'A slow request (times out)',
   'loading.task.report': 'Recompute report',
   'loading.done.save': 'Order {id} saved',
   'loading.done.export': '{rows} rows exported',
   'loading.done.report': 'Report recomputed',
   'loading.failed': 'Request failed: {message}',
+  'loading.timeout': 'Timed out: no answer in {ms}ms',
   'loading.hint':
-    'The progress is fake — there is no real one to read, so let it crawl towards 90 and jump to 100 when the bar closes.',
-  'loading.report.title': 'Another object uses it too',
+    'Click two of them: each spins on its own. The bar at the top is global and closes when the first one finishes — it is a “something is happening” signal, not worth a reference count.',
+  'loading.report.title': 'A child object has its own button',
   'loading.report.body':
-    'This card is a child object of the page; its button runs the same loading — no provider, no callback passed down.',
+    'This card is a child object of the page; it builds its own button and its own loading — no callback passed down.',
 
   'log.title': 'Activity log',
   'log.empty': 'Nothing yet.',

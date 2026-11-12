@@ -18,6 +18,7 @@ import {TodosPage} from '../pages/todos/TodosPage';
 import {Router} from '../routing/Router';
 import {Feedback, FeedbackHost} from './Feedback';
 import {DOCS_HREF} from './links';
+import {Progress} from './Progress';
 import {Settings} from './Settings';
 
 /**
@@ -32,6 +33,7 @@ export class App {
   @OopReactIgnore readonly settings: Settings;
   @OopReactIgnore readonly log: ActivityLog;
   @OopReactIgnore readonly feedback: Feedback;
+  @OopReactIgnore readonly progress: Progress;
   @OopReactIgnore readonly router: Router;
   @OopReactIgnore readonly pages: Page[];
 
@@ -39,6 +41,7 @@ export class App {
     this.settings = new Settings();
     this.log = new ActivityLog(this);
     this.feedback = new Feedback();
+    this.progress = new Progress();
     this.pages = [
       new OverviewPage(this),
       new CounterPage(this),
@@ -89,6 +92,8 @@ export class App {
   view() {
     return (
       <div className="app">
+        {/* 窗口最顶上那条进度，和页面无关：谁开始干活谁让它动一下。 */}
+        {this.progress.bar()}
         {this.header()}
         <div className="app-body">
           {this.sidebar()}
