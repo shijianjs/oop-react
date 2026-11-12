@@ -7,6 +7,11 @@
   width: 100%;
 }
 
+.logo {
+  display: block;
+  margin: 0 auto 16px;
+}
+
 .title {
   font-size: 44px;
   letter-spacing: -0.02em;

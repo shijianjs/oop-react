@@ -23,7 +23,7 @@ const demoHref =
 const config: Config = {
   title: 'oop-react',
   tagline: '状态留在对象里，重渲染留在注解里',
-  favicon: 'img/logo.svg',
+  favicon: 'img/favicon.png',
 
   future: {
     v4: true,
@@ -87,7 +87,9 @@ const config: Config = {
       title: 'oop-react',
       logo: {
         alt: 'oop-react',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
+        width: 32,
+        height: 32,
       },
       items: [
         {

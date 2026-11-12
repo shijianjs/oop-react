@@ -6,6 +6,7 @@ wrapperClassName: dfk-home
 ---
 
 import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import DemoLink from '@site/src/components/DemoLink';
 
 import styles from '@site/src/pages/index.module.css';
@@ -14,6 +15,8 @@ import styles from '@site/src/pages/index.module.css';
     lets `src/css/home.css` give the page the full width it needs. */}
 
 <header className={styles.hero}>
+
+<img className={styles.logo} src={useBaseUrl('/img/logo.png')} alt="oop-react" width={88} height={88} />
 
 <h1 className={styles.title}>oop-react</h1>
 

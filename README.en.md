@@ -1,5 +1,9 @@
 # oop-react
 
+<p align="center">
+  <img src="docs/static/img/logo.png" alt="oop-react" width="96" height="96" />
+</p>
+
 [简体中文](./README.md) | **English**
 
 State and behaviour live in a plain class. `@OopReactRender()` marks which methods are UI; everything else is

@@ -1,5 +1,9 @@
 # oop-react
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/shijianjs/oop-react/main/docs/static/img/logo.png" alt="oop-react" width="96" height="96" />
+</p>
+
 **简体中文** | [English](https://github.com/shijianjs/oop-react/blob/main/packages/oop-react/README.en.md)
 
 用面向对象的方式组织 React 的逻辑：状态和行为待在一个普通类里，`@OopReactRender()` 标出哪些方法是 UI，

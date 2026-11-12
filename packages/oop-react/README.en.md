@@ -1,5 +1,9 @@
 # oop-react
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/shijianjs/oop-react/main/docs/static/img/logo.png" alt="oop-react" width="96" height="96" />
+</p>
+
 [简体中文](https://github.com/shijianjs/oop-react/blob/main/packages/oop-react/README.md) | **English**
 
 An object-oriented way to organise React logic: state and behaviour live in a plain class, `@OopReactRender()` marks

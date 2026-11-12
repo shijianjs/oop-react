@@ -1,5 +1,9 @@
 # oop-react
 
+<p align="center">
+  <img src="docs/static/img/logo.png" alt="oop-react" width="96" height="96" />
+</p>
+
 **简体中文** | [English](./README.en.md)
 
 状态和行为待在一个普通类里，`@OopReactRender()` 标出哪些方法是 UI，其余全是普通对象代码。这些类可以在任何
