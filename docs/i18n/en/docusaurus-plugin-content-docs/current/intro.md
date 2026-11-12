@@ -69,4 +69,5 @@ granularity is yours.
 - **It is not "one class per component".** A class is a home for logic, not a stand-in for a component: it can have
   a dozen islands, and an island need not be attached to any component of its own.
 
-Next: [getting started](./getting-started.md), then [the object graph](./guide/structure.md).
+Next: [getting started](./getting-started.md), then [the object graph](./guide/structure.md), then walk through
+[thinking in objects](./guide/thinking-in-objects.md).

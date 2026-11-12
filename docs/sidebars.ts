@@ -10,6 +10,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'guide/structure',
+        'guide/thinking-in-objects',
         'guide/state',
         'guide/render-methods',
         'guide/complex-components',

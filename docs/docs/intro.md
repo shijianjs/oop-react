@@ -63,4 +63,5 @@ React 代码使用」时，才需要 [`OopReactComponent`](./guide/react-bridge.
 - **不是「一个组件一个类」。** 类不是组件的替身，它是逻辑的容器；一个类可以有十几个岛，一个岛也可以不挂在
   任何组件上。
 
-下一步：[快速开始](./getting-started.md)，然后看[对象图](./guide/structure.md)。
+下一步：[快速开始](./getting-started.md)，然后看[对象图](./guide/structure.md)，再跟着
+[用对象的方式思考 React](./guide/thinking-in-objects.md) 走一遍完整的五步。
