@@ -27,53 +27,65 @@ The mockup: a search field, an "only show products in stock" checkbox, and a tab
 ```
 
 When the JSON is shaped well, the UI and the data model tend to have the same shape — true on both sides.
-What differs is where the data lands: in React it becomes some component's `props`, here it becomes a field on an
-object.
+What differs is where the data lands: in React it becomes some component's `props`, here it is mapped into objects
+at the entry point, and after that there is no "raw data" left.
 
 ## Step 1: break it into objects, not components
 
-You still draw boxes on the mockup and name them; each box now answers two questions:
-
-| Question | Yes | No |
-| --- | --- | --- |
-| Does it have **state** of its own that changes? | an object (or at least a field) | a render method is enough |
-| Does it need to read or write **someone else**? | hold a reference to that object | hold nothing |
-
-The five official boxes become:
+You still draw boxes on the mockup and name them. **Every box is a responsibility, and a responsibility is a
+class** — the next four steps all rest on that call.
 
 | Box on the mockup | React | Here |
 | --- | --- | --- |
-| the whole app | `FilterableProductTable` | the `CatalogPage` object |
-| the search bar | `SearchBar` | the `SearchBar` object |
-| the table | `ProductTable` | the `ProductTable` object |
-| a category row | `ProductCategoryRow` | a render method on `ProductTable` |
-| a product row | `ProductRow` | `ProductTable.row(product)`, with a key |
+| the whole app | `FilterableProductTable` | `CatalogPage` |
+| the search bar | `SearchBar` | `SearchBar` |
+| the table | `ProductTable` | `ProductTable` |
+| a category row | `ProductCategoryRow` | `Category` |
+| a product row | `ProductRow` | `Product` |
 
-**Two boxes deliberately did not become objects.** They have no state of their own and are too small to deserve a
-file; a render method is already the smallest unit:
+The product row is the one people drop first: "it is a single line of JSX inside a `map`; making it
+`table.row(product)` saves a file." What it saves on is `this`:
 
-```tsx title="catalog/ProductTable.tsx"
-@OopReactRender({key: (_self: ProductTable, product: Product) => product.name})
-row(product: Product) {
-  const {name, price, stocked} = product;
+```tsx title="catalog/Product.tsx"
+export class Product {
+  constructor(
+    readonly category: string,
+    readonly price: string,
+    readonly stocked: boolean,
+    readonly name: string,
+  ) {}
 
-  return (
-    <tr>
-      <td>{stocked ? name : <span className="out-of-stock">{name}</span>}</td>
-      <td>{price}</td>
-    </tr>
-  );
+  @OopReactRender({key: (self: Product) => self.name})
+  row() {
+    return (
+      <tr>
+        <td className={this.stocked ? undefined : 'out-of-stock'}>{this.name}</td>
+        <td>{this.price}</td>
+      </tr>
+    );
+  }
 }
 ```
+
+Rewritten as `row(product)` on the parent, the first line is usually
+`const {name, price, stocked} = product;` — you write just as much, and what you get is three read-only local
+variables. `this` is not syntax sugar you can cancel out; it is that row's own context. A hover state, a "selected"
+flag, another object calling `row.select()` later — all of that lives on `this`. **Lose the context and you lose
+the capability.**
+
+`Product` is not marked `@OopReactState`: its fields never change, so nothing needs to be observable. The decorator
+is about *state*, not about whether something can be drawn — and of the five classes here, only `CatalogPage` has
+state.
 
 In React the hierarchy ("who is inside whom") decides who re-renders with whom and how data flows. Here it only
 decides who calls whom:
 
 ```
 CatalogPage
-├─ products       a readonly reference: data from the API, nobody changes it
+├─ products       a readonly reference: products from the API
 ├─ filterText     field
 ├─ inStockOnly    field
+├─ categories     Category[], grouped once in the constructor
 ├─ searchBar      SearchBar (holds the page)
 └─ table          ProductTable (holds the page)
 ```
@@ -84,13 +96,6 @@ React's rule for the static version is "props only, no state"; its counterpart h
 and never write them":
 
 ```tsx title="catalog/CatalogPage.tsx"
-export interface Product {
-  readonly category: string;
-  readonly price: string;
-  readonly stocked: boolean;
-  readonly name: string;
-}
-
 @OopReactState
 export class CatalogPage {
   /** A readonly reference: the API gave us this data and nobody changes it, so it is not state. */
@@ -98,11 +103,16 @@ export class CatalogPage {
   /** Interaction is not wired up yet: these two are just initial values for now. */
   filterText = '';
   inStockOnly = false;
+  @OopReactIgnore readonly categories: Category[];
   @OopReactIgnore readonly searchBar: SearchBar;
   @OopReactIgnore readonly table: ProductTable;
 
   constructor(products: Product[]) {
     this.products = products;
+    // Grouping depends only on data, and data never changes, so compute it once.
+    this.categories = [...new Set(products.map((product) => product.category))].map(
+      (category) => new Category(this, category),
+    );
     this.searchBar = new SearchBar(this);
     this.table = new ProductTable(this);
   }
@@ -159,29 +169,25 @@ get visible(): Product[] {
 }
 ```
 
-Storing `visible` as a field would mean re-syncing it in every setter — that is "a copy of state", just moved from
+Storing `visible` as a field would mean re-syncing it at every write — that is "a copy of state", just moved from
 React into an object. MobX caches a computed for you: the island that reads it recomputes only after `filterText` /
-`inStockOnly` change, or `products` is reassigned.
+`inStockOnly` change.
 
-Grouping by category is a purely visual derivation: neither a field nor an object. A plain function that never
-enters the graph is enough:
-
-```ts
-/** A pure function: no state, so nothing to subscribe to. */
-export function groupByCategory(products: Product[]): {category: string; products: Product[]}[] { … }
-```
+That gives two rules: **what never changes is computed once in the constructor** (`categories`); **what changes is
+computed in a `get`** (`visible`). Neither should be a field.
 
 ### A step deeper: what props and state become
 
 | | React | Here |
 | --- | --- | --- |
 | read-only data from outside | props | constructor arguments, or another object you hold |
-| something you own and change | state (`useState`) | a field plus the methods that change it |
-| who may change it | only the parent (through a setter) | only this object's methods; others call them |
+| something you own and change | state (`useState`) | a field |
+| who may change it | only the parent (through a setter) | whoever holds it — writing the field or calling a method, same thing |
 | what gets passed down | values + callbacks | references (the other side reads and calls) |
 
 In React both props and state "belong to some component". Here the two split cleanly: **a reference is a
-relationship, a field is ownership**.
+relationship, a field is ownership**. Ownership is a design decision (who is responsible for this value), not a
+gate — writing it is an assignment, and nothing stops you.
 
 ## Step 4: who do these fields belong to
 
@@ -193,18 +199,13 @@ changes from "which component" to:
 
 Both filter conditions are about "what this page is looking at", not about the search field:
 
-- `CatalogPage` holds `filterText` / `inStockOnly` and changes them through `setFilterText` / `setInStockOnly`;
+- `CatalogPage` holds `filterText` / `inStockOnly`;
 - `SearchBar` reads and writes them, and stores nothing itself;
-- `ProductTable` only writes `this.page.visible`; nothing else to wire.
+- `Category` and `ProductTable` read `page.visible`; nothing else to wire.
 
 ```tsx title="catalog/SearchBar.tsx"
-@OopReactState
 export class SearchBar {
-  @OopReactIgnore readonly page: CatalogPage;
-
-  constructor(page: CatalogPage) {
-    this.page = page;
-  }
+  constructor(readonly page: CatalogPage) {}
 
   @OopReactRender()
   view() {
@@ -215,6 +216,36 @@ export class SearchBar {
           <input type="checkbox" checked={this.page.inStockOnly} /> Only show products in stock
         </label>
       </form>
+    );
+  }
+}
+```
+
+The other reader: a category row knows its own name and asks the page for the rest.
+
+```tsx title="catalog/Category.tsx"
+export class Category {
+  constructor(
+    readonly page: CatalogPage,
+    readonly name: string,
+  ) {}
+
+  @OopReactRender()
+  row() {
+    // `visible` is a computed: when the filter moves, this island re-renders on its own,
+    // and the product rows are not dragged along.
+    const visible = this.page.visible.filter(
+      (product) => product.category === this.name,
+    );
+    if (visible.length === 0) return null;
+
+    return (
+      <>
+        <tr>
+          <th colSpan={2}>{this.name}</th>
+        </tr>
+        {visible.map((product) => product.row())}
+      </>
     );
   }
 }
@@ -233,44 +264,52 @@ holds. For instance, lift the filter into a `CatalogFilter` the day the orders p
 In React data flows down as props, so user input has to travel back up: the parent passes setters down and the child
 calls them in `onChange`. It is called "inverse" because the component tree has exactly one channel.
 
-An object graph has no such channel, so nothing to invert. Wiring up `onChange` is the whole step:
+An object graph has no such channel, so nothing to invert. `SearchBar` already holds the page, so it writes the
+field:
 
 ```tsx
 <input
   value={this.page.filterText}
-  onChange={(event) => this.page.setFilterText(event.target.value)}
+  onChange={(event) => {
+    this.page.filterText = event.target.value;
+  }}
 />
 <input
   type="checkbox"
   checked={this.page.inStockOnly}
-  onChange={(event) => this.page.setInStockOnly(event.target.checked)}
+  onChange={(event) => {
+    this.page.inStockOnly = event.target.checked;
+  }}
 />
 ```
 
-`SearchBar` already holds the page, so it calls the page's methods; the table does not change at all — it reads
-`page.visible`, and re-renders on its own when a field moves. No callback chain, no event bus, no context, no
-"pass the setter down four levels".
+Writing a field and calling a method are the same thing. A method is just a place to bundle several steps — the
+demo's `setXxx` methods also append a log line, which is why they are worth a wrapper; here there is nothing else to
+do, so a plain assignment is the whole story. Inventing `setFilterText` "for a single entry point" is ceremony for
+its own sake.
 
-Writes are still one-way: only `CatalogPage`'s methods can change those two fields. That is discipline, not
-something the language enforces — break it and "who changed this value" is lost. It is also the price of this model:
-React DevTools shows a component tree, not an object graph.
+Nothing on the table changes: `Category` reads `page.visible` and re-renders when a field moves, while
+`Product.row()` takes no arguments and reads no filter field, so it is skipped. No callback chain, no event bus, no
+context, no "pass the setter down four levels".
 
-One detail that must hold: `onChange` is an event, not a render. Write fields from event handlers or plain methods,
-never inside `view()` (see [render methods](./render-methods.md)).
+The one thing that must hold: **never write a field inside a render method.** The render is reading while you write,
+which invalidates the subscription mid-render (see [render methods](./render-methods.md)). Writes belong in event
+handlers or plain methods.
 
 ## After the five steps
 
 | React's step | Here |
 | --- | --- |
-| break the UI into a component hierarchy | break it into objects: state or responsibility earns an object, pure display is a render method |
+| break the UI into a component hierarchy | break it into objects: one class per box; only changing state needs `@OopReactState` |
 | static version with props only | render methods read fields; events not wired |
 | three questions to find state | three questions to find fields; anything derivable is computed |
 | lift state to the closest common parent | put state on the object it belongs to; consumers hold a reference |
-| pass setters down as callbacks | call the method |
+| pass setters down as callbacks | write the field, or call a method that bundles a few steps |
 
-Only two fields actually change in this example, so the graph is small: one page object plus two children. Another
-screen looks different — the demo's orders page keeps table state, a form instance and a dialog flag on objects, and
-the log shared across pages is a field on `App`, see [the object graph](./structure.md).
+Only two fields actually change in this example, so the graph is small: a page object and four children (`Product`
+is data, `Category` is the grouping, `SearchBar` is the input, `ProductTable` is the shell). Another screen looks
+different — the demo's orders page keeps table state, a form instance and a dialog flag on objects, and the log
+shared across pages is a field on `App`, see [the object graph](./structure.md).
 
 Keep reading: [state](./state.md) · [render methods](./render-methods.md) ·
 [complex components and hooks](./complex-components.md)
@@ -281,5 +320,6 @@ Keep reading: [state](./state.md) · [render methods](./render-methods.md) ·
   object graph is for the inside of an application.
 - **Reusing a piece of UI inside somebody else's React tree** is a plain component, or a
   [component bridge](./react-bridge.md).
-- **A page with a single field** should not grow three classes to have "an object graph". The lesson here is to cut
-  by state and responsibility, not by box.
+- **Things that are not boxes should not become classes.** Grouping, formatting, validation — computation without a
+  context — is better as a plain function; it has no use for `this`, so it should not take a class's place. The
+  lesson here is to cut by box and by responsibility, not to wrap every function in a shell.

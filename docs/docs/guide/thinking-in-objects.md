@@ -27,50 +27,58 @@ slug: /guide/thinking-in-objects
 ```
 
 JSON 结构干净的时候，UI 和数据模型往往同形 —— 这一点两边一样。区别在于这份数据后面落到哪：
-React 里它成为某个组件的 `props`，这里它成为一个对象的字段。
+React 里它成为某个组件的 `props`，这里它在入口处映射成对象，之后就没有「裸数据」了。
 
 ## 第 1 步：拆的不是组件，是对象
 
-仍然在设计稿上画框、命名，只是每个框回答两个问题：
-
-| 问题 | 是 | 否 |
-| --- | --- | --- |
-| 它自己有会变的**状态**吗？ | 一个对象（至少是字段） | 一个渲染方法就够了 |
-| 它需要读或者写**别人**吗？ | 持有那个对象的引用 | 不需要持有 |
-
-官方的五个框在这里变成：
+仍然在设计稿上画框、命名。**每个框都是一份职责，也就是一个类** —— 后面四步都建立在这个判断上。
 
 | 设计稿上的框 | React | 这里 |
 | --- | --- | --- |
-| 整个应用 | `FilterableProductTable` | `CatalogPage` 对象 |
-| 搜索框 | `SearchBar` | `SearchBar` 对象 |
-| 表格 | `ProductTable` | `ProductTable` 对象 |
-| 类别行 | `ProductCategoryRow` | `ProductTable` 上的一个渲染方法 |
-| 商品行 | `ProductRow` | `ProductTable.row(product)`，带 key |
+| 整个应用 | `FilterableProductTable` | `CatalogPage` |
+| 搜索框 | `SearchBar` | `SearchBar` |
+| 表格 | `ProductTable` | `ProductTable` |
+| 类别行 | `ProductCategoryRow` | `Category` |
+| 商品行 | `ProductRow` | `Product` |
 
-**有两个框没变成对象，是故意的。** 它们没有自己的状态，也小到不值得一个文件；一个渲染方法已经是最小单位：
+商品行最容易被省掉：「不就是 `map` 里一行 JSX 吗，写成 `table.row(product)` 还少一个文件。」省掉的是 `this`：
 
-```tsx title="catalog/ProductTable.tsx"
-@OopReactRender({key: (_self: ProductTable, product: Product) => product.name})
-row(product: Product) {
-  const {name, price, stocked} = product;
+```tsx title="catalog/Product.tsx"
+export class Product {
+  constructor(
+    readonly category: string,
+    readonly price: string,
+    readonly stocked: boolean,
+    readonly name: string,
+  ) {}
 
-  return (
-    <tr>
-      <td>{stocked ? name : <span className="out-of-stock">{name}</span>}</td>
-      <td>{price}</td>
-    </tr>
-  );
+  @OopReactRender({key: (self: Product) => self.name})
+  row() {
+    return (
+      <tr>
+        <td className={this.stocked ? undefined : 'out-of-stock'}>{this.name}</td>
+        <td>{this.price}</td>
+      </tr>
+    );
+  }
 }
 ```
+
+换成父对象上的 `row(product)`，第一行大概就是 `const {name, price, stocked} = product;` —— 声明一点没少写，
+拿到的却只是三个只能读的局部变量。`this` 不是可以随手抵消的语法糖，它是这一行自己的上下文：以后要 hover
+状态、要「选中」、要被别的地方调 `row.select()`，都写在这上面。**上下文丢了，能力就没了。**
+
+`Product` 没标 `@OopReactState`：它的字段不会变，不需要可观察。装饰器只跟「会变的状态」有关，跟「能不能画」
+无关；后面四个类里也只有 `CatalogPage` 有状态。
 
 层级（谁在谁里面）在 React 里决定「谁跟着谁重渲染」和「数据怎么流」；在这里它只决定「谁调用谁」：
 
 ```
 CatalogPage
-├─ products       只读引用：API 给的数据，没人会改
+├─ products       只读引用：API 数据，Product 对象
 ├─ filterText     字段
 ├─ inStockOnly    字段
+├─ categories     Category[]，构造时分组一次
 ├─ searchBar      SearchBar（持有 page）
 └─ table          ProductTable（持有 page）
 ```
@@ -80,13 +88,6 @@ CatalogPage
 React 的静态版规则是「只传 props、不用 state」；这里的对应物是「渲染方法只读字段、不写字段」：
 
 ```tsx title="catalog/CatalogPage.tsx"
-export interface Product {
-  readonly category: string;
-  readonly price: string;
-  readonly stocked: boolean;
-  readonly name: string;
-}
-
 @OopReactState
 export class CatalogPage {
   /** 只读引用：这是 API 给的数据，没人改它，所以它不是状态。 */
@@ -94,11 +95,16 @@ export class CatalogPage {
   /** 交互还没接：两个筛选条件先只是初始值。 */
   filterText = '';
   inStockOnly = false;
+  @OopReactIgnore readonly categories: Category[];
   @OopReactIgnore readonly searchBar: SearchBar;
   @OopReactIgnore readonly table: ProductTable;
 
   constructor(products: Product[]) {
     this.products = products;
+    // 分组只跟数据有关，数据不会变，所以算一次就够。
+    this.categories = [...new Set(products.map((product) => product.category))].map(
+      (category) => new Category(this, category),
+    );
     this.searchBar = new SearchBar(this);
     this.table = new ProductTable(this);
   }
@@ -153,26 +159,23 @@ get visible(): Product[] {
 }
 ```
 
-`visible` 如果存成字段，就得在每个 setter 里同步一次 —— 那就是「复制一份 state」，只是从 React 挪到了对象里。
-MobX 的 computed 会自己缓存，读它的岛只在 `filterText` / `inStockOnly` / 改动 `products` 之后才重算。
+`visible` 如果存成字段，就得在每个写入点同步一次 —— 那就是「复制一份 state」，只是从 React 挪到了对象里。
+MobX 的 computed 会自己缓存，读它的岛只在 `filterText` / `inStockOnly` 变了之后才重算。
 
-按类别分组是纯展示派生，既不该是字段，也不该是对象 —— 一个不进对象图的普通函数就够：
-
-```ts
-/** 纯函数：没有状态，也就不需要订阅任何东西。 */
-export function groupByCategory(products: Product[]): {category: string; products: Product[]}[] { … }
-```
+这也给出了两条规则：**不会变的，在构造器里算一次**（`categories`）；**会变的，放在 `get` 里算**（`visible`）。
+两者都不该是字段。
 
 ### 深入一步：props 和 state 在这里分别是什么
 
 | | React | 这里 |
 | --- | --- | --- |
 | 从外面来的只读数据 | props | 构造参数，或者持有的另一个对象 |
-| 自己会变、自己负责 | state（`useState`） | 字段 + 改它的方法 |
-| 谁能改 | 只有父组件（通过 setter 回传） | 只有这个对象的方法，别人只能调方法 |
+| 自己会变、自己负责 | state（`useState`） | 字段 |
+| 谁能改 | 只有父组件（通过 setter） | 任何持有它的对象，写字段或调方法都行 |
 | 传下去的形态 | 值 + 回调 | 引用（对方自己读、自己调） |
 
 React 里 props 和 state 都「属于某个组件」；在这里两者分得很干净：**引用是关系，字段是所有权**。
+所有权是设计问题（谁负责这个值），不是门禁 —— 写起来就是赋值，没人拦你。
 
 ## 第 4 步：这些字段属于谁
 
@@ -183,18 +186,13 @@ React 要找一个「最近的共同父组件」，因为数据只能沿组件�
 
 两个筛选条件属于「这个页面在看什么」，不属于搜索框：
 
-- `CatalogPage` 持有 `filterText` / `inStockOnly`，并用 `setFilterText` / `setInStockOnly` 改它们；
-- `SearchBar` 读它、写它，但自己什么都不存；
-- `ProductTable` 只写 `this.page.visible`，别的都不用接。
+- `CatalogPage` 持有 `filterText` / `inStockOnly`；
+- `SearchBar` 读它、写它，自己什么都不存；
+- `Category` 和 `ProductTable` 读 `page.visible`，别的都不用接。
 
 ```tsx title="catalog/SearchBar.tsx"
-@OopReactState
 export class SearchBar {
-  @OopReactIgnore readonly page: CatalogPage;
-
-  constructor(page: CatalogPage) {
-    this.page = page;
-  }
+  constructor(readonly page: CatalogPage) {}
 
   @OopReactRender()
   view() {
@@ -205,6 +203,35 @@ export class SearchBar {
           <input type="checkbox" checked={this.page.inStockOnly} /> Only show products in stock
         </label>
       </form>
+    );
+  }
+}
+```
+
+另一个读者：类别行只知道自己叫什么，剩下的去问页面。
+
+```tsx title="catalog/Category.tsx"
+export class Category {
+  constructor(
+    readonly page: CatalogPage,
+    readonly name: string,
+  ) {}
+
+  @OopReactRender()
+  row() {
+    // visible 是 computed：筛选条件一变，这个岛自己重渲染，商品行不会被连带重跑。
+    const visible = this.page.visible.filter(
+      (product) => product.category === this.name,
+    );
+    if (visible.length === 0) return null;
+
+    return (
+      <>
+        <tr>
+          <th colSpan={2}>{this.name}</th>
+        </tr>
+        {visible.map((product) => product.row())}
+      </>
     );
   }
 }
@@ -221,41 +248,46 @@ React 的第三种选项 —— 找不到合适的父组件就造一个 —— �
 React 里数据靠 props 向下流，用户输入要反向走：父组件把 setter 传下去，子组件在 `onChange` 里调它。之所以叫
 「反向」，是因为组件树只有一条通道。
 
-对象图里没有这条通道，也就没有「反向」。补上 `onChange` 就完事了：
+对象图里没有这条通道，也就没有「反向」。`SearchBar` 已经持有页面，直接写字段：
 
 ```tsx
 <input
   value={this.page.filterText}
-  onChange={(event) => this.page.setFilterText(event.target.value)}
+  onChange={(event) => {
+    this.page.filterText = event.target.value;
+  }}
 />
 <input
   type="checkbox"
   checked={this.page.inStockOnly}
-  onChange={(event) => this.page.setInStockOnly(event.target.checked)}
+  onChange={(event) => {
+    this.page.inStockOnly = event.target.checked;
+  }}
 />
 ```
 
-SearchBar 已经持有 `page`，直接调页面上的方法；表格那边一行不用改，它读的是 `page.visible`，
-字段一变自己就重渲染。没有回调链、没有事件总线、没有 context，也没有「把 setter 传四层」。
+写字段和调方法没有区别。方法只是「顺手把几件事捆在一起」的容器 —— 演示里那些 `setXxx` 会同时记一条日志，
+所以值得包一层；这里没有别的事要做，直接赋值就完了。为了「统一入口」硬造一个 `setFilterText` 属于脱裤子放屁。
 
-写入仍然是单向的：只有 `CatalogPage` 的方法改得了那两个字段。这条是纪律，不是语法强制的 —— 破了它，
-「这个值是谁改的」就散了。这也是这个模型要付的代价：React DevTools 里看得见组件树，看不见对象图。
+表格那边一行不用改：`Category` 读的是 `page.visible`，字段一变它自己重渲染；`Product.row()` 没有参数、
+也没读到筛选字段，于是被跳过。没有回调链、没有事件总线、没有 context，也没有「把 setter 传四层」。
 
-还有一个必须守住的细节：`onChange` 是事件，不是渲染。改字段只能发生在事件处理里或普通方法里，
-绝不能写在 `view()` 里（见[渲染方法](./render-methods.md)）。
+唯一真正不能破的是：**别在渲染方法里写字段**。渲染正在读、你同时写，就是渲染中触发失效
+（见[渲染方法](./render-methods.md)）。写字段要发生在事件处理里或普通方法里。
 
 ## 五步之后
 
 | React 的步子 | 这里的步子 |
 | --- | --- |
-| 拆组件层级 | 拆对象：有状态或职责才成对象，纯展示用渲染方法 |
+| 拆组件层级 | 拆对象：每个框一个类；只有会变的状态才需要 `@OopReactState` |
 | 静态版只用 props | 渲染方法只读字段，先不接事件 |
 | 三个问题找 state | 三个问题找字段，算得出来的一律 computed |
 | state 提到最近公共父组件 | 状态放到语义上属于它的对象上，消费者持引用 |
-| setter 当回调往下传 | 直接调方法 |
+| setter 当回调往下传 | 直接写字段，或者调一个顺手的方法 |
 
-这个例子里真正会变的只有两个字段，所以图很小：一个页面对象加两个子对象。换个页面就不一样 —— 演示里的
-订单页把表格状态、表单实例、弹窗开合都放在对象上，跨页共享的日志是 `App` 的字段，见[对象图](./structure.md)。
+这个例子里真正会变的只有两个字段，所以图很小：一个页面对象加四个子对象（`Product` 是数据，`Category` 是
+分组，`SearchBar` 是输入，`ProductTable` 是外壳）。换个页面就不一样 —— 演示里的订单页把表格状态、表单实例、
+弹窗开合都放在对象上，跨页共享的日志是 `App` 的字段，见[对象图](./structure.md)。
 
 继续看：[状态](./state.md) · [渲染方法](./render-methods.md) · [复杂组件与 hooks](./complex-components.md)
 
@@ -263,4 +295,5 @@ SearchBar 已经持有 `page`，直接调页面上的方法；表格那边一行
 
 - **对外发布的组件 API 用 props。** 调用方是陌生的 React 代码时，props 是契约；对象图是应用内部的。
 - **要在别人的 React 树里复用一块 UI**，就写普通组件，或用一个[组件桥](./react-bridge.md)。
-- **只有一个字段的页面**别为了「有对象图」造三个类。这一页的教训是按状态和职责切，不是按框切。
+- **不是框的东西就别拆成类。** 分组、格式化、校验这类没有上下文的计算，普通函数比对象合适 —— 它们不需要
+  `this`，也就不该占一个类的位置。这一页的教训是按框拆、按职责拆，不是把函数包一层壳。
