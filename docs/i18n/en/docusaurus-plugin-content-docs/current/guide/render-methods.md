@@ -133,11 +133,24 @@ command to render once.
 ## Lists and keys
 
 The island's element is created by the decorator, so the caller has no element to put a `key` on — the key is
-declared there instead:
+declared there instead. **Most of the time it is one field of the object**, so pass the field name (add the class as
+a type argument if you want it checked):
 
 ```tsx
-// the object renders itself: its identity is its own
-@OopReactRender({key: (self: TodoItem) => self.title})
+@OopReactRender({key: 'id'})
+row() {
+  return <li>{this.title}</li>;
+}
+
+@OopReactRender<TodoItem>({key: 'id'})   // a wrong field name is a type error
+```
+
+Reach for a function when the arguments or several fields are involved — it receives the instance first, then the
+call arguments:
+
+```tsx
+// the object renders itself: identity comes from a few fields
+@OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.title}`})
 row() {
   return <li>{this.title}</li>;
 }
@@ -147,9 +160,6 @@ row() {
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
-```
-
-The key function receives the instance first, then the call arguments.
 
 ## Naming
 

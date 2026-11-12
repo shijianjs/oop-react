@@ -15,6 +15,12 @@ export type {
 export {OopReactErrorBoundary} from './error/OopReactErrorBoundary';
 export type {OopReactErrorBoundaryProps} from './error/OopReactErrorBoundary';
 
+export {OopReactLoading, OopReactTimeoutError} from './async/OopReactLoading';
+export type {OopReactTaskOptions, OopReactTaskResult} from './async/OopReactLoading';
+export {OopReactResource} from './async/OopReactResource';
+export {OopReactCleanup} from './lifecycle/OopReactCleanup';
+export {OopReactSelection} from './selection/OopReactSelection';
+
 export {OopReactConfigure} from './config/config';
 export type {OopReactConfig} from './config/config';
 export type {OopReactFallbackProps} from './config/OopReactFallbackProps';

@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import type {ReactElement} from 'react';
 import {describe, expect, it} from 'vitest';
 import {OopReactComponent, OopReactRender} from '../src/index';
 
@@ -130,5 +131,38 @@ describe('@OopReactRender', () => {
     fireEvent.click(screen.getByRole('button'));
 
     expect(screen.getByText('ship it')).toBeTruthy();
+  });
+});
+
+describe('@OopReactRender key', () => {
+  it('takes a field name, checked against the instance', () => {
+    class Row {
+      constructor(
+        readonly id: number,
+        readonly title: string,
+      ) {}
+
+      @OopReactRender<Row>({key: 'id'})
+      row() {
+        return <li>{this.title}</li>;
+      }
+    }
+
+    const rows = [new Row(1, 'a'), new Row(2, 'b')];
+
+    expect(rows.map((item) => (item.row() as ReactElement).key)).toEqual(['1', '2']);
+  });
+
+  it('still takes a function, including the call arguments', () => {
+    class Board {
+      @OopReactRender<Board>({key: (_self, id: string) => `r-${id}`})
+      row(id: string) {
+        return <li>{id}</li>;
+      }
+    }
+
+    const board = new Board();
+
+    expect((board.row('x') as ReactElement).key).toBe('r-x');
   });
 });

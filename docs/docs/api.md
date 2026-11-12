@@ -12,16 +12,29 @@ sidebar_position: 3
 ### `OopReactRender(options?)`
 
 ```ts
-OopReactRender(options?: OopReactRenderOptions): MethodDecorator
+OopReactRender<Instance = any>(options?: OopReactRenderOptions<Instance>): MethodDecorator
 
-interface OopReactRenderOptions {
-  name?: string;                                          // 岛名前缀：<name>.<method>
-  key?: (instance: any, ...args: any[]) => Key | null;    // 列表里的 key
+interface OopReactRenderOptions<Instance = any> {
+  name?: string;                                                          // 岛名前缀：<name>.<method>
+  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key);    // 列表里的 key
 }
 ```
 
 标在一个返回 `ReactNode` 的方法上。方法保留原签名，调用它返回一个已订阅、已包边界的元素；元素可以在任何
 渲染过程中创建（普通组件、别的岛、map）。
+
+`key` 两种写法：**字段名**（大多数列表项就是自己身上一个字段）或函数（要用参数、要拼几个字段时）：
+
+```tsx
+@OopReactRender({key: 'id'})            // 取 this.id
+row() { … }
+
+@OopReactRender<Row>({key: 'id'})       // 同上，字段名会被检查
+row() { … }
+
+@OopReactRender({key: (self: Row) => `${self.board.id}-${self.id}`})
+row() { … }
+```
 
 需要 `experimentalDecorators`。
 
@@ -133,6 +146,106 @@ reset(): void {
 严格模式默认关着，`await` 之后可以直接写字段；要把连续几行写入合成一次通知，就抽成一个方法（方法本身是
 action）或用 `runInAction`。`@OopReactAction()` 只作用于它标注的那个方法，管不到别的异步续行。
 
+## 异步
+
+### `OopReactLoading`
+
+```ts
+class OopReactLoading {
+  readonly loading: boolean;
+  run<T>(task: () => Promise<T>, options?: OopReactTaskOptions): Promise<OopReactTaskResult<T>>;
+}
+
+interface OopReactTaskOptions {
+  timeoutMs?: number;
+}
+
+type OopReactTaskResult<T> =
+  | {ok: true; value: T}
+  | {ok: false; error: unknown; timedOut: boolean};
+
+class OopReactTimeoutError extends Error {
+  readonly timeoutMs: number;
+}
+```
+
+一次异步操作的状态：**一个对象一个**（通常就是一个按钮、一次提交），彼此无关。`run` 在跑之前把 `loading`
+置起来、跑完一定放下，把错误和超时转成返回值而不是抛出。
+
+```ts
+class SaveButton {
+  readonly loading = new OopReactLoading();
+
+  async click(): Promise<void> {
+    const result = await this.loading.run(() => api.save(), {timeoutMs: 5000});
+    if (!result.ok) this.page.feedback.error(result.timedOut ? '超时' : String(result.error));
+  }
+
+  @OopReactRender()
+  view() {
+    return <Button loading={this.loading.loading} onClick={() => void this.click()}>保存</Button>;
+  }
+}
+```
+
+**不弹提示、不记日志、不画进度条**，也不重试 —— 那些是持有它的对象的事。`timeoutMs` 只让 `run` 先返回，
+任务本身不会被中断（要真取消，得把 `AbortSignal` 传进 `fetch`）。内部按次数记账，所以同一个对象上重叠两次
+`run` 时，先结束的那个不会把 `loading` 关掉。
+
+### `OopReactResource<T>`
+
+```ts
+class OopReactResource<T> {
+  readonly loading: OopReactLoading;
+  data: T | null;
+  error: unknown;
+  load(fetcher: () => Promise<T>, options?: OopReactTaskOptions): Promise<OopReactTaskResult<T>>;
+  invalidate(): void;
+}
+```
+
+一份远程数据：`data` / `loading` / `error`，加上把它取回来的 `load`。失败时保留上一次的 `data` 并记下
+`error`；`invalidate()` 把两者清空。没有缓存、没有去重、没有 stale-while-revalidate —— 要重新取就是再调一次
+`load`，把同一个 fetcher 传进来。
+
+## 生命周期
+
+### `OopReactCleanup`
+
+```ts
+class OopReactCleanup {
+  add(disposer: () => void): () => void;   // 返回「撤销登记」
+  dispose(): void;                          // 依次执行并清空，重复调用无害
+  readonly size: number;
+  readonly disposed: boolean;
+}
+```
+
+一个对象攒下来的清理动作：`reaction`、timer、DOM 监听、第三方实例。`dispose()` 里某一个抛错不影响其余的；
+在已经 dispose 过的对象上再 `add`，会立刻执行。
+
+## 选择
+
+### `OopReactSelection<K = string>`
+
+```ts
+class OopReactSelection<K = string> {
+  ids: K[];
+  readonly size: number;
+  readonly empty: boolean;
+  has(id: K): boolean;
+  add(id: K): void;
+  remove(id: K): void;
+  toggle(id: K): void;
+  set(ids: readonly K[]): void;       // 表格的 onChange 直接交进来
+  clear(): void;
+  isAll(total: number): boolean;      // total > 0 且全选
+  isPartial(total: number): boolean;  // 选了一些、没选完
+}
+```
+
+只存「选了什么」，不碰行数据：行自己问 `selection.has(row.id)`。
+
 ## 错误
 
 ### `OopReactErrorBoundary`
@@ -183,3 +296,5 @@ interface OopReactFallbackProps {
 | `OopReactConfig` | 全局配置（`fallback` / `onError`） |
 | `OopReactFallbackProps` | fallback 组件收到的 props |
 | `OopReactErrorBoundaryProps` | 边界组件的 props |
+| `OopReactTaskOptions` | `run` 的选项（`timeoutMs`） |
+| `OopReactTaskResult<T>` | `run` 的返回值：成功 / 失败 / 是否超时 |

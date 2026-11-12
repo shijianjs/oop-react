@@ -126,11 +126,23 @@ list() {
 
 ## 列表与 key
 
-岛的元素由装饰器创建，调用方手里没有元素可以挂 `key`，所以 key 写在装饰器上：
+岛的元素由装饰器创建，调用方手里没有元素可以挂 `key`，所以 key 写在装饰器上。**大多数情况就是自己身上一个
+字段**，给字段名就行（想看类型检查就带上类名）：
 
 ```tsx
-// 对象自己渲染自己：身份就是自己的
-@OopReactRender({key: (self: TodoItem) => self.title})
+@OopReactRender({key: 'id'})
+row() {
+  return <li>{this.title}</li>;
+}
+
+@OopReactRender<TodoItem>({key: 'id'})   // 字段名对不上会报错
+```
+
+要用参数、或者要拼几个字段时，才写成函数 —— 它先拿到实例，再拿到调用参数：
+
+```tsx
+// 对象自己渲染自己：身份来自几个字段
+@OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.title}`})
 row() {
   return <li>{this.title}</li>;
 }
@@ -140,9 +152,6 @@ row() {
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
-```
-
-key 函数先拿到实例，再拿到调用参数。
 
 ## 起名
 

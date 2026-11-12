@@ -102,7 +102,7 @@ export const OopReactRenderIsland = memo(function OopReactRenderIsland({
   );
 }, isSameIsland);
 
-export interface OopReactRenderOptions {
+export interface OopReactRenderOptions<Instance = any> {
   /**
    * The owner name used in this island's name (`<name>.<method>`): what the
    * fallback prints and what `onError` reports.
@@ -122,11 +122,19 @@ export interface OopReactRenderOptions {
    *
    * The key has to be produced here because the island's element is created
    * inside the decorator — a caller mapping over objects has no element to put a
-   * key on. It receives the instance first, then the call arguments:
+   * key on. Most lists key on one field of the object, so a field name is
+   * accepted too (pass the class as a type argument to have it checked):
    *
    * ```tsx
-   * // the object renders itself, so its identity is its own
-   * @OopReactRender({key: (self: TodoItem) => self.id})
+   * // one field — the common case
+   * @OopReactRender({key: 'id'})
+   * row() { … }
+   *
+   * // checked against the instance
+   * @OopReactRender<TodoItem>({key: 'id'})
+   *
+   * // anything derived: a function, receiving the instance then the arguments
+   * @OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.id}`})
    * row() { … }
    *
    * // the parent renders rows for its children
@@ -134,7 +142,7 @@ export interface OopReactRenderOptions {
    * row(item: TodoItem) { … }
    * ```
    */
-  key?: (instance: any, ...args: any[]) => Key | null | undefined;
+  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key | null | undefined);
 }
 
 /**
@@ -151,7 +159,9 @@ export interface OopReactRenderOptions {
  * Requires `experimentalDecorators` (the legacy decorator model), which is also
  * what MobX-style class code in this ecosystem already uses.
  */
-export function OopReactRender(options: OopReactRenderOptions = {}): MethodDecorator {
+export function OopReactRender<Instance = any>(
+  options: OopReactRenderOptions<Instance> = {},
+): MethodDecorator {
   return function (target, propertyKey, descriptor) {
     const method = descriptor?.value as OopReactRenderFunction | undefined;
     if (typeof method !== 'function') {
@@ -165,13 +175,13 @@ export function OopReactRender(options: OopReactRenderOptions = {}): MethodDecor
         options.name === undefined
           ? islandName(this, propertyKey)
           : `${options.name}.${String(propertyKey)}`;
+      // Default: the object and the method identify the island, so React does not
+      // reuse the fiber for a *different* island in the same position.
+      const fallbackKey = `${instanceId(this)}.${String(propertyKey)}`;
 
       return (
         <OopReactRenderIsland
-          // Without a key React would reuse the fiber for a *different* island in
-          // the same position. The default key therefore identifies the object
-          // and the method; a list of islands still wants `options.key`.
-          key={options.key?.(this, ...args) ?? `${instanceId(this)}.${String(propertyKey)}`}
+          key={resolveKey(options.key, this, args, fallbackKey)}
           instance={this}
           method={method}
           args={args}
@@ -182,4 +192,21 @@ export function OopReactRender(options: OopReactRenderOptions = {}): MethodDecor
 
     return descriptor;
   };
+}
+
+/** `key: 'id'` reads that field; a function is called with the instance and the arguments. */
+function resolveKey<Instance>(
+  option: OopReactRenderOptions<Instance>['key'],
+  instance: object,
+  args: unknown[],
+  fallback: Key,
+): Key {
+  if (option === undefined) return fallback;
+
+  if (typeof option === 'function') {
+    return option(instance as Instance, ...args) ?? fallback;
+  }
+
+  const value = (instance as Record<PropertyKey, unknown>)[option as PropertyKey];
+  return (value as Key | null | undefined) ?? fallback;
 }

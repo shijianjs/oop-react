@@ -13,6 +13,7 @@ const sidebars: SidebarsConfig = {
         'guide/thinking-in-objects',
         'guide/state',
         'guide/render-methods',
+        'guide/async',
         'guide/complex-components',
         'guide/react-bridge',
         'guide/errors',

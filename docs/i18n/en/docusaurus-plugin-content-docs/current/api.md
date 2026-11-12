@@ -13,17 +13,31 @@ Every export carries the `OopReact` prefix. The package is pure ESM; `react`, `r
 ### `OopReactRender(options?)`
 
 ```ts
-OopReactRender(options?: OopReactRenderOptions): MethodDecorator
+OopReactRender<Instance = any>(options?: OopReactRenderOptions<Instance>): MethodDecorator
 
-interface OopReactRenderOptions {
-  name?: string;                                          // island name prefix: <name>.<method>
-  key?: (instance: any, ...args: any[]) => Key | null;    // the key of a list entry
+interface OopReactRenderOptions<Instance = any> {
+  name?: string;                                                          // island name prefix: <name>.<method>
+  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key);    // the key of a list entry
 }
 ```
 
 Marks a method that returns `ReactNode`. The method keeps its signature; calling it returns an element that is
 already subscribed and wrapped in a boundary. Creating that element is side-effect free, so it can happen during any
 render — a plain component, another island, a `map`.
+
+`key` takes a **field name** (a list entry usually keys on one field of its own object) or a function (when the
+arguments or several fields are involved):
+
+```tsx
+@OopReactRender({key: 'id'})            // this.id
+row() { … }
+
+@OopReactRender<Row>({key: 'id'})       // the same, with the field name checked
+row() { … }
+
+@OopReactRender({key: (self: Row) => `${self.board.id}-${self.id}`})
+row() { … }
+```
 
 Requires `experimentalDecorators`.
 
@@ -140,6 +154,108 @@ Strict mode is off by default, so writing fields after an `await` just works; to
 extract them into a method (a method is an action) or use `runInAction`. `@OopReactAction()` only covers the method it
 annotates, not the continuations of an `async` one.
 
+## Async
+
+### `OopReactLoading`
+
+```ts
+class OopReactLoading {
+  readonly loading: boolean;
+  run<T>(task: () => Promise<T>, options?: OopReactTaskOptions): Promise<OopReactTaskResult<T>>;
+}
+
+interface OopReactTaskOptions {
+  timeoutMs?: number;
+}
+
+type OopReactTaskResult<T> =
+  | {ok: true; value: T}
+  | {ok: false; error: unknown; timedOut: boolean};
+
+class OopReactTimeoutError extends Error {
+  readonly timeoutMs: number;
+}
+```
+
+The state of one async operation: **one per object** (usually one per button, per submit), unrelated to each other.
+`run` raises `loading` before the task, always lowers it afterwards, and turns errors and timeouts into a return
+value instead of throwing.
+
+```ts
+class SaveButton {
+  readonly loading = new OopReactLoading();
+
+  async click(): Promise<void> {
+    const result = await this.loading.run(() => api.save(), {timeoutMs: 5000});
+    if (!result.ok) this.page.feedback.error(result.timedOut ? 'Timed out' : String(result.error));
+  }
+
+  @OopReactRender()
+  view() {
+    return <Button loading={this.loading.loading} onClick={() => void this.click()}>Save</Button>;
+  }
+}
+```
+
+It **does not toast, log, draw a progress bar or retry** — that is the job of the object holding it. `timeoutMs`
+only makes `run` return early; the task itself keeps running (pass an `AbortSignal` into `fetch` to really cancel
+it). Overlapping `run` calls on the same object are counted, so the one that finishes first does not clear
+`loading` while another is still going.
+
+### `OopReactResource<T>`
+
+```ts
+class OopReactResource<T> {
+  readonly loading: OopReactLoading;
+  data: T | null;
+  error: unknown;
+  load(fetcher: () => Promise<T>, options?: OopReactTaskOptions): Promise<OopReactTaskResult<T>>;
+  invalidate(): void;
+}
+```
+
+One piece of remote data: `data` / `loading` / `error`, plus the `load` that fetches it. On failure the previous
+`data` stays and `error` is recorded; `invalidate()` clears both. No caching, no deduping, no
+stale-while-revalidate — to fetch again, call `load` again with the same fetcher.
+
+## Lifecycle
+
+### `OopReactCleanup`
+
+```ts
+class OopReactCleanup {
+  add(disposer: () => void): () => void;   // returns "unregister"
+  dispose(): void;                          // runs them all and empties; safe to call twice
+  readonly size: number;
+  readonly disposed: boolean;
+}
+```
+
+The clean-up work one object accumulates: `reaction`s, timers, DOM listeners, third-party instances. One disposer
+throwing does not stop the rest; adding a disposer after `dispose()` runs it immediately.
+
+## Selection
+
+### `OopReactSelection<K = string>`
+
+```ts
+class OopReactSelection<K = string> {
+  ids: K[];
+  readonly size: number;
+  readonly empty: boolean;
+  has(id: K): boolean;
+  add(id: K): void;
+  remove(id: K): void;
+  toggle(id: K): void;
+  set(ids: readonly K[]): void;       // a table's onChange hands its keys straight in
+  clear(): void;
+  isAll(total: number): boolean;      // total > 0 and everything selected
+  isPartial(total: number): boolean;  // some selected, not all
+}
+```
+
+It stores "which ids are selected" and nothing about the rows: a row asks `selection.has(row.id)`.
+
 ## Errors
 
 ### `OopReactErrorBoundary`
@@ -191,3 +307,5 @@ configurable on purpose — see [global configuration](./guide/configure.md).
 | `OopReactConfig` | global configuration (`fallback` / `onError`) |
 | `OopReactFallbackProps` | props a fallback component receives |
 | `OopReactErrorBoundaryProps` | props of the boundary component |
+| `OopReactTaskOptions` | options for `run` (`timeoutMs`) |
+| `OopReactTaskResult<T>` | what `run` resolves to: success / failure / timed out |
