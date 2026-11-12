@@ -153,6 +153,29 @@ describe('@OopReactRender key', () => {
     expect(rows.map((item) => (item.row() as ReactElement).key)).toEqual(['1', '2']);
   });
 
+  it('reads the field from the first argument when a parent renders the row', () => {
+    class Row {
+      constructor(
+        readonly id: number,
+        readonly title: string,
+      ) {}
+    }
+
+    class Board {
+      @OopReactRender<Board, [Row]>({key: 'id'})
+      row(item: Row) {
+        return <li>{item.title}</li>;
+      }
+    }
+
+    const board = new Board();
+    const keys = [new Row(1, 'a'), new Row(2, 'b')].map(
+      (item) => (board.row(item) as ReactElement).key,
+    );
+
+    expect(keys).toEqual(['1', '2']);
+  });
+
   it('still takes a function, including the call arguments', () => {
     class Board {
       @OopReactRender<Board>({key: (_self, id: string) => `r-${id}`})

@@ -12,11 +12,16 @@ sidebar_position: 3
 ### `OopReactRender(options?)`
 
 ```ts
-OopReactRender<Instance = any>(options?: OopReactRenderOptions<Instance>): MethodDecorator
+OopReactRender<Instance = any, Args extends unknown[] = any[]>(
+  options?: OopReactRenderOptions<Instance, Args>,
+): MethodDecorator
 
-interface OopReactRenderOptions<Instance = any> {
-  name?: string;                                                          // 岛名前缀：<name>.<method>
-  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key);    // 列表里的 key
+interface OopReactRenderOptions<Instance = any, Args extends unknown[] = any[]> {
+  name?: string;                    // 岛名前缀：<name>.<method>
+  key?:
+    | keyof Instance                // 列表里的 key：自己身上的字段
+    | keyof Args[number]            // …或者第一个参数上的字段（父对象代子对象渲染时）
+    | ((instance: Instance, ...args: Args) => Key);
 }
 ```
 
@@ -33,8 +38,10 @@ row() { … }
 row() { … }
 ```
 
+字段名先看**第一个参数**（方法有参数时 —— 那是父对象代子对象渲染），找不到再看自己。
+
 身份要从几个字段凑出来，就在类里写个 `get`，再把字段名给它（见[渲染方法](./guide/render-methods.md)）。
-函数形式只剩一种场合：父对象代子对象渲染，身份来自调用参数。
+函数形式只留给「算出来的 key」：不是某个字段，而是一段拼装。
 
 需要 `experimentalDecorators`。
 

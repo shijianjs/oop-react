@@ -13,11 +13,16 @@ Every export carries the `OopReact` prefix. The package is pure ESM; `react`, `r
 ### `OopReactRender(options?)`
 
 ```ts
-OopReactRender<Instance = any>(options?: OopReactRenderOptions<Instance>): MethodDecorator
+OopReactRender<Instance = any, Args extends unknown[] = any[]>(
+  options?: OopReactRenderOptions<Instance, Args>,
+): MethodDecorator
 
-interface OopReactRenderOptions<Instance = any> {
-  name?: string;                                                          // island name prefix: <name>.<method>
-  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key);    // the key of a list entry
+interface OopReactRenderOptions<Instance = any, Args extends unknown[] = any[]> {
+  name?: string;                    // island name prefix: <name>.<method>
+  key?:
+    | keyof Instance                // the key of a list entry: a field of its own object
+    | keyof Args[number]            // …or of the first argument (a parent renders children)
+    | ((instance: Instance, ...args: Args) => Key);
 }
 ```
 
@@ -35,9 +40,11 @@ row() { … }
 row() { … }
 ```
 
+A field name is read from the **first argument** when the method takes one (a parent rendering rows for its
+children), and from the instance otherwise.
+
 To build an identity from several fields, write a `get` on the class and pass its name (see
-[render methods](./guide/render-methods.md)). The function form has one use left: a parent rendering rows for its
-children, where the identity comes from the call arguments.
+[render methods](./guide/render-methods.md)). A function is left for a key that is computed rather than read.
 
 Requires `experimentalDecorators`.
 

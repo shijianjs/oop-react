@@ -161,18 +161,27 @@ class TodoItem {
 }
 ```
 
-The function form is left with one job: **a parent rendering rows for its children**, where the identity comes from
-the call arguments and `this` has nothing to offer.
+The same works when a **parent renders rows for its children**: the method has an argument, so the field is read
+from the first argument.
 
 ```tsx
-@OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
+@OopReactRender({key: 'id'})
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
 ```
 
-The more thorough route is to let the child render itself (`item.row()` with `{key: 'id'}`) — then no function at
-all.
+A function is left for a key that is **computed** rather than read — an assembly of a few values:
+
+```tsx
+@OopReactRender({key: (_self: TodoBoard, item: TodoItem) => `${item.category}/${item.id}`})
+row(item: TodoItem) {
+  return <li>{item.title}</li>;
+}
+```
+
+The more thorough route is to let the child render itself (`item.row()` with `{key: 'id'}`) — then the caller does
+not think about keys at all.
 
 ## Naming
 

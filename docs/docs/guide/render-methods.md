@@ -153,16 +153,25 @@ class TodoItem {
 }
 ```
 
-函数形式只剩一种场合：**父对象代子对象渲染**，身份来自调用参数，`this` 上没有这个东西。
+**父对象代子对象渲染**时也一样：方法有参数，字段就从第一个参数上取。
 
 ```tsx
-@OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
+@OopReactRender({key: 'id'})
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
 ```
 
-更彻底的做法是让子对象自己渲染自己（`item.row()` 配 `{key: 'id'}`）—— 那样连函数都不用写。
+函数只剩给「算出来的 key」—— 不是某个字段，而是一段拼装：
+
+```tsx
+@OopReactRender({key: (_self: TodoBoard, item: TodoItem) => `${item.category}/${item.id}`})
+row(item: TodoItem) {
+  return <li>{item.title}</li>;
+}
+```
+
+更彻底的做法是让子对象自己渲染自己（`item.row()` 配 `{key: 'id'}`）—— 调用方连 key 都不用想。
 
 ## 起名
 

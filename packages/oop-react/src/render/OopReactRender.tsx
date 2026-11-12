@@ -102,7 +102,7 @@ export const OopReactRenderIsland = memo(function OopReactRenderIsland({
   );
 }, isSameIsland);
 
-export interface OopReactRenderOptions<Instance = any> {
+export interface OopReactRenderOptions<Instance = any, Args extends unknown[] = any[]> {
   /**
    * The owner name used in this island's name (`<name>.<method>`): what the
    * fallback prints and what `onError` reports.
@@ -118,33 +118,45 @@ export interface OopReactRenderOptions<Instance = any> {
    */
   name?: string;
   /**
-   * Derives the React key when this method renders one entry of a list.
+   * The React key of one list entry.
    *
-   * The key has to be produced here because the island's element is created
-   * inside the decorator — a caller mapping over objects has no element to put a
-   * key on. Most lists key on one field of the object, so a field name is
-   * accepted too (pass the class as a type argument to have it checked):
+   * It has to be produced here, not returned from the render function: the
+   * element is created inside the decorator, before the method runs, and React
+   * reads the key from that element when the *parent* reconciles its children.
+   *
+   * A field name is enough for almost every list. It is read from the first
+   * argument when the method takes one (a parent rendering rows for its
+   * children), otherwise from the instance:
    *
    * ```tsx
-   * // one field — the common case
+   * // the object renders itself
    * @OopReactRender({key: 'id'})
    * row() { … }
    *
-   * // checked against the instance
-   * @OopReactRender<TodoItem>({key: 'id'})
+   * // the parent renders rows for its children: item.id is the row's id
+   * @OopReactRender({key: 'id'})
+   * row(item: TodoItem) { … }
+   *
+   * // checked against the instance and the first argument
+   * @OopReactRender<TodoBoard, [TodoItem]>({key: 'id'})
    *
    * // a derived identity: put a `get` on the class and name it
    * get key() { return `${this.board.id}-${this.title}`; }
-   *
    * @OopReactRender({key: 'key'})
-   * row() { … }
+   * ```
    *
-   * // the parent renders rows for its children: identity comes from the arguments
-   * @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
+   * A function is left for a key computed from the arguments instead of read
+   * from a field:
+   *
+   * ```tsx
+   * @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => `${item.cat}/${item.id}`})
    * row(item: TodoItem) { … }
    * ```
    */
-  key?: keyof Instance | ((instance: Instance, ...args: any[]) => Key | null | undefined);
+  key?:
+    | keyof Instance
+    | keyof Args[number]
+    | ((instance: Instance, ...args: Args) => Key | null | undefined);
 }
 
 /**
@@ -161,8 +173,8 @@ export interface OopReactRenderOptions<Instance = any> {
  * Requires `experimentalDecorators` (the legacy decorator model), which is also
  * what MobX-style class code in this ecosystem already uses.
  */
-export function OopReactRender<Instance = any>(
-  options: OopReactRenderOptions<Instance> = {},
+export function OopReactRender<Instance = any, Args extends unknown[] = any[]>(
+  options: OopReactRenderOptions<Instance, Args> = {},
 ): MethodDecorator {
   return function (target, propertyKey, descriptor) {
     const method = descriptor?.value as OopReactRenderFunction | undefined;
@@ -196,9 +208,13 @@ export function OopReactRender<Instance = any>(
   };
 }
 
-/** `key: 'id'` reads that field; a function is called with the instance and the arguments. */
-function resolveKey<Instance>(
-  option: OopReactRenderOptions<Instance>['key'],
+/**
+ * `key: 'id'` reads that field — from the first argument when the method takes
+ * one (the parent renders rows for its children), otherwise from the instance.
+ * A function is called with the instance and the arguments.
+ */
+function resolveKey<Instance, Args extends unknown[]>(
+  option: OopReactRenderOptions<Instance, Args>['key'],
   instance: object,
   args: unknown[],
   fallback: Key,
@@ -206,9 +222,19 @@ function resolveKey<Instance>(
   if (option === undefined) return fallback;
 
   if (typeof option === 'function') {
-    return option(instance as Instance, ...args) ?? fallback;
+    return option(instance as Instance, ...(args as Args)) ?? fallback;
   }
 
-  const value = (instance as Record<PropertyKey, unknown>)[option as PropertyKey];
+  const name = option as PropertyKey;
+  const fromArgument = args.length > 0 ? readField(args[0], name) : undefined;
+  const value = fromArgument ?? readField(instance, name);
   return (value as Key | null | undefined) ?? fallback;
+}
+
+function readField(source: unknown, name: PropertyKey): unknown {
+  if (source === null || (typeof source !== 'object' && typeof source !== 'function')) {
+    return undefined;
+  }
+
+  return (source as Record<PropertyKey, unknown>)[name];
 }
