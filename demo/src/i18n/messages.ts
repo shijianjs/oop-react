@@ -172,7 +172,7 @@ const zh = {
 
   'loading.title': '加载状态',
   'loading.description':
-    '每个按钮是一个对象，各带一个 LoadingState：转圈和不可点交给 antd 的 loading，失败统一弹提示，超时按失败算，顶上那条是全局进度。',
+    '每个按钮是一个对象，各带一个 OopReactLoading（库里的）：转圈和不可点交给 antd 的 loading，失败统一弹提示，超时按失败算，顶上那条是全局进度。',
   'loading.task.save': '保存订单',
   'loading.task.export': '导出报表',
   'loading.task.flaky': '会失败的请求',
@@ -372,7 +372,7 @@ const en: Record<MessageKey, string> = {
 
   'loading.title': 'Loading state',
   'loading.description':
-    'Every button is an object with its own LoadingState: the spinner and the disabled state come from antd’s loading prop, failures report in one place, a timeout counts as a failure, and the bar at the top is global.',
+    'Every button is an object with its own OopReactLoading (from the library): the spinner and the disabled state come from antd’s loading prop, failures report in one place, a timeout counts as a failure, and the bar at the top is global.',
   'loading.task.save': 'Save order',
   'loading.task.export': 'Export report',
   'loading.task.flaky': 'A request that fails',

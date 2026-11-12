@@ -1,8 +1,7 @@
 import {Button} from 'antd';
-import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
+import {OopReactIgnore, OopReactLoading, OopReactRender, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
 import type {MessageKey} from '../../i18n/messages';
-import {LoadingState} from './LoadingState';
 
 interface ActionButtonOptions {
   labelKey: MessageKey;
@@ -24,7 +23,7 @@ interface ActionButtonOptions {
 export class ActionButton {
   @OopReactIgnore readonly app: App;
   /** 一个按钮一个：旁边那个在转，这个照样能点。 */
-  @OopReactIgnore readonly state: LoadingState;
+  @OopReactIgnore readonly state: OopReactLoading;
   @OopReactIgnore readonly labelKey: MessageKey;
   @OopReactIgnore readonly task: () => Promise<void>;
   @OopReactIgnore readonly timeoutMs: number;
@@ -33,7 +32,7 @@ export class ActionButton {
 
   constructor(app: App, options: ActionButtonOptions) {
     this.app = app;
-    this.state = new LoadingState();
+    this.state = new OopReactLoading();
     this.labelKey = options.labelKey;
     this.task = options.task;
     this.timeoutMs = options.timeoutMs ?? 0;
@@ -45,7 +44,7 @@ export class ActionButton {
     const {progress, settings, feedback, log} = this.app;
     progress.start();
     try {
-      const result = await this.state.run(this.task, this.timeoutMs);
+      const result = await this.state.run(this.task, {timeoutMs: this.timeoutMs});
       if (result.ok) return;
 
       const detail = result.error instanceof Error ? result.error.message : String(result.error);
@@ -60,8 +59,8 @@ export class ActionButton {
     }
   }
 
-  // 列表里是对象自己渲染自己，key 只能写在注解上。
-  @OopReactRender({key: (self: ActionButton) => self.labelKey})
+  // 列表里是对象自己渲染自己，key 只能写在注解上：取哪个字段，直接给字段名。
+  @OopReactRender<ActionButton>({key: 'labelKey'})
   view() {
     const {t} = this.app.settings;
 
