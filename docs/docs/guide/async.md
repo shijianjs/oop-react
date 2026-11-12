@@ -86,6 +86,36 @@ class OrdersPage {
 **没有缓存、没有去重、没有 stale-while-revalidate**：那一层策略一进来就得跟着框架走（失效时机、重试、
 并发取消）。要重新取，就再调一次 `load`，把同一个 fetcher 传进去。
 
+## 回调里只有一个 node 的位置
+
+弹窗的 `children`、抽屉的 body、表格的 `render`、回调组件的返回值 —— 这些地方只能交出去一个 node，而数据是
+异步来的。于是每个地方都要抄一遍：
+
+```tsx
+if (error && data === null) return <Alert type="error" title={String(error)} />;
+if (data === null) return <Skeleton active />;
+return <Table dataSource={data} />;
+```
+
+把这三段收成一次，用起来只剩一行：
+
+```tsx
+{asyncView(this.rows, {
+  skeleton: <Skeleton active />,
+  ready: this.table(),
+  failed: (error) => <Alert type="error" title={String(error)} />,
+})}
+```
+
+`asyncView` 是 demo 里的普通函数（`demo/src/app/AsyncView.tsx`）。关键在**它不是组件**：在渲染方法里调用时，
+读到的 `data` / `error` 记在**那个岛**上，不用再包一层 observer —— 所以它能塞进任何只留给一个 node 的位置。
+有旧数据时失败了也不清屏：数据照旧，错误作为一条横幅显示在上面（清空是 `invalidate()` 的事）。
+
+React 19 有一个对应的官方做法：`use(promise)` 配 `<Suspense fallback>`，一段标签管住「没数据时画什么」。
+区别是它按**边界**兜底（最近的 Suspense），两个异步区块就是两层边界，失败还要另配 ErrorBoundary，而且要求
+那个 promise 在多次渲染之间保持同一个。这里的 `data` / `error` 本来就是对象上的字段，读一下就知道该画哪一段：
+不用挂起，也不需要祖先上有 Suspense。
+
 ## 全局进度条为什么不在库里
 
 NProgress 那种顶部条是 UI + 全局策略：谁先结束谁关、要不要计数、失败了变不变红。演示里它就是 `App` 上的

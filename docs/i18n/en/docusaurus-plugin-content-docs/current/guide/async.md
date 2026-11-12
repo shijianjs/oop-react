@@ -90,6 +90,38 @@ A failure keeps the previous `data` (the screen does not go blank); `invalidate(
 **No caching, no deduping, no stale-while-revalidate**: that layer comes with a framework behind it (invalidation
 timing, retries, cancelling in flight). To fetch again, call `load` again with the same fetcher.
 
+## Where a callback only leaves room for one node
+
+A dialog's `children`, a drawer body, a table's `render`, the return value of a render prop — each of them can hand
+back exactly one node, while the data arrives asynchronously. So the same block gets retyped everywhere:
+
+```tsx
+if (error && data === null) return <Alert type="error" title={String(error)} />;
+if (data === null) return <Skeleton active />;
+return <Table dataSource={data} />;
+```
+
+Collapse the three into one helper and each site becomes a single call:
+
+```tsx
+{asyncView(this.rows, {
+  skeleton: <Skeleton active />,
+  ready: this.table(),
+  failed: (error) => <Alert type="error" title={String(error)} />,
+})}
+```
+
+`asyncView` is a plain function in the demo (`demo/src/app/AsyncView.tsx`). The point is that it is **not a
+component**: called inside a render method, the `data` / `error` reads belong to *that island*, so nothing needs an
+extra observer — and it fits anywhere that leaves room for one node. A failure with stale data does not blank the
+screen either: the data stays and the error shows above it as a banner (clearing is `invalidate()`'s job).
+
+React 19 has an official answer here: `use(promise)` with `<Suspense fallback>`, one tag controlling "what to show
+while there is no data". The difference is that it falls back per **boundary** (the nearest Suspense), so two async
+sections mean two boundaries and failures still need an ErrorBoundary — and the promise has to stay the same across
+renders. Here `data` / `error` are fields on an object: reading them tells you which of the three to draw, with no
+suspending and no Suspense ancestor.
+
 ## Why the global progress bar is not in the library
 
 An NProgress-style bar is UI plus global policy: who closes it, whether it counts, whether it turns red on failure.

@@ -178,15 +178,17 @@ const zh = {
   'loading.task.flaky': '会失败的请求',
   'loading.task.slow': '很慢的请求（超时）',
   'loading.task.report': '重算报表',
+  'loading.task.reportFail': '重算（会失败）',
   'loading.done.save': '订单 {id} 已保存',
   'loading.done.export': '已导出 {rows} 行',
-  'loading.done.report': '报表已重算',
   'loading.failed': '请求失败：{message}',
   'loading.timeout': '超时了：{ms}ms 没回来',
   'loading.hint':
     '点两个试试：各转各的，互不影响。顶上那条是全局的，谁先结束谁关它 —— 只是个「在动」的反应，不值得为它加引用计数。',
-  'loading.report.title': '子对象也有自己的按钮',
-  'loading.report.body': '这张卡是页面持有的子对象，它照样自己造按钮、自己带 loading —— 不用把回调传下来。',
+  'loading.report.title': '延时数据：三段式只写一次',
+  'loading.report.body':
+    '这张卡的数据是异步来的：骨架屏 → 标签，失败走另一条分支。分支在 asyncView 里只写一次，所以这个对象能塞进弹窗、抽屉、表格的 render —— 那些地方都只留得下一个 node。',
+  'loading.report.failed': '加载失败：{message}',
 
   'log.title': '活动日志',
   'log.empty': '还没有操作。',
@@ -378,16 +380,17 @@ const en: Record<MessageKey, string> = {
   'loading.task.flaky': 'A request that fails',
   'loading.task.slow': 'A slow request (times out)',
   'loading.task.report': 'Recompute report',
+  'loading.task.reportFail': 'Recompute (fails)',
   'loading.done.save': 'Order {id} saved',
   'loading.done.export': '{rows} rows exported',
-  'loading.done.report': 'Report recomputed',
   'loading.failed': 'Request failed: {message}',
   'loading.timeout': 'Timed out: no answer in {ms}ms',
   'loading.hint':
     'Click two of them: each spins on its own. The bar at the top is global and closes when the first one finishes — it is a “something is happening” signal, not worth a reference count.',
-  'loading.report.title': 'A child object has its own button',
+  'loading.report.title': 'Delayed data: the three screens, written once',
   'loading.report.body':
-    'This card is a child object of the page; it builds its own button and its own loading — no callback passed down.',
+    'This card’s data arrives asynchronously: skeleton → tags, and a failure takes the other branch. The branch lives in asyncView once, so this object fits anywhere that leaves room for only one node — a dialog body, a drawer, a table cell render.',
+  'loading.report.failed': 'Failed to load: {message}',
 
   'log.title': 'Activity log',
   'log.empty': 'Nothing yet.',

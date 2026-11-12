@@ -1,6 +1,7 @@
-import {Card, Space, Tag, Typography} from 'antd';
-import {OopReactIgnore, OopReactRender, OopReactState} from 'oop-react';
+import {Alert, Card, Skeleton, Space, Tag, Typography} from 'antd';
+import {OopReactIgnore, OopReactRender, OopReactResource, OopReactState} from 'oop-react';
 import type {App} from '../../app/App';
+import {asyncView} from '../../app/AsyncView';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
 import {PageHeader} from '../PageHeader';
@@ -32,6 +33,11 @@ async function slowRequest(ms: number): Promise<number> {
 async function reportRows(ms: number): Promise<number[]> {
   await sleep(ms);
   return Array.from({length: 3}, () => 10 + Math.round(Math.random() * 50));
+}
+
+async function brokenReport(ms: number): Promise<never> {
+  await sleep(ms);
+  throw new Error('HTTP 503 /api/report');
 }
 
 /**
@@ -112,25 +118,36 @@ export class LoadingPage implements Page {
   }
 }
 
-/** 子对象也有自己的按钮 —— 页面只是把它拼进来，不用把状态或回调传下去。 */
+/**
+ * 延时数据的三个界面：骨架屏 / 数据 / 失败。
+ *
+ * 分支在 `asyncView` 里只写一次，这个对象只管「有数据时画什么」——
+ * 所以它能出现在任何只留得下一个 node 的位置：弹窗的 children、表格的 render、回调组件的返回值。
+ */
 @OopReactState
 export class ReportCard {
   @OopReactIgnore readonly page: LoadingPage;
-  @OopReactIgnore readonly refreshButton: ActionButton;
-  rows: number[] = [18, 32, 47];
+  /** 数据 / 加载中 / 错误三件套交给库里的 `OopReactResource`。 */
+  @OopReactIgnore readonly rows = new OopReactResource<number[]>();
+  @OopReactIgnore readonly reloadButton: ActionButton;
+  @OopReactIgnore readonly brokenButton: ActionButton;
 
   constructor(page: LoadingPage) {
     this.page = page;
-    this.refreshButton = new ActionButton(page.app, {
+    this.reloadButton = new ActionButton(page.app, {
       labelKey: 'loading.task.report',
-      task: () => this.reload(),
+      task: () => this.load(false),
+    });
+    this.brokenButton = new ActionButton(page.app, {
+      labelKey: 'loading.task.reportFail',
+      danger: true,
+      task: () => this.load(true),
     });
   }
 
-  async reload(): Promise<void> {
-    const {app} = this.page;
-    this.rows = await reportRows(1100);
-    app.feedback.success(app.settings.t('loading.done.report'));
+  /** 失败不抛：`OopReactResource` 记在 `error` 上，交给 `asyncView` 画成失败态。 */
+  async load(fail: boolean): Promise<void> {
+    await this.rows.load(() => (fail ? brokenReport(900) : reportRows(1100)));
   }
 
   @OopReactRender()
@@ -141,14 +158,32 @@ export class ReportCard {
       <Card size="small" title={t('loading.report.title')}>
         <Space direction="vertical" size="small" style={{width: '100%'}}>
           <span className="muted">{t('loading.report.body')}</span>
+          {asyncView(this.rows, {
+            skeleton: <Skeleton active title={false} paragraph={{rows: 1}} />,
+            ready: this.values(),
+            failed: (error) => (
+              <Alert type="error" showIcon title={t('loading.report.failed', {message: String(error)})} />
+            ),
+          })}
           <Space wrap>
-            {this.rows.map((row) => (
-              <Tag key={row}>{row}</Tag>
-            ))}
+            {this.reloadButton.view()}
+            {this.brokenButton.view()}
           </Space>
-          {this.refreshButton.view()}
         </Space>
       </Card>
+    );
+  }
+
+  @OopReactRender()
+  values() {
+    const rows = this.rows.data ?? [];
+
+    return (
+      <Space wrap>
+        {rows.map((row) => (
+          <Tag key={row}>{row}</Tag>
+        ))}
+      </Space>
     );
   }
 }
