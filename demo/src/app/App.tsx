@@ -7,6 +7,7 @@ import {AnimationPage} from '../pages/animation/AnimationPage';
 import {ChartPage} from '../pages/chart/ChartPage';
 import {CounterPage} from '../pages/counter/CounterPage';
 import {FailurePage} from '../pages/failure/FailurePage';
+import {FramePage} from '../pages/frame/FramePage';
 import {InvitePage} from '../pages/invite/InvitePage';
 import {OrdersPage} from '../pages/orders/OrdersPage';
 import {OverviewPage} from '../pages/overview/OverviewPage';
@@ -19,7 +20,7 @@ import {DOCS_HREF} from './links';
 import {Settings} from './Settings';
 
 /**
- * The root of the graph: settings, the router, one shared log, and six pages.
+ * The root of the graph: settings, the router, one shared log, and every page.
  *
  * It also owns the whole page — the providers, the layout, and the islands the
  * layout is split into, so that switching a page does not re-render the header
@@ -42,6 +43,7 @@ export class App {
       new CounterPage(this),
       new TodosPage(this),
       new OrdersPage(this),
+      new FramePage(this),
       new TicTacToePage(this),
       new ChartPage(this),
       new AnimationPage(this),
@@ -101,6 +103,7 @@ export class App {
     return (
       <header className="app-header">
         <div className="app-brand">
+          <img className="app-logo" src={`${import.meta.env.BASE_URL}logo.png`} alt="" />
           <strong>oop-react</strong>
           <span className="muted">{settings.t('app.tagline')}</span>
         </div>

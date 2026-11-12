@@ -40,9 +40,14 @@ body {
 }
 
 .app-brand {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   gap: 10px;
+}
+
+.app-logo {
+  height: 28px;
+  width: 28px;
 }
 
 .app-brand strong {
@@ -66,10 +71,15 @@ body {
   top: 20px;
 }
 
+/* Same surface as the cards on the right: the sidebar is two cards, not a menu
+   floating on the page background next to a white log card. */
 .app-menu {
-  background: transparent;
-  border: none;
-  border-inline-end: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 4px 0;
 }
 
 .app-content {
@@ -267,6 +277,187 @@ body {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Wrapper components: the frame owns the outline, the body object owns the inside. */
+.frame-page {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.frame-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.frame-stack--full {
+  grid-column: 1 / -1;
+}
+
+.frame-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.frame-chip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+}
+
+.frame-chip:hover {
+  border-color: var(--muted);
+  color: var(--fg);
+}
+
+.frame-chip[data-active='true'] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--panel);
+}
+
+/* The tone chips wear their own colour, so the outline is predictable. */
+.frame-chip[data-tone='info'][data-active='true'] {
+  background: #1677ff;
+  border-color: #1677ff;
+}
+
+.frame-chip[data-tone='success'][data-active='true'] {
+  background: #52c41a;
+  border-color: #52c41a;
+}
+
+.frame-chip[data-tone='warning'][data-active='true'] {
+  background: #faad14;
+  border-color: #faad14;
+  color: #1f2329;
+}
+
+.frame-chip[data-tone='danger'][data-active='true'] {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.frame {
+  --frame-accent: #8c8c8c;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--frame-accent);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.frame--plain {
+  --frame-accent: #8c8c8c;
+}
+
+.frame--info {
+  --frame-accent: #1677ff;
+}
+
+.frame--success {
+  --frame-accent: #52c41a;
+}
+
+.frame--warning {
+  --frame-accent: #faad14;
+}
+
+.frame--danger {
+  --frame-accent: #ff4d4f;
+}
+
+.frame-head {
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--frame-accent) 9%, transparent);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.frame-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.frame-caption {
+  margin: 2px 0 0;
+}
+
+.frame-toggle {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.frame-toggle:hover {
+  color: var(--fg);
+}
+
+.frame-body {
+  padding: 12px 14px;
+}
+
+.frame-prose p {
+  margin: 0;
+  max-width: 70ch;
+}
+
+.frame-tally {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.frame-tally-count {
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.5ch;
+}
+
+.frame-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.frame-tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.frame-task {
+  padding: 2px 0;
+}
+
+.frame-task label {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+}
+
+.frame-task--done label {
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
 @media (max-width: 860px) {

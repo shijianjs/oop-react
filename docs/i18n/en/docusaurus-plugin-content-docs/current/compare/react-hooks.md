@@ -115,6 +115,7 @@ You only need `OopReactComponent` / `OopReactObserver` when reusing a piece of U
 | Counter | fields are state, methods are callbacks |
 | Todos | one-to-many, computed, a one-to-one reference |
 | Orders | controlled table state, form instance handed to the object, `async` method, validation |
+| Wrapper | the shell and the content are both objects — a `body` instead of `children` |
 | Tic-tac-toe | the whole official tutorial: snapshot history, computed winner, two-loop board |
 | Chart | a thin component around an imperative library (ECharts) |
 | Animation | CSS transitions + `react-spring` (hook inside one island) |

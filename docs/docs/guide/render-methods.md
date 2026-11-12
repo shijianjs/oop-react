@@ -61,6 +61,44 @@ class Panel {
 `OopReactObserver` / `OopReactCallback` 不享受这条：它们传进去的是每次渲染新生成的函数，没有可比的东西，
 所以父级重渲染时会跟着重跑。要这块也隔离，就把它写成带注解的方法。
 
+## 包装组件
+
+想写一个「像 `div` / `Card` 那样」的包装组件 —— 外壳提供轮廓和语义，里面完全自定义 —— 不需要 `children`：
+让外壳对象持有一个**内容对象**，内容自己是一个岛。
+
+```tsx title="demo/src/pages/frame/Frame.tsx"
+export interface FrameContent {
+  view(): ReactNode;
+}
+
+class Frame {
+  tone: 'plain' | 'danger' = 'plain';   // 轮廓语义：外壳自己的字段
+  collapsed = false;
+  body: FrameContent;                   // 内容：另一个对象
+
+  @OopReactRender()
+  view() {
+    return (
+      <section className={`frame frame--${this.tone}`}>
+        <header>{/* 标题栏、收合按钮 */}</header>
+        {this.collapsed ? null : this.body.view()}
+      </section>
+    );
+  }
+}
+```
+
+三个要点：
+
+- **内容是类型，不是节点。** 任何有 `view()` 的对象都能塞进去：一段文字、一个计数器、一张表格，或者另一个
+  `Frame`（嵌套就是这么来的）。外壳不知道里面是什么，也不需要知道。
+- **两半各订阅各的。** `tone` / `collapsed` 变了重渲染的是外壳，`this.body.view()` 的参数没变，内容岛被跳过；
+  反过来，内容里的字段变了只重跑内容岛。
+- **换内容是赋值。** `frame.body = other` 就够了，不必为每种内容写一个包装组件，外壳实例也不用重建。
+
+演示里的「包装组件」页就是几个 `Frame` 实例：换 `tone`、换 `body`、三层嵌套，以及一个没有标题于是只剩轮廓的
+（同一个类，去掉标题就是 `div`）。
+
 ## 在哪里画
 
 岛的元素是普通 React 元素，创建它没有副作用，所以哪里都能画：

@@ -16,12 +16,13 @@ const zh = {
   'route.animation': '动画',
   'route.invite': '弹窗表单',
   'route.failure': '故障隔离',
+  'route.frame': '包装组件',
 
-  'overview.title': '一张对象图，九条路由',
+  'overview.title': '一张对象图，十条路由',
   'overview.description':
     '导航、路由、主题、语言和下面每个页面都是对象。React 只负责把根岛挂到 #root 上。',
   'overview.graph':
-    'App 持有 settings、router、log、feedback 和九个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
+    'App 持有 settings、router、log、feedback 和十个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
   'overview.cross':
     '计数器、待办、订单、井字棋都写着同一个共享的 log —— 它是 App 的字段，被深层子对象直接持有，没有回调和 context。',
   'overview.try': '试试：切到「订单」新建一条，再回来看左侧日志和右上角的提示。',
@@ -139,6 +140,35 @@ const zh = {
   'failure.error': '这个渲染方法故意抛错',
   'failure.hint': '解除故障后再点 fallback 上的「重试」即可恢复。',
 
+  'frame.title': '包装组件',
+  'frame.description':
+    '外框只提供轮廓和语义，里面装什么由 body 决定 —— 段落、计数器、清单，或者另一个外框。没有 children，也没有 props：外壳和内容是两个对象、两个岛，各订阅各的。',
+  'frame.collapse': '收起',
+  'frame.expand': '展开',
+  'frame.tone.title': '轮廓语义',
+  'frame.tone.caption': 'tone 是外框自己的字段',
+  'frame.tone.body':
+    '点上面的色块换 tone：只有外框的色带、底色和标题跟着变。下面这行渲染次数不动 —— 外壳重渲染，内容岛被跳过。',
+  'frame.tone.plain': '普通',
+  'frame.tone.info': '信息',
+  'frame.tone.success': '成功',
+  'frame.tone.warning': '警告',
+  'frame.tone.danger': '危险',
+  'frame.slot.title': '内容完全自定义',
+  'frame.slot.caption': '同一个外框实例，换 body 就是换内容',
+  'frame.slot.body': '外框不知道 body 是什么类型，它只知道 body.view()。',
+  'frame.slot.prose': '文本',
+  'frame.slot.tally': '计数器',
+  'frame.slot.checklist': '清单',
+  'frame.tally.hint': '换走内容或收合外框，这个数字都还在：被卸载的是视图，对象一直在这张图里。',
+  'frame.list.item1': '外框只管轮廓',
+  'frame.list.item2': '内容由 body 决定',
+  'frame.list.item3': '两者是两个岛',
+  'frame.nest.title': '嵌套与收合',
+  'frame.nest.caption': '外框的 body 也是外框，这里套了三层',
+  'frame.nest.inner': '内层外框',
+  'frame.nest.innerCaption': '最里面那个没有标题，于是它只是一只带轮廓的 div',
+
   'log.title': '活动日志',
   'log.empty': '还没有操作。',
 } as const;
@@ -161,12 +191,13 @@ const en: Record<MessageKey, string> = {
   'route.animation': 'Animation',
   'route.invite': 'Dialog',
   'route.failure': 'Failure',
+  'route.frame': 'Wrapper',
 
-  'overview.title': 'One object graph, nine routes',
+  'overview.title': 'One object graph, ten routes',
   'overview.description':
     'The nav, the router, the theme, the language and every page below are objects. React only mounts the root island into #root.',
   'overview.graph':
-    'App holds settings, router, log, feedback and nine pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
+    'App holds settings, router, log, feedback and ten pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
   'overview.cross':
     'The counter, the todos, the orders and tic-tac-toe all write to the same shared log: a field of App, held directly by deep children — no callbacks, no context.',
   'overview.try': 'Try it: open Orders, create one, then look at the log on the left and the toast in the corner.',
@@ -288,6 +319,36 @@ const en: Record<MessageKey, string> = {
   'failure.ok': 'This island is fine',
   'failure.error': 'This render method throws on purpose',
   'failure.hint': 'Clear the failure, then press Retry on the fallback to recover.',
+
+  'frame.title': 'Wrapper components',
+  'frame.description':
+    'The frame provides the outline and its meaning; what goes inside is decided by a body object — a paragraph, a counter, a list, or another frame. No children, no props: shell and content are two objects, two islands, each subscribed to its own fields.',
+  'frame.collapse': 'Collapse',
+  'frame.expand': 'Expand',
+  'frame.tone.title': 'Outline as meaning',
+  'frame.tone.caption': 'tone is a field on the frame',
+  'frame.tone.body':
+    'Pick a tone above: only the stripe, the tint and the title change. The render count below does not move — the shell re-renders and the content island is skipped.',
+  'frame.tone.plain': 'Plain',
+  'frame.tone.info': 'Info',
+  'frame.tone.success': 'Success',
+  'frame.tone.warning': 'Warning',
+  'frame.tone.danger': 'Danger',
+  'frame.slot.title': 'Any content at all',
+  'frame.slot.caption': 'One frame instance; swapping the body swaps the content',
+  'frame.slot.body': 'The frame has no idea what the body is — it only knows body.view().',
+  'frame.slot.prose': 'Text',
+  'frame.slot.tally': 'Counter',
+  'frame.slot.checklist': 'Checklist',
+  'frame.tally.hint':
+    'Swap the content away or collapse the frame and the number survives: the view was unmounted, the object never left the graph.',
+  'frame.list.item1': 'the frame owns the outline',
+  'frame.list.item2': 'the body decides the content',
+  'frame.list.item3': 'the two are separate islands',
+  'frame.nest.title': 'Nesting and collapsing',
+  'frame.nest.caption': 'A frame’s body can be another frame — three deep here',
+  'frame.nest.inner': 'Inner frame',
+  'frame.nest.innerCaption': 'The innermost one has no title, so it is just an outlined div',
 
   'log.title': 'Activity log',
   'log.empty': 'Nothing yet.',
