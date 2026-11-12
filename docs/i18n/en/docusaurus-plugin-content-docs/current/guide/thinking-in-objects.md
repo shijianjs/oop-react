@@ -130,8 +130,8 @@ export class CatalogPage {
 ```
 
 Note `new SearchBar(this)`: the only "passing down" in this model, and it passes **an object to an object**, not data
-to data. The search bar receives the page and reads whatever it needs later — so one-way data flow shrinks to a
-single constructor call.
+to data. The search bar receives the page and reads whatever it needs later — there is no "flow" to speak of: one reference
+handed over in the constructor, then direct calls.
 
 (Top-down and bottom-up both work. Methods naturally run top-down, so top-down is easier; row methods can come
 later.)
@@ -191,8 +191,8 @@ gate — writing it is an assignment, and nothing stops you.
 
 ## Step 4: who do these fields belong to
 
-React looks for the closest common parent component, because data can only travel along the component tree. There is
-no such channel here: two consumers need not know each other, they only need to hold the owner. So the question
+React looks for the closest common parent component, because data can only travel along the component tree. No
+channel is needed here: two consumers need not know each other, they only need to hold the owner. So the question
 changes from "which component" to:
 
 > Whose state is this, semantically?
@@ -259,13 +259,16 @@ React's third option — if no parent fits, create one — becomes: **create an 
 holds. For instance, lift the filter into a `CatalogFilter` the day the orders page wants to reuse the same
 `matches(product)`.
 
-## Step 5: inverse data flow — there is no "inverse" here
+## Step 5: there is no "direction" at all
 
-In React data flows down as props, so user input has to travel back up: the parent passes setters down and the child
-calls them in `onChange`. It is called "inverse" because the component tree has exactly one channel.
+In React data can only travel one way along the component tree, so it needs a name for each direction: down is "data
+flow", up is "inverse data flow". Those are not two features but the two faces of a one-way street — for a value to
+be changed from above, the setter has to be handed down level by level, every level accepting it and passing it on
+(or a context hiding the relay).
 
-An object graph has no such channel, so nothing to invert. `SearchBar` already holds the page, so it writes the
-field:
+There is no street here, so no direction either. Whoever holds an object can read it, write it and call its methods;
+`SearchBar` setting `page.filterText` is the same kind of action as the page setting its own field — neither "up"
+nor "down":
 
 ```tsx
 <input
@@ -289,8 +292,8 @@ do, so a plain assignment is the whole story. Inventing `setFilterText` "for a s
 its own sake.
 
 Nothing on the table changes: `Category` reads `page.visible` and re-renders when a field moves, while
-`Product.row()` takes no arguments and reads no filter field, so it is skipped. No callback chain, no event bus, no
-context, no "pass the setter down four levels".
+`Product.row()` takes no arguments and reads no filter field, so it is skipped. No callback relay, no event bus, no
+context.
 
 The one thing that must hold: **never write a field inside a render method.** The render is reading while you write,
 which invalidates the subscription mid-render (see [render methods](./render-methods.md)). Writes belong in event
@@ -304,7 +307,7 @@ handlers or plain methods.
 | static version with props only | render methods read fields; events not wired |
 | three questions to find state | three questions to find fields; anything derivable is computed |
 | lift state to the closest common parent | put state on the object it belongs to; consumers hold a reference |
-| pass setters down as callbacks | write the field, or call a method that bundles a few steps |
+| pass setters down as callbacks | no direction: whoever holds it reads and writes, or calls a method |
 
 Only two fields actually change in this example, so the graph is small: a page object and four children (`Product`
 is data, `Category` is the grouping, `SearchBar` is the input, `ProductTable` is the shell). Another screen looks
