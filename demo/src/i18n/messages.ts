@@ -17,12 +17,13 @@ const zh = {
   'route.invite': '弹窗表单',
   'route.failure': '故障隔离',
   'route.frame': '包装组件',
+  'route.loading': '加载状态',
 
-  'overview.title': '一张对象图，十条路由',
+  'overview.title': '一张对象图，十一条路由',
   'overview.description':
     '导航、路由、主题、语言和下面每个页面都是对象。React 只负责把根岛挂到 #root 上。',
   'overview.graph':
-    'App 持有 settings、router、log、feedback 和十个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
+    'App 持有 settings、router、log、feedback 和十一个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
   'overview.cross':
     '计数器、待办、订单、井字棋都写着同一个共享的 log —— 它是 App 的字段，被深层子对象直接持有，没有回调和 context。',
   'overview.try': '试试：切到「订单」新建一条，再回来看左侧日志和右上角的提示。',
@@ -169,6 +170,24 @@ const zh = {
   'frame.nest.inner': '内层外框',
   'frame.nest.innerCaption': '最里面那个没有标题，于是它只是一只带轮廓的 div',
 
+  'loading.title': '加载状态',
+  'loading.description':
+    '四个按钮走同一个 LoadingState：开条、假进度、catch 统一弹提示、finally 收条，都写在它里面。下面那张卡片是另一个对象，用的是同一个实例。',
+  'loading.busy': '处理中…',
+  'loading.task.save': '保存订单',
+  'loading.task.export': '导出报表',
+  'loading.task.flaky': '会失败的请求',
+  'loading.task.both': '两个一起',
+  'loading.task.report': '重算报表',
+  'loading.done.save': '订单 {id} 已保存',
+  'loading.done.export': '已导出 {rows} 行',
+  'loading.done.report': '报表已重算',
+  'loading.failed': '请求失败：{message}',
+  'loading.hint': '进度是假的 —— 拿不到真实进度，让它一直往 90 爬、收条时冲到 100 就够了。',
+  'loading.report.title': '另一个对象也用它',
+  'loading.report.body':
+    '这张卡片是页面持有的子对象，按钮走的是同一个 loading —— 没有 provider，也没有把回调传下来。',
+
   'log.title': '活动日志',
   'log.empty': '还没有操作。',
 } as const;
@@ -192,12 +211,13 @@ const en: Record<MessageKey, string> = {
   'route.invite': 'Dialog',
   'route.failure': 'Failure',
   'route.frame': 'Wrapper',
+  'route.loading': 'Loading',
 
-  'overview.title': 'One object graph, ten routes',
+  'overview.title': 'One object graph, eleven routes',
   'overview.description':
     'The nav, the router, the theme, the language and every page below are objects. React only mounts the root island into #root.',
   'overview.graph':
-    'App holds settings, router, log, feedback and ten pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
+    'App holds settings, router, log, feedback and eleven pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
   'overview.cross':
     'The counter, the todos, the orders and tic-tac-toe all write to the same shared log: a field of App, held directly by deep children — no callbacks, no context.',
   'overview.try': 'Try it: open Orders, create one, then look at the log on the left and the toast in the corner.',
@@ -349,6 +369,25 @@ const en: Record<MessageKey, string> = {
   'frame.nest.caption': 'A frame’s body can be another frame — three deep here',
   'frame.nest.inner': 'Inner frame',
   'frame.nest.innerCaption': 'The innermost one has no title, so it is just an outlined div',
+
+  'loading.title': 'Loading state',
+  'loading.description':
+    'Four buttons ran through one LoadingState: open the bar, fake the progress, catch and report in one place, close it in finally. The card below belongs to another object and uses the same instance.',
+  'loading.busy': 'Working…',
+  'loading.task.save': 'Save order',
+  'loading.task.export': 'Export report',
+  'loading.task.flaky': 'A request that fails',
+  'loading.task.both': 'Both at once',
+  'loading.task.report': 'Recompute report',
+  'loading.done.save': 'Order {id} saved',
+  'loading.done.export': '{rows} rows exported',
+  'loading.done.report': 'Report recomputed',
+  'loading.failed': 'Request failed: {message}',
+  'loading.hint':
+    'The progress is fake — there is no real one to read, so let it crawl towards 90 and jump to 100 when the bar closes.',
+  'loading.report.title': 'Another object uses it too',
+  'loading.report.body':
+    'This card is a child object of the page; its button runs the same loading — no provider, no callback passed down.',
 
   'log.title': 'Activity log',
   'log.empty': 'Nothing yet.',

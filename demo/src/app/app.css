@@ -460,6 +460,41 @@ body {
   text-decoration: line-through;
 }
 
+/* Loading state: one bar for the whole screen, width driven by a field. */
+.loading-slot {
+  align-items: center;
+  display: flex;
+  min-height: 22px;
+}
+
+.loading-row {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.loading-bar {
+  background: rgba(22, 119, 255, 0.14);
+  border-radius: 999px;
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  background: linear-gradient(90deg, #1677ff, #69b1ff);
+  border-radius: 999px;
+  height: 100%;
+  transition: width 0.16s linear;
+}
+
+.loading-bar-label {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 @media (max-width: 860px) {
   .app-body {
     grid-template-columns: 1fr;

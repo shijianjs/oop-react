@@ -9,6 +9,7 @@ import {CounterPage} from '../pages/counter/CounterPage';
 import {FailurePage} from '../pages/failure/FailurePage';
 import {FramePage} from '../pages/frame/FramePage';
 import {InvitePage} from '../pages/invite/InvitePage';
+import {LoadingPage} from '../pages/loading/LoadingPage';
 import {OrdersPage} from '../pages/orders/OrdersPage';
 import {OverviewPage} from '../pages/overview/OverviewPage';
 import type {Page} from '../pages/Page';
@@ -44,6 +45,7 @@ export class App {
       new TodosPage(this),
       new OrdersPage(this),
       new FramePage(this),
+      new LoadingPage(this),
       new TicTacToePage(this),
       new ChartPage(this),
       new AnimationPage(this),
