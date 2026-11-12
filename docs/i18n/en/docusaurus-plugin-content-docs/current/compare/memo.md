@@ -20,7 +20,7 @@ const Row = memo(function Row({item, onToggle}) { … });
 class Item {
   done = false;
 
-  @OopReactRender({key: (self: Item) => self.id})
+  @OopReactRender({key: 'id'})
   row() {
     return <li>{this.title}</li>;
   }

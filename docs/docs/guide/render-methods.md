@@ -138,20 +138,31 @@ row() {
 @OopReactRender<TodoItem>({key: 'id'})   // 字段名对不上会报错
 ```
 
-要用参数、或者要拼几个字段时，才写成函数 —— 它先拿到实例，再拿到调用参数：
+身份要从几个字段凑出来时，别写函数，写个 `get` —— 它本来就是这一行自己的事：
 
 ```tsx
-// 对象自己渲染自己：身份来自几个字段
-@OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.title}`})
-row() {
-  return <li>{this.title}</li>;
-}
+class TodoItem {
+  get key(): string {
+    return `${this.board.id}-${this.title}`;
+  }
 
-// 父对象代为渲染：身份从参数来
+  @OopReactRender({key: 'key'})
+  row() {
+    return <li>{this.title}</li>;
+  }
+}
+```
+
+函数形式只剩一种场合：**父对象代子对象渲染**，身份来自调用参数，`this` 上没有这个东西。
+
+```tsx
 @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
+```
+
+更彻底的做法是让子对象自己渲染自己（`item.row()` 配 `{key: 'id'}`）—— 那样连函数都不用写。
 
 ## 起名
 

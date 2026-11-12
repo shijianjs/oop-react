@@ -52,7 +52,7 @@ export class Product {
     readonly name: string,
   ) {}
 
-  @OopReactRender({key: (self: Product) => self.name})
+  @OopReactRender({key: 'name'})
   row() {
     return (
       <tr>

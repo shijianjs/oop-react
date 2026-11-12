@@ -23,7 +23,7 @@ interface OopReactRenderOptions<Instance = any> {
 标在一个返回 `ReactNode` 的方法上。方法保留原签名，调用它返回一个已订阅、已包边界的元素；元素可以在任何
 渲染过程中创建（普通组件、别的岛、map）。
 
-`key` 两种写法：**字段名**（大多数列表项就是自己身上一个字段）或函数（要用参数、要拼几个字段时）：
+`key` 就是这一项的身份，绝大多数情况是**自己身上一个字段**：
 
 ```tsx
 @OopReactRender({key: 'id'})            // 取 this.id
@@ -31,10 +31,10 @@ row() { … }
 
 @OopReactRender<Row>({key: 'id'})       // 同上，字段名会被检查
 row() { … }
-
-@OopReactRender({key: (self: Row) => `${self.board.id}-${self.id}`})
-row() { … }
 ```
+
+身份要从几个字段凑出来，就在类里写个 `get`，再把字段名给它（见[渲染方法](./guide/render-methods.md)）。
+函数形式只剩一种场合：父对象代子对象渲染，身份来自调用参数。
 
 需要 `experimentalDecorators`。
 

@@ -31,7 +31,7 @@ export class TodoItem {
     this.page.remove(this);
   }
 
-  @OopReactRender({key: (self: TodoItem) => self.title})
+  @OopReactRender({key: 'title'})
   row() {
     return (
       <li className={this.done ? 'todo-row todo-row--done' : 'todo-row'}>

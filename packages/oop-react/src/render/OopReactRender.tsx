@@ -133,11 +133,13 @@ export interface OopReactRenderOptions<Instance = any> {
    * // checked against the instance
    * @OopReactRender<TodoItem>({key: 'id'})
    *
-   * // anything derived: a function, receiving the instance then the arguments
-   * @OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.id}`})
+   * // a derived identity: put a `get` on the class and name it
+   * get key() { return `${this.board.id}-${this.title}`; }
+   *
+   * @OopReactRender({key: 'key'})
    * row() { … }
    *
-   * // the parent renders rows for its children
+   * // the parent renders rows for its children: identity comes from the arguments
    * @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
    * row(item: TodoItem) { … }
    * ```

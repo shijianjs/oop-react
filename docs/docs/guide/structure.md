@@ -61,7 +61,7 @@ export class TodoItem {
     this.board.workshop.log.add(`「${this.title}」→ ${this.done ? '已完成' : '未完成'}`);
   }
 
-  @OopReactRender({key: (self: TodoItem) => self.title})
+  @OopReactRender({key: 'title'})
   row() {
     return (
       <li>

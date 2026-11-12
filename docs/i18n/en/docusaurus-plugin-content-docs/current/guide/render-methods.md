@@ -145,21 +145,34 @@ row() {
 @OopReactRender<TodoItem>({key: 'id'})   // a wrong field name is a type error
 ```
 
-Reach for a function when the arguments or several fields are involved — it receives the instance first, then the
-call arguments:
+When the identity is built from several fields, do not write a function — write a `get`. That is the row's own
+business anyway:
 
 ```tsx
-// the object renders itself: identity comes from a few fields
-@OopReactRender({key: (self: TodoItem) => `${self.board.id}-${self.title}`})
-row() {
-  return <li>{this.title}</li>;
-}
+class TodoItem {
+  get key(): string {
+    return `${this.board.id}-${this.title}`;
+  }
 
-// the parent renders rows for its children: identity comes from the argument
+  @OopReactRender({key: 'key'})
+  row() {
+    return <li>{this.title}</li>;
+  }
+}
+```
+
+The function form is left with one job: **a parent rendering rows for its children**, where the identity comes from
+the call arguments and `this` has nothing to offer.
+
+```tsx
 @OopReactRender({key: (_self: TodoBoard, item: TodoItem) => item.id})
 row(item: TodoItem) {
   return <li>{item.title}</li>;
 }
+```
+
+The more thorough route is to let the child render itself (`item.row()` with `{key: 'id'}`) — then no function at
+all.
 
 ## Naming
 

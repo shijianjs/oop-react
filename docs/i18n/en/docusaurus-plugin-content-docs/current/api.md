@@ -25,8 +25,7 @@ Marks a method that returns `ReactNode`. The method keeps its signature; calling
 already subscribed and wrapped in a boundary. Creating that element is side-effect free, so it can happen during any
 render — a plain component, another island, a `map`.
 
-`key` takes a **field name** (a list entry usually keys on one field of its own object) or a function (when the
-arguments or several fields are involved):
+`key` is the identity of the entry, and almost always **one field of the object itself**:
 
 ```tsx
 @OopReactRender({key: 'id'})            // this.id
@@ -34,10 +33,11 @@ row() { … }
 
 @OopReactRender<Row>({key: 'id'})       // the same, with the field name checked
 row() { … }
-
-@OopReactRender({key: (self: Row) => `${self.board.id}-${self.id}`})
-row() { … }
 ```
+
+To build an identity from several fields, write a `get` on the class and pass its name (see
+[render methods](./guide/render-methods.md)). The function form has one use left: a parent rendering rows for its
+children, where the identity comes from the call arguments.
 
 Requires `experimentalDecorators`.
 
