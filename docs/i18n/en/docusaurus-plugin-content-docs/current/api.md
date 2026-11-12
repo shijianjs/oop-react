@@ -237,6 +237,38 @@ One piece of remote data: `data` / `loading` / `error`, plus the `load` that fet
 `data` stays and `error` is recorded; `invalidate()` clears both. No caching, no deduping, no
 stale-while-revalidate — to fetch again, call `load` again with the same fetcher.
 
+### `OopReactAsyncView(resource, options)`
+
+```ts
+OopReactAsyncView<T>(resource: OopReactAsyncState<T>, options: OopReactAsyncViewOptions): ReactNode
+
+interface OopReactAsyncState<T> {          // OopReactResource fits this shape
+  readonly data: T | null;
+  readonly error: unknown;
+}
+
+interface OopReactAsyncViewOptions {
+  skeleton: ReactNode;                     // no data yet
+  ready: ReactNode;                        // there is data
+  failed?: (error: unknown) => ReactNode;  // failure: the whole content, or a banner above data
+}
+```
+
+The three screens — skeleton / content / failure — in one call:
+
+```tsx
+{OopReactAsyncView(this.rows, {
+  skeleton: <Skeleton active />,
+  ready: this.table(),
+  failed: (error) => <Alert type="error" title={String(error)} />,
+})}
+```
+
+It is a **plain function, not a component**: called inside a render method, the `data` / `error` reads belong to
+*that island*, so nothing needs an extra observer — which lets it fill anywhere only one node fits (a dialog's
+children, a table cell render, the return value of a render prop). A failure with stale data does not blank the
+screen: the value stays and the error shows above it.
+
 ## Lifecycle
 
 ### `OopReactCleanup`
@@ -330,3 +362,5 @@ configurable on purpose — see [global configuration](./guide/configure.md).
 | `OopReactErrorBoundaryProps` | props of the boundary component |
 | `OopReactTaskOptions` | options for `run` (`timeoutMs`) |
 | `OopReactTaskResult<T>` | what `run` resolves to: success / failure / timed out |
+| `OopReactAsyncState<T>` | anything with `data` / `error` (`OopReactResource` is one) |
+| `OopReactAsyncViewOptions` | the three branches (`skeleton` / `ready` / `failed`) |

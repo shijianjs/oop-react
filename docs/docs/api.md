@@ -227,6 +227,37 @@ class OopReactResource<T> {
 `error`；`invalidate()` 把两者清空。没有缓存、没有去重、没有 stale-while-revalidate —— 要重新取就是再调一次
 `load`，把同一个 fetcher 传进来。
 
+### `OopReactAsyncView(resource, options)`
+
+```ts
+OopReactAsyncView<T>(resource: OopReactAsyncState<T>, options: OopReactAsyncViewOptions): ReactNode
+
+interface OopReactAsyncState<T> {          // OopReactResource 就满足这个形状
+  readonly data: T | null;
+  readonly error: unknown;
+}
+
+interface OopReactAsyncViewOptions {
+  skeleton: ReactNode;                     // 还没有数据
+  ready: ReactNode;                        // 有数据
+  failed?: (error: unknown) => ReactNode;  // 失败：没数据时占整块，有数据时显示在上面
+}
+```
+
+「骨架屏 / 有数据 / 失败」三段收成一次：
+
+```tsx
+{OopReactAsyncView(this.rows, {
+  skeleton: <Skeleton active />,
+  ready: this.table(),
+  failed: (error) => <Alert type="error" title={String(error)} />,
+})}
+```
+
+它是**普通函数不是组件**：在渲染方法里调用，读到的 `data` / `error` 记在**那个岛**上，不用再包一层 observer ——
+所以能放进任何只留得下一个 node 的位置（弹窗的 children、表格的 `render`、render prop 的返回值）。
+失败但有旧数据时不清屏：数据留着，错误当横幅显示在上面。
+
 ## 生命周期
 
 ### `OopReactCleanup`
@@ -319,3 +350,5 @@ interface OopReactFallbackProps {
 | `OopReactErrorBoundaryProps` | 边界组件的 props |
 | `OopReactTaskOptions` | `run` 的选项（`timeoutMs`） |
 | `OopReactTaskResult<T>` | `run` 的返回值：成功 / 失败 / 是否超时 |
+| `OopReactAsyncState<T>` | 有 `data` / `error` 的东西（`OopReactResource` 即其一） |
+| `OopReactAsyncViewOptions` | 三段式的三个分支（`skeleton` / `ready` / `failed`） |

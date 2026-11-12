@@ -20,6 +20,8 @@ export type {OopReactErrorBoundaryProps} from './error/OopReactErrorBoundary';
 export {OopReactLoading, OopReactTimeoutError} from './async/OopReactLoading';
 export type {OopReactTaskOptions, OopReactTaskResult} from './async/OopReactLoading';
 export {OopReactResource} from './async/OopReactResource';
+export {OopReactAsyncView} from './async/OopReactAsyncView';
+export type {OopReactAsyncState, OopReactAsyncViewOptions} from './async/OopReactAsyncView';
 export {OopReactCleanup} from './lifecycle/OopReactCleanup';
 export {OopReactSelection} from './selection/OopReactSelection';
 

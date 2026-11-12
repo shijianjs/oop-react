@@ -1,7 +1,12 @@
 import {Alert, Card, Skeleton, Space, Tag, Typography} from 'antd';
-import {OopReactIgnore, OopReactRender, OopReactResource, OopReactState} from 'oop-react';
+import {
+  OopReactAsyncView,
+  OopReactIgnore,
+  OopReactRender,
+  OopReactResource,
+  OopReactState,
+} from 'oop-react';
 import type {App} from '../../app/App';
-import {asyncView} from '../../app/AsyncView';
 import {sourceUrl} from '../../app/links';
 import type {Page} from '../Page';
 import {PageHeader} from '../PageHeader';
@@ -158,7 +163,7 @@ export class ReportCard {
       <Card size="small" title={t('loading.report.title')}>
         <Space direction="vertical" size="small" style={{width: '100%'}}>
           <span className="muted">{t('loading.report.body')}</span>
-          {asyncView(this.rows, {
+          {OopReactAsyncView(this.rows, {
             skeleton: <Skeleton active title={false} paragraph={{rows: 1}} />,
             ready: this.values(),
             failed: (error) => (

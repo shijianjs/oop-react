@@ -104,17 +104,17 @@ return <Table dataSource={data} />;
 Collapse the three into one helper and each site becomes a single call:
 
 ```tsx
-{asyncView(this.rows, {
+{OopReactAsyncView(this.rows, {
   skeleton: <Skeleton active />,
   ready: this.table(),
   failed: (error) => <Alert type="error" title={String(error)} />,
 })}
 ```
 
-`asyncView` is a plain function in the demo (`demo/src/app/AsyncView.tsx`). The point is that it is **not a
-component**: called inside a render method, the `data` / `error` reads belong to *that island*, so nothing needs an
-extra observer — and it fits anywhere that leaves room for one node. A failure with stale data does not blank the
-screen either: the data stays and the error shows above it as a banner (clearing is `invalidate()`'s job).
+The point of `OopReactAsyncView` is that it is **not a component**: called inside a render method, the `data` /
+`error` reads belong to *that island*, so nothing needs an extra observer — and it fits anywhere that leaves room
+for one node. A failure with stale data does not blank the screen either: the data stays and the error shows above
+it as a banner (clearing is `invalidate()`'s job).
 
 React 19 has an official answer here: `use(promise)` with `<Suspense fallback>`, one tag controlling "what to show
 while there is no data". The difference is that it falls back per **boundary** (the nearest Suspense), so two async

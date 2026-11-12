@@ -187,7 +187,7 @@ const zh = {
     '点两个试试：各转各的，互不影响。顶上那条是全局的，谁先结束谁关它 —— 只是个「在动」的反应，不值得为它加引用计数。',
   'loading.report.title': '延时数据：三段式只写一次',
   'loading.report.body':
-    '这张卡的数据是异步来的：骨架屏 → 标签，失败走另一条分支。分支在 asyncView 里只写一次，所以这个对象能塞进弹窗、抽屉、表格的 render —— 那些地方都只留得下一个 node。',
+    '这张卡的数据是异步来的：骨架屏 → 标签，失败走另一条分支。分支在库里的 OopReactAsyncView 里只写一次，所以这个对象能塞进弹窗、抽屉、表格的 render —— 那些地方都只留得下一个 node。',
   'loading.report.failed': '加载失败：{message}',
 
   'log.title': '活动日志',
@@ -389,7 +389,7 @@ const en: Record<MessageKey, string> = {
     'Click two of them: each spins on its own. The bar at the top is global and closes when the first one finishes — it is a “something is happening” signal, not worth a reference count.',
   'loading.report.title': 'Delayed data: the three screens, written once',
   'loading.report.body':
-    'This card’s data arrives asynchronously: skeleton → tags, and a failure takes the other branch. The branch lives in asyncView once, so this object fits anywhere that leaves room for only one node — a dialog body, a drawer, a table cell render.',
+    'This card’s data arrives asynchronously: skeleton → tags, and a failure takes the other branch. The branch lives in OopReactAsyncView once, so this object fits anywhere that leaves room for only one node — a dialog body, a drawer, a table cell render.',
   'loading.report.failed': 'Failed to load: {message}',
 
   'log.title': 'Activity log',

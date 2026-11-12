@@ -100,16 +100,16 @@ return <Table dataSource={data} />;
 把这三段收成一次，用起来只剩一行：
 
 ```tsx
-{asyncView(this.rows, {
+{OopReactAsyncView(this.rows, {
   skeleton: <Skeleton active />,
   ready: this.table(),
   failed: (error) => <Alert type="error" title={String(error)} />,
 })}
 ```
 
-`asyncView` 是 demo 里的普通函数（`demo/src/app/AsyncView.tsx`）。关键在**它不是组件**：在渲染方法里调用时，
-读到的 `data` / `error` 记在**那个岛**上，不用再包一层 observer —— 所以它能塞进任何只留给一个 node 的位置。
-有旧数据时失败了也不清屏：数据照旧，错误作为一条横幅显示在上面（清空是 `invalidate()` 的事）。
+`OopReactAsyncView` 的关键在**它不是组件**：在渲染方法里调用时，读到的 `data` / `error` 记在**那个岛**上，
+不用再包一层 observer —— 所以它能塞进任何只留给一个 node 的位置。有旧数据时失败了也不清屏：数据照旧，
+错误作为一条横幅显示在上面（清空是 `invalidate()` 的事）。
 
 React 19 有一个对应的官方做法：`use(promise)` 配 `<Suspense fallback>`，一段标签管住「没数据时画什么」。
 区别是它按**边界**兜底（最近的 Suspense），两个异步区块就是两层边界，失败还要另配 ErrorBoundary，而且要求
