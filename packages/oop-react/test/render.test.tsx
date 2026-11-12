@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import type {ReactElement} from 'react';
 import {describe, expect, it} from 'vitest';
-import {OopReactComponent, OopReactRender} from '../src/index';
+import {OopReactCallback, OopReactComponent, OopReactObserver, OopReactRender} from '../src/index';
 
 describe('@OopReactRender', () => {
   it('re-renders the decorated method when the state it reads changes', () => {
@@ -164,5 +164,21 @@ describe('@OopReactRender key', () => {
     const board = new Board();
 
     expect((board.row('x') as ReactElement).key).toBe('r-x');
+  });
+});
+
+describe('functional islands', () => {
+  it('takes a key on OopReactObserver', () => {
+    const element = OopReactObserver(() => <span>total</span>, {key: 'total'}) as ReactElement;
+
+    expect(element.key).toBe('total');
+  });
+
+  it('derives the key from the call arguments in OopReactCallback', () => {
+    const renderRow = OopReactCallback((item: {id: number}) => <li>{item.id}</li>, {
+      key: (item) => item.id,
+    });
+
+    expect((renderRow({id: 7}) as ReactElement).key).toBe('7');
   });
 });

@@ -211,15 +211,21 @@ function Total() {
 }
 ```
 
-`OopReactCallback`：包成「调用时返回岛」的回调，适合 render prop。
+`OopReactCallback`：包成「调用时返回岛」的回调，适合 render prop —— 循环里只写一次，不用每项一个 lambda：
 
 ```tsx
-const renderRow = OopReactCallback((item: Item) => <li key={item.id}>{item.title}</li>);
+const renderRow = OopReactCallback((item: Item) => <li>{item.title}</li>, {
+  key: (item: Item) => item.id,
+});
 
 function List({items}: {items: Item[]}) {
   return <ul>{items.map(renderRow)}</ul>;
 }
 ```
+
+**key 写在调用处，不能写在返回值里。** React 是在**父级**比较兄弟元素的 key，而内容要等渲染函数跑完才知道 ——
+所以 key 属于「创建这个岛的那一刻」：装饰器的选项，或者这两个函数的第二个参数。把 `key` 写在里面的 `<li>` 上
+没用，坐在父级列表里的是岛，不是那个 `<li>`。
 
 两者都使用 hooks，必须在组件渲染过程中调用 —— 不能放进事件处理函数。
 

@@ -222,15 +222,23 @@ function Total() {
 }
 ```
 
-`OopReactCallback` wraps a callback that renders an island when called — the render-prop shape:
+`OopReactCallback` wraps a callback that renders an island when called — the render-prop shape. Written once, so a
+loop needs no lambda per item:
 
 ```tsx
-const renderRow = OopReactCallback((item: Item) => <li key={item.id}>{item.title}</li>);
+const renderRow = OopReactCallback((item: Item) => <li>{item.title}</li>, {
+  key: (item: Item) => item.id,
+});
 
 function List({items}: {items: Item[]}) {
   return <ul>{items.map(renderRow)}</ul>;
 }
 ```
+
+**The key goes at the call site, not in the return value.** React compares keys among **siblings at the parent**,
+and the content is only known once the render function has run — so the key belongs to the moment the island is
+created: the decorator's options, or the second argument here. A `key` on the inner `<li>` does not help; what sits in
+the parent's list is the island, not that `<li>`.
 
 Both use hooks, so they must be called during a render — not from an event handler.
 

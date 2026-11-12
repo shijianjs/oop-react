@@ -62,21 +62,33 @@ interface OopReactComponentOptions<Props, Instance> {
 
 ## 函数式岛
 
-### `OopReactObserver(render)`
+### `OopReactObserver(render, options?)`
 
 ```ts
-OopReactObserver(render: () => ReactNode): ReactNode
+OopReactObserver(render: () => ReactNode, options?: OopReactObserverOptions): ReactNode
+
+interface OopReactObserverOptions {
+  key?: Key;      // 它在列表里的身份，同 @OopReactRender({key})
+}
 ```
 
 在组件渲染中调用，订阅 `render` 读到的状态。内部使用 hooks。
 
-### `OopReactCallback(render)`
+### `OopReactCallback(render, options?)`
 
 ```ts
-OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Args) => Result
+OopReactCallback<Args, Result>(
+  render: (...args: Args) => Result,
+  options?: OopReactCallbackOptions<Args>,
+): (...args: Args) => Result
+
+interface OopReactCallbackOptions<Args extends unknown[]> {
+  key?: (...args: Args) => Key | null;    // 从调用参数算这个岛的身份
+}
 ```
 
-包成「调用即得到岛」的回调，用于 render prop。
+包成「调用即得到岛」的回调，用于 render prop。key 在**外层**：坐在父级列表里的是这个岛，写在它里面的
+`<li key>` 帮不上忙。
 
 ## 桥
 
@@ -289,6 +301,8 @@ interface OopReactFallbackProps {
 | --- | --- |
 | `OopReactRenderFunction` | `(...args: any[]) => ReactNode`，渲染方法的形状 |
 | `OopReactRenderOptions` | 装饰器选项（`name` / `key`） |
+| `OopReactObserverOptions` | 函数式岛的选项（`key`） |
+| `OopReactCallbackOptions<Args>` | render prop 回调的选项（`key`） |
 | `OopReactRenderMethodKey<Instance>` | `Instance` 上所有返回 `ReactNode` 的方法名 |
 | `OopReactComponentOptions` | 组件桥选项 |
 | `OopReactAnnotations<T>` | 字段名 → MobX 注解，键受 `keyof T` 约束 |

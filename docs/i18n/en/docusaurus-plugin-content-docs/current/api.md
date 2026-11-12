@@ -65,21 +65,33 @@ a plain component returning `obj.view()`; see [the React bridge](./guide/react-b
 
 ## Function islands
 
-### `OopReactObserver(render)`
+### `OopReactObserver(render, options?)`
 
 ```ts
-OopReactObserver(render: () => ReactNode): ReactNode
+OopReactObserver(render: () => ReactNode, options?: OopReactObserverOptions): ReactNode
+
+interface OopReactObserverOptions {
+  key?: Key;      // its identity in a list, same as @OopReactRender({key})
+}
 ```
 
 Called during a render, subscribes to the state `render` reads. Uses hooks internally.
 
-### `OopReactCallback(render)`
+### `OopReactCallback(render, options?)`
 
 ```ts
-OopReactCallback<Args, Result>(render: (...args: Args) => Result): (...args: Args) => Result
+OopReactCallback<Args, Result>(
+  render: (...args: Args) => Result,
+  options?: OopReactCallbackOptions<Args>,
+): (...args: Args) => Result
+
+interface OopReactCallbackOptions<Args extends unknown[]> {
+  key?: (...args: Args) => Key | null;    // the island's identity, from the call arguments
+}
 ```
 
-Wraps a function into a callback that renders an island when called — the render-prop shape.
+Wraps a function into a callback that renders an island when called — the render-prop shape. The key lives
+**outside**: what sits in the parent's list is the island, so a `<li key>` inside it does not help.
 
 ## Bridge
 
@@ -300,6 +312,8 @@ configurable on purpose — see [global configuration](./guide/configure.md).
 | --- | --- |
 | `OopReactRenderFunction` | `(...args: any[]) => ReactNode`, the shape of a render method |
 | `OopReactRenderOptions` | decorator options (`name` / `key`) |
+| `OopReactObserverOptions` | options for a function island (`key`) |
+| `OopReactCallbackOptions<Args>` | options for a render-prop callback (`key`) |
 | `OopReactRenderMethodKey<Instance>` | every method on `Instance` that returns `ReactNode` |
 | `OopReactComponentOptions` | component bridge options |
 | `OopReactAnnotations<T>` | field name → MobX annotation, keys constrained by `keyof T` |
