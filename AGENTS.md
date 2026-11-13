@@ -165,7 +165,9 @@ CI 里也不会要 OTP。真正上线还差一步：维护者在 npmjs.com 的 *
 | 4. 批准上线 | npmjs.com 的 Staged Packages 页，或 `npm stage approve <stage-id>` |
 
 tag 必须与清单版本逐字一致（`v` + `version`），对不上时 CI 直接失败 —— tag 决定「有没有这次发布」，
-清单决定「发的是哪个版本」。只推 tag、不发预发布版本：`npm` 会把预发布版本也挂上 `latest`。
+清单决定「发的是哪个版本」。发出去的必须是正式版本：分支上日常维护的是下一版的开发版本（如
+`0.1.1-dev.0`），要发版时先把清单改成 `0.1.1` 再打 tag。`npm` 会把预发布版本当普通版本发、还把
+`latest` 指过去，所以 CI 对 `X.Y.Z-*` 形式的版本直接报错，而不是替你决定该不该发。
 
 **可信发布要一次性配好**：npmjs.com → `oop-react` → Settings → Trusted publishing 里那条 GitHub Actions
 配置必须与 `Publish.yml` 逐字一致且区分大小写 —— `shijianjs` / `oop-react` / workflow filename

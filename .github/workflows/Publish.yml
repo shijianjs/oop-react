@@ -94,6 +94,15 @@ jobs:
             echo "::error::tag ${TAG} does not match ${expected} — bump packages/oop-react/package.json first"
             exit 1
           fi
+          # Branches carry a working version like `0.1.1-dev.0`; npm treats a
+          # prerelease as a normal publish and points `latest` at it, so a tag on
+          # one of those has to be a mistake.
+          case "$version" in
+            *-*)
+              echo "::error::${version} is a development version — bump to a plain X.Y.Z before tagging"
+              exit 1
+              ;;
+          esac
           echo "staging oop-react@${version}"
 
       - name: Stage the publish
