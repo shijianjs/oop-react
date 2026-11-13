@@ -32,35 +32,6 @@ import styles from '@site/src/pages/index.module.css';
 
 </div>
 
-<div className={styles.code}>
-
-```tsx title="counter.tsx"
-class Counter {
-  count = 0;
-
-  constructor() {
-    OopReactObservable(this);
-  }
-
-  increment(): void {
-    this.count += 1;
-  }
-
-  @OopReactRender()
-  view() {
-    return <button onClick={this.increment}>{this.count}</button>;
-  }
-}
-
-const counter = new Counter();
-
-export function CounterView() {
-  return counter.view();
-}
-```
-
-</div>
-
 </header>
 
 <div className={styles.section}>
@@ -114,6 +85,30 @@ this.save 直接当 onClick。实例方法已经绑好，引用永远稳定。
 订阅、可观察化、fallback、错误上报都是配置项，换掉不留后门。
 
 </div>
+
+</div>
+
+<div className={styles.code}>
+
+```tsx title="counter.tsx"
+import {OopReactComponent, OopReactRender, OopReactState} from 'oop-react';
+
+@OopReactState
+class Counter {
+  count = 0;
+
+  increment(): void {
+    this.count += 1;
+  }
+
+  @OopReactRender()
+  view() {
+    return <button onClick={this.increment}>{this.count}</button>;
+  }
+}
+
+export const CounterView = OopReactComponent(Counter, 'view');
+```
 
 </div>
 

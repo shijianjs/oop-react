@@ -29,35 +29,6 @@ State and behaviour stay in a plain class, and only methods annotated with @OopR
 
 </div>
 
-<div className={styles.code}>
-
-```tsx title="counter.tsx"
-class Counter {
-  count = 0;
-
-  constructor() {
-    OopReactObservable(this);
-  }
-
-  increment(): void {
-    this.count += 1;
-  }
-
-  @OopReactRender()
-  view() {
-    return <button onClick={this.increment}>{this.count}</button>;
-  }
-}
-
-const counter = new Counter();
-
-export function CounterView() {
-  return counter.view();
-}
-```
-
-</div>
-
 </header>
 
 <div className={styles.section}>
@@ -111,6 +82,30 @@ Objects hold each other and call methods directly — no lifting state, no threa
 Subscription, observability, fallback and error reporting are configuration, not hidden implementation.
 
 </div>
+
+</div>
+
+<div className={styles.code}>
+
+```tsx title="counter.tsx"
+import {OopReactComponent, OopReactRender, OopReactState} from 'oop-react';
+
+@OopReactState
+class Counter {
+  count = 0;
+
+  increment(): void {
+    this.count += 1;
+  }
+
+  @OopReactRender()
+  view() {
+    return <button onClick={this.increment}>{this.count}</button>;
+  }
+}
+
+export const CounterView = OopReactComponent(Counter, 'view');
+```
 
 </div>
 
