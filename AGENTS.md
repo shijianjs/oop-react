@@ -139,14 +139,46 @@ demo 同理：`demo/src/counter/`、`demo/src/todos/`、`demo/src/invite/`、`de
 - **Pages 由 Actions 发布**（`build_type: workflow`），不是 `gh-pages` 分支。站点地址
   https://shijianjs.github.io/oop-react/ ，demo 在 `/demo/`；首次开启用
   `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`。
-- **工作流不绑 push**：`ci.yml` 只在 PR / 手动触发，`pages.yml` 只有手动触发。发布是
-  `gh workflow run pages.yml`；本地验证过就可以直接提交，不必等 CI。
+- **工作流基本不绑 push**：`ci.yml` 只在 PR / 手动触发，`pages.yml` 只有手动触发（站点发布是
+  `gh workflow run pages.yml`），唯一绑 push 的是 `Publish.yml`（只认 `v*.*.*` tag，见
+  「发版流程（npm）」）。本地验证过就可以直接提交，不必等 CI。
 - **dependabot**：npm（patch/minor 合成一个 PR）+ github-actions，每周一。
 - **auto-merge**：dependabot 的 PR 在检查全绿后 squash 合并。`GITHUB_TOKEN` 没有 workflows 权限，
   所以改动 `.github/workflows/` 的 PR 会被跳过、留给人工；配了 `GH_PAT` secret（contents + pull requests
   write）才会自动合。
 - typescript 的大版本在 dependabot 里被忽略：`@docusaurus/tsconfig` 还设着 `baseUrl`，TS 7 已移除，
   docs 包升不上去（库本身已经在 7）。
+
+## 发版流程（npm）
+
+发的只有 `packages/oop-react` 一个包，版本号也只写在那份 `package.json` 里（根、`demo`、`docs` 的
+`0.0.0` 都是私有包，与发布无关）。**推 tag 就是发版**：`Publish.yml` 在 CI 里用 npm 的可信发布
+（trusted publishing，OIDC）跑 `npm stage publish`，把该版本送进 npm 暂存区 —— 仓库里不存任何 npm token，
+CI 里也不会要 OTP。真正上线还差一步：维护者在 npmjs.com 的 **Staged Packages** 页（或
+`npm stage approve <stage-id>`）用 2FA 批准。
+
+| 步骤 | 怎么做 |
+| --- | --- |
+| 1. 改版本号 | `packages/oop-react/package.json` 的 `version`，形如 `0.1.0` |
+| 2. 提交并打 tag | `git commit` 后 `git tag v0.1.0 && git push origin main --tags` |
+| 3. 看 CI 有没有进暂存区 | `gh run list --workflow=Publish.yml --limit 5` |
+| 4. 批准上线 | npmjs.com 的 Staged Packages 页，或 `npm stage approve <stage-id>` |
+
+tag 必须与清单版本逐字一致（`v` + `version`），对不上时 CI 直接失败 —— tag 决定「有没有这次发布」，
+清单决定「发的是哪个版本」。只推 tag、不发预发布版本：`npm` 会把预发布版本也挂上 `latest`。
+
+**可信发布要一次性配好**：npmjs.com → `oop-react` → Settings → Trusted publishing 里那条 GitHub Actions
+配置必须与 `Publish.yml` 逐字一致且区分大小写 —— `shijianjs` / `oop-react` / workflow filename
+`Publish.yml`（只填文件名，不带 `.github/workflows/`），environment 留空。Allowed actions 保持默认：
+可信发布方永远允许 `npm stage publish`，**不要**勾「直接 `npm publish` / 管理 dist-tags」那一项
+（被攻破的 workflow 也就只能提议版本，无法直接上线；本流程跑的正是 stage）。新建的配置得在 **2 天内**
+跑通一次发布，否则作废，且配置建好后字段不可改、只能删掉重建。另两条硬限制：OIDC 只发给 GitHub 托管
+runner，job 必须有 `id-token: write`；任何一边坏了症状都是 `ENEEDAUTH`。CLI 侧要求 npm ≥ 11.15.0
+（`npm stage` 从这版才有；更老的 CLI 连 OIDC 握手都不做），workflow 里已前置校验。
+
+**包最初是怎么来的**：可信发布要先有包才能配置，所以 npm 上的 `oop-react` 是本地 bootstrap 发的
+`0.0.1`（就这一次）。之后一律走 tag + CI，不要再本地 `npm publish`：同一版本不能覆盖，本地那条路是
+token + 2FA，与 CI 的 OIDC 是两套互不相干的授权。
 
 ## 已知的坑
 

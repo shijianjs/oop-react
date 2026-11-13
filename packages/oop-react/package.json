@@ -1,6 +1,6 @@
 {
   "name": "oop-react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Object-oriented UI for React: state and behaviour stay in a plain class, and only @OopReactRender() methods re-render.",
   "license": "MIT",
   "keywords": [
