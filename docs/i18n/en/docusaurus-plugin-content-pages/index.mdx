@@ -5,87 +5,78 @@ hide_table_of_contents: true
 wrapperClassName: dfk-home
 ---
 
-import Link from '@docusaurus/Link';
-import DemoLink from '@site/src/components/DemoLink';
+import {registerDfkElements} from 'duckfn-docs-kit';
+
+import DemoAction from '@site/src/components/DemoAction';
 
 import styles from '@site/src/pages/index.module.css';
 
-{/* `MDXPage` supplies the `<Layout>` and the page grid; `dfk-home` is what
-    lets `src/css/home.css` give the page the full width it needs. */}
+{/* The hero, the feature grid and the next-step row are the kit's custom
+    elements (`duckfn-docs-kit`), not hand-written markup: each builds its own
+    shadow tree and carries its own CSS. Registering twice is a no-op, and the
+    kit's client bootstrap defines the same tags on every page — this call only
+    covers this page's first paint.
 
-<header className={styles.hero}>
+    `MDXPage` supplies the `<Layout>` and the page grid; `dfk-home` is what lets
+    `src/css/home.css` give the page the full width it needs.
 
-<h1 className={styles.title}>oop-react</h1>
+    The `href`s the kit's elements take are *relative* (`./getting-started`).
+    Unlike a markdown link, an attribute on a custom element never goes through
+    Docusaurus' link resolution, so an absolute `/getting-started` would keep the
+    deploy sub-path but lose the locale prefix, landing an English reader on a
+    Chinese page. A relative path resolves against whatever directory this page
+    was served from, which is right at the site root, under a sub-path, and here
+    under `/en/`, alike. */}
 
-<p className={styles.tagline}>
-State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. Objects hold each other and call methods directly; React appears once, at the edge.
-</p>
+{registerDfkElements()}
 
-<div className={styles.actions}>
+<dfk-hero
+  logo-src="/img/logo.png"
+  title="oop-react"
+  tagline="State and behaviour stay in a plain class, and only methods annotated with @OopReactRender() re-render. Objects hold each other and call methods directly; React appears once, at the edge.">
 
-<Link className="button button--primary button--lg" to="/getting-started">Get started</Link>
+<dfk-action kind="primary" href="./getting-started">Get started</dfk-action>
 
-<DemoLink>Live demo</DemoLink>
+<DemoAction>Live demo</DemoAction>
 
-</div>
+</dfk-hero>
 
-</header>
+<dfk-features section-title="Why use it">
 
-<div className={styles.section}>
-
-<div className={styles.grid}>
-
-<div className={styles.card}>
-
-### Fields are state
-
+<dfk-feature icon="lucide:variable" title="Fields are state">
 No useState, no setter functions. Changing state is this.count += 1.
+</dfk-feature>
 
-</div>
-
-<div className={styles.card}>
-
-### Methods are callbacks
-
+<dfk-feature icon="lucide:mouse-pointer-click" title="Methods are callbacks">
 this.save is the onClick handler. Methods are bound once, so the reference never changes.
+</dfk-feature>
 
-</div>
-
-<div className={styles.card}>
-
-### Re-renders stay in the island
-
+<dfk-feature icon="lucide:layers" title="Re-renders stay in the island">
 An @OopReactRender() method subscribes only to the fields it reads. Its siblings do not move.
+</dfk-feature>
 
-</div>
-
-<div className={styles.card}>
-
-### One boundary per island
-
+<dfk-feature icon="lucide:shield-check" title="One boundary per island">
 If a render method throws, only that island becomes a fallback. The rest keeps working.
+</dfk-feature>
 
-</div>
-
-<div className={styles.card}>
-
-### Logic does not move
-
+<dfk-feature icon="lucide:network" title="Logic does not move">
 Objects hold each other and call methods directly — no lifting state, no threading callbacks down.
+</dfk-feature>
 
-</div>
-
-<div className={styles.card}>
-
-### Defaults are replaceable
-
+<dfk-feature icon="lucide:settings-2" title="Defaults are replaceable">
 Subscription, observability, fallback and error reporting are configuration, not hidden implementation.
+</dfk-feature>
 
-</div>
+</dfk-features>
 
-</div>
+<section className={styles.showcase}>
+<div className={styles.showcaseInner}>
 
-<div className={styles.code}>
+## One class, one picture
+
+Above, an ordinary class. Below, what actually happens at run time: a field is written, the reactions that read it are notified, and only that island re-renders.
+
+<div className={styles.showcaseBody}>
 
 ```tsx title="counter.tsx"
 import {OopReactComponent, OopReactRender, OopReactState} from 'oop-react';
@@ -107,6 +98,36 @@ class Counter {
 export const CounterView = OopReactComponent(Counter, 'view');
 ```
 
+```mermaid
+flowchart LR
+  A["this.increment()<br/>an ordinary method"] --> B["this.count<br/>a field is the state"]
+  B --> C["reaction<br/>subscribes to what it read"]
+  C --> D["@OopReactRender()<br/>one island"]
+  D --> E["CounterView<br/>React appears here"]
+  D -.-> F["the rest of the page stays put"]
+```
+
 </div>
 
 </div>
+</section>
+
+<dfk-next-steps section-title="Where to go next">
+
+<dfk-step href="./intro" title="What it solves">
+See why state inside a component function drags those patches along, and what this model replaces.
+</dfk-step>
+
+<dfk-step href="./getting-started" title="Getting started">
+Install it, write your first class, and mount its view().
+</dfk-step>
+
+<dfk-step href="./guide/structure" title="The object graph">
+Who constructs whom, how objects hold each other, and where dependencies come from.
+</dfk-step>
+
+<dfk-step href="./guide/thinking-in-objects" title="Thinking in objects">
+Five steps, walked through on an existing React page.
+</dfk-step>
+
+</dfk-next-steps>

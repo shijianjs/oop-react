@@ -112,7 +112,7 @@ mobx 6 需要 `mobx-react-lite@4`，是另一套 peer；把两个范围塞进同
 
 | 位置 | 文件 |
 | --- | --- |
-| 首页（`src/pages/index.tsx`） | `<Translate id="home.*">`，英文在 `docs/i18n/en/code.json` |
+| 首页（`src/pages/index.mdx`） | 英文是 `docs/i18n/en/docusaurus-plugin-content-pages/index.mdx`（整页镜像，不是 `<Translate>`） |
 | 导航栏 / 页脚 | `docs/i18n/en/docusaurus-theme-classic/{navbar,footer}.json` |
 | 侧边栏分类名 | `docs/i18n/en/docusaurus-plugin-content-docs/current.json` |
 
@@ -124,6 +124,26 @@ mobx 6 需要 `mobx-react-lite@4`，是另一套 peer；把两个范围塞进同
 
 README 同样两份：根目录 `README.md`（中文）/ `README.en.md`，包里 `packages/oop-react/README.md`（中文）/
 `README.en.md`（英文），各自顶部互相链接（包内的链接用 GitHub 绝对地址，npm 上相对路径会断）。
+
+## 文档站的地基（duckfn-docs-kit）
+
+首页组件、右侧目录折叠、mermaid 渲染这三样都不自己写：它们来自 npm 上的 `duckfn-docs-kit`（duckfn 系列文档站
+共用的同一套基建）。接线一共四处：
+
+| 位置 | 做什么 |
+| --- | --- |
+| `docs/docusaurus.config.ts` 的 `docs.remarkPlugins` 与 `pages.remarkPlugins` | `remarkMermaid` 把 mermaid 围栏变成 `<dfk-mermaid>`。docs 与 pages 是两个内容插件、各编自己的 MDX，所以**两处都要列**，共用同一个 `mermaidConfig`（本站选了 mermaid 自己的 `neutral` / `dark`） |
+| `docs/docusaurus.config.ts` 的 `plugins` | `dfkExtensions()` 往每个页面注入 kit 的 client bootstrap —— 定义 `dfk-*` 自定义元素的就是它（文档页不 import 组件库的 React 树，没有它图只是一段死标签）——并写出运行配置标签；`dfkTocToggle()` 给右侧目录加折叠按钮，选择记在 `localStorage` |
+| `docs/src/css/custom.css` | `@import 'duckfn-docs-kit/src/kit.css'` 取品牌令牌与目录折叠样式，紧接着把 `--duckfn-*` 改成本站的蓝（kit 的默认是 duckfn 的深蓝 + 金黄） |
+| 首页 `docs/src/pages/index.mdx` | `<dfk-hero>` / `<dfk-features>` / `<dfk-next-steps>` + `registerDfkElements()`；在线演示按钮是 `docs/src/components/DemoAction.tsx` —— 它必须是 `dfk-action`，不能是 `<Link>`：hero 是 shadow DOM，而 `kit.css` 会隐藏它的每个直接子节点 |
+
+两条容易踩的：
+
+- **自定义元素上的 `href` 必须是相对路径**（`./getting-started`）。它不是 `<Link>`，不经过 Docusaurus 的链接
+  解析：写成 `/getting-started` 只会拿到 baseUrl 前缀、拿不到 locale 前缀，英文页会跳到中文页。相对路径按当前页
+  所在目录解析，站点根、部署子路径、`/en/` 都对。
+- **`remarkMermaid` 与 `@docusaurus/theme-mermaid` 不能并存**，也不要设 `markdown.mermaid`：同一页两个渲染器会
+  打架。两者本仓库都没有，别加。
 
 ## 目录约定
 
@@ -204,6 +224,10 @@ token + 2FA，与 CI 的 OIDC 是两套互不相干的授权。
 - **导航/页脚里的 demo 链接必须是绝对 URL**：`/demo/` 会被 broken-link 检查判死（构建文档时 demo 还没生成），
   而 `pathname://` 会被 locale 前缀成 `/en/demo/`（demo 没有 `/en` 版本）。所以配置里拼 `${url}${baseUrl}demo/`，
   CI 与 `pnpm site` 通过 `DOCS_URL` 提供 origin；没有 `DOCS_URL` 时指向 Vite dev server（5173）。
+- **文档站的每个页面都带着 SQL 面板的客户端代码**：`dfkExtensions()` 注入的 client bootstrap 与可运行 SQL 面板
+  是同一个入口，CodeMirror / VTable / duckdb-wasm 因此一起进了站点 bundle。本站没有可运行 SQL 块，这份体积是
+  白带的；要瘦身得先改 kit 把「注册元素」和「SQL 面板」拆开，别在站点侧绕（自己写 client module import 同一个
+  barrel，体积一样，还多一份要维护的胶水）。
 
 ## 加内容时的落点
 
@@ -212,7 +236,9 @@ token + 2FA，与 CI 的 OIDC 是两套互不相干的授权。
 - 新增演示 → `demo/src/<能力>/` 一个文件夹，类 + `OopReactComponent(...)` 导出 + 挂到 `demo/src/app/App.tsx`
   的网格里；如果它演示了新的用法，文档对应页补一段。
 - 新增文档页 → `docs/docs/`，同时改 `docs/sidebars.ts`；站内链接用路由路径（`/guide/state`），
-  `onBrokenLinks` 是 `throw`。
+  `onBrokenLinks` 是 `throw`。**英文镜像别忘了**（`docs/i18n/en/docusaurus-plugin-content-docs/current/`）。
+- 想配图就加一个语言标记为 `mermaid` 的围栏，**中英两页各放一份**：围栏由 `remarkMermaid` 渲染成图，标签要带
+  引号（`A["文本"]`）、换行写 `<br/>`、别出现裸 `#` 或未转义的 `&` —— 语法错误只在页面上显示，构建不会报错。
 
 ## 风格
 

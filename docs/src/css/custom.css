@@ -3,6 +3,13 @@
  * default; the two variables below are the only branding this site sets, so the
  * docs stay readable rather than decorated.
  */
+
+/* Shared building blocks from `duckfn-docs-kit`: the `--duckfn-*` brand tokens
+   the home page's components read, the right-hand table-of-contents collapse
+   control's styles, and the rule that hides the `dfk-*` child tags. The home
+   components themselves carry their styles inside the JS bundle (they render
+   into shadow roots), so nothing of theirs belongs in this file. */
+@import 'duckfn-docs-kit/src/kit.css';
 /* The landing page's shell override; scoped to `html.dfk-home`. */
 @import './home.css';
 
@@ -27,4 +34,57 @@
   --ifm-color-primary-lighter: #afc6f6;
   --ifm-color-primary-lightest: #dfe8fb;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* The kit's brand tokens, re-pointed at this site.
+ *
+ * `kit.css` defines `--duckfn-*` for the duckfn family: a deep #14459b blue and
+ * a golden accent, both read off that project's logo. The home page picks its
+ * tints, glows, card borders and button colours from those tokens, so they are
+ * declared again here — the site's palette in the site's own stylesheet, which
+ * is the seam the kit leaves open (the alternative would be forking it).
+ * Declared after the import, so equal-specificity "later wins" applies.
+ *
+ * The accent turns violet: this project has no yellow in it anywhere — the logo
+ * is blue and violet — so the rule under the hero's title and the warm glow
+ * behind it wear the logo's violet instead.
+ *
+ * Contrast, measured against the labels that sit on these colours:
+ *   white on #2f5fd0 (buttons)     5.7:1
+ *   white on #204391 (buttons hover) 7.6:1
+ *   #2f5fd0 on white (links, secondary button) 5.7:1
+ *   #7fa2f0 on #1b1b1d (dark links) 5.1:1
+ *   white on #3b6fd6 (dark button) 4.7:1   — the dark primary is too light to
+ *   carry white text, which is why the button keeps a deeper blue of its own.
+ */
+:root {
+  --duckfn-blue: #2f5fd0;
+  --duckfn-blue-deep: #204391;
+  --duckfn-blue-bright: #4471d6;
+  --duckfn-blue-soft: #e9eefb;
+  --duckfn-tint: #f7f9fd;
+  --duckfn-glow: rgba(47, 95, 208, 0.12);
+  --duckfn-glow-warm: rgba(106, 90, 224, 0.16);
+  --duckfn-card-border: #e2e8f5;
+  --duckfn-shadow: 0 8px 24px rgba(47, 95, 208, 0.12);
+  --duckfn-yellow: #6a5ae0;
+  --duckfn-btn-bg: #2f5fd0;
+  --duckfn-btn-bg-hover: #204391;
+  --duckfn-outline-border: #bfcdea;
+}
+
+[data-theme='dark'] {
+  --duckfn-blue: #7fa2f0;
+  --duckfn-blue-deep: #7fa2f0;
+  --duckfn-blue-bright: #afc6f6;
+  --duckfn-blue-soft: #1c2740;
+  --duckfn-tint: #1e2531;
+  --duckfn-glow: rgba(127, 162, 240, 0.16);
+  --duckfn-glow-warm: rgba(143, 130, 255, 0.14);
+  --duckfn-card-border: #33405c;
+  --duckfn-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --duckfn-yellow: #8f82ff;
+  --duckfn-btn-bg: #3b6fd6;
+  --duckfn-btn-bg-hover: #3564c9;
+  --duckfn-outline-border: #33405c;
 }

@@ -1,68 +1,85 @@
-.hero {
-  padding: 72px 24px 48px;
-  text-align: center;
-  /* Docusaurus wraps page content in a flex container; without an explicit
-     width these blocks shrink to their content and the grid below collapses
-     into a single column. */
-  width: 100%;
+/**
+ * Home page styles — the part that stayed behind.
+ *
+ * The hero, the feature grid and the next-step row moved to `duckfn-docs-kit`
+ * together with the `dfk-*` web components that render them; the components
+ * inject their own styles into their shadow roots, so nothing of theirs leaks
+ * into this file. What is left here belongs to the showcase band, which needs
+ * the theme's `CodeBlock` and therefore cannot leave the site.
+ *
+ * Every colour comes from the `--duckfn-*` tokens that `src/css/custom.css`
+ * re-points at this site's blue (the kit ships them for the duckfn family), so
+ * dark mode needs no rules of its own here.
+ */
+
+.showcase {
+  padding: 4.5rem 0;
+  background-color: var(--duckfn-tint);
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 16px;
-}
-
-.title {
-  font-size: 44px;
-  letter-spacing: -0.02em;
-  margin: 0 0 12px;
-}
-
-.tagline {
-  color: var(--ifm-color-emphasis-700);
-  font-size: 18px;
-  margin: 0 auto 28px;
-  max-width: 52ch;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.code {
-  margin: 40px auto 0;
-  max-width: 760px;
-  text-align: left;
-}
-
-.section {
+.showcaseInner {
+  max-width: 72rem;
   margin: 0 auto;
-  max-width: 1080px;
-  padding: 24px 24px 64px;
-  width: 100%;
+  padding: 0 1.5rem;
 }
 
-.grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+/* The band's copy is plain Markdown (`##` plus a paragraph), so the styles hook
+   onto the structure: a class would have to be repeated in every locale's page. */
+.showcaseInner > h2 {
+  margin-bottom: 0;
+  text-align: center;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.01em;
 }
 
-.card {
-  border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 10px;
-  padding: 18px 20px;
-}
-
-.card h3 {
-  font-size: 16px;
-  margin: 0 0 6px;
-}
-
-.card p {
+.showcaseInner > p {
+  max-width: 46rem;
+  margin: 1rem auto 0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.7;
   color: var(--ifm-color-emphasis-700);
-  font-size: 14px;
-  margin: 0;
+}
+
+/* The code block and the diagram, stacked: the diagram is the wider of the two
+   (a left-to-right flow runs to about 960px), and the element keeps its natural
+   size instead of shrinking to a narrow column — in a two-column grid it scaled
+   down to half and its labels became unreadable. The code keeps a readable
+   measure instead of stretching across the band. */
+.showcaseBody {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2.75rem;
+}
+
+.showcaseBody > :first-child {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+/* The default code size would push the longest line into a scrollbar at that
+   measure. Prism sets the size on `.prism-code` itself, which is why that is the
+   element to shrink. */
+.showcaseBody :global(.prism-code) {
+  font-size: 0.8125rem;
+}
+
+/* The diagram is a custom element with no default `display`, so it is told to
+   behave as a block: without this the box would be inline and would not take the
+   band's width. */
+.showcaseBody :global(dfk-mermaid) {
+  display: block;
+}
+
+@media screen and (max-width: 996px) {
+  .showcase {
+    padding: 3.5rem 0;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .showcaseInner {
+    padding: 0 1rem;
+  }
 }
