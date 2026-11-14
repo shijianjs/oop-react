@@ -23,20 +23,17 @@ const demoHref =
     ? 'http://localhost:5173/'
     : new URL(`.${baseUrl}demo/`, `${url}/`).href;
 
-// The mermaid palette, shared by the docs pages and the home page: each content
-// plugin compiles its own MDX, and a remark plugin handed to one does not reach
-// the other, so both lists below name the same config.
+// Mermaid's look and palette come from the kit's own default
+// (`DEFAULT_MERMAID_CONFIG`): mermaid's `neo` chrome with the redux palette —
+// `redux-color` in light mode, `redux-dark-color` in dark. Keeping that default
+// rather than restating it here is what keeps this site's diagrams identical to
+// every other duckfn-family docs site, and means a palette change lands by
+// upgrading the kit instead of by editing this file.
 //
-// Mermaid renders a diagram per colour mode, so the theme is per mode; `look`
-// has no light/dark counterpart and lives in `options`. `neutral` / `dark` are
-// mermaid's own deliberately uncoloured themes — this site is prose first, and a
-// diagram that stays quiet is what keeps it readable next to the text. A value
-// mermaid does not recognise is ignored *silently*, so the choice is verified in
-// a browser, never by a build.
-const mermaidConfig = {
-  theme: {light: 'neutral', dark: 'dark'},
-  options: {look: 'neo'},
-};
+// A site that wants its own colours passes
+// `remarkMermaid({config: {theme: {light, dark}, options: {look}}})` instead.
+// A value mermaid does not recognise is ignored *silently*, so such a change is
+// verified in a browser, never by a build.
 
 const config: Config = {
   title: 'oop-react',
@@ -93,13 +90,17 @@ const config: Config = {
           // so a page without a diagram never downloads it. It replaces
           // `@docusaurus/theme-mermaid` and `markdown.mermaid` entirely: this
           // site has neither, and two renderers on one page would fight.
-          remarkPlugins: [[remarkMermaid, {config: mermaidConfig}]],
+          //
+          // No options: the palette and the `neo` chrome are the kit's default
+          // (see the note above), and passing nothing writes no `config`
+          // attribute, so every diagram falls back to it.
+          remarkPlugins: [remarkMermaid],
         },
         // The home page is a *page*, not a doc: it is compiled by the pages
         // plugin, so it needs the mermaid plugin listed again to draw the
         // diagram in its showcase section.
         pages: {
-          remarkPlugins: [[remarkMermaid, {config: mermaidConfig}]],
+          remarkPlugins: [remarkMermaid],
         },
         blog: false,
         theme: {

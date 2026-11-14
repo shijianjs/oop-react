@@ -132,7 +132,7 @@ README 同样两份：根目录 `README.md`（中文）/ `README.en.md`，包里
 
 | 位置 | 做什么 |
 | --- | --- |
-| `docs/docusaurus.config.ts` 的 `docs.remarkPlugins` 与 `pages.remarkPlugins` | `remarkMermaid` 把 mermaid 围栏变成 `<dfk-mermaid>`。docs 与 pages 是两个内容插件、各编自己的 MDX，所以**两处都要列**，共用同一个 `mermaidConfig`（本站选了 mermaid 自己的 `neutral` / `dark`） |
+| `docs/docusaurus.config.ts` 的 `docs.remarkPlugins` 与 `pages.remarkPlugins` | `remarkMermaid` 把 mermaid 围栏变成 `<dfk-mermaid>`。docs 与 pages 是两个内容插件、各编自己的 MDX，所以**两处都要列**；两处都不带参数，配色与 `neo` 外观用 kit 的默认（`redux-color` / `redux-dark-color`），要换成本站自己的配色才传 `{config: {theme, options}}` |
 | `docs/docusaurus.config.ts` 的 `plugins` | `dfkExtensions()` 往每个页面注入 kit 的 client bootstrap —— 定义 `dfk-*` 自定义元素的就是它（文档页不 import 组件库的 React 树，没有它图只是一段死标签）——并写出运行配置标签；`dfkTocToggle()` 给右侧目录加折叠按钮，选择记在 `localStorage` |
 | `docs/src/css/custom.css` | `@import 'duckfn-docs-kit/src/kit.css'` 取品牌令牌与目录折叠样式，紧接着把 `--duckfn-*` 改成本站的蓝（kit 的默认是 duckfn 的深蓝 + 金黄） |
 | 首页 `docs/src/pages/index.mdx` | `<dfk-hero>` / `<dfk-features>` / `<dfk-next-steps>` + `registerDfkElements()`；在线演示按钮是 `docs/src/components/DemoAction.tsx` —— 它必须是 `dfk-action`，不能是 `<Link>`：hero 是 shadow DOM，而 `kit.css` 会隐藏它的每个直接子节点 |
