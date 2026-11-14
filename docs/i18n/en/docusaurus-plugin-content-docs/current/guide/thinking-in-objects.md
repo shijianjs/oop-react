@@ -10,6 +10,14 @@ product table, the same five steps, only each step asks "which objects?" instead
 Read the two side by side. The order is the same; what changes is what you are holding at the end of each step —
 there a component tree and a pile of props, here an object graph and a few render methods.
 
+```mermaid
+flowchart LR
+  A["step 1<br/>draw the boxes and name them: one class each"] --> B["step 2<br/>mark the render methods: which ones are UI"]
+  B --> C["step 3<br/>find the minimal state: which fields really move"]
+  C --> D["step 4<br/>decide who holds whom: who news whom"]
+  D --> E["step 5<br/>wire it into React: the outermost view()"]
+```
+
 ## Start from the mockup and the data
 
 The mockup: a search field, an "only show products in stock" checkbox, and a table grouped by category

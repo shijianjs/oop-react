@@ -30,6 +30,13 @@ export const CounterView = OopReactComponent(Counter, 'view');
 
 它做三件事：`new Counter(props)` 一次、让实例可观察（类自己声明过就是空操作）、渲染 `view`。适用场景：
 
+```mermaid
+flowchart LR
+  host["OopReactComponent 造出来的组件"] -->|"挂载时一次"| inst["new Counter(props)<br/>实例活得和组件一样久"]
+  inst -->|"每次渲染"| view["counter.view()<br/>返回这个岛"]
+  props["props：构造函数的参数"] --> inst
+```
+
 - **渐进式采用**：这一屏是新写的对象图，外面还是老的 React 页面；
 - **组件契约**：路由、antd 的 `Modal`/`Tabs`、别人写的 `<YourComponent />` 需要一个组件；
 - **props 是入口**：调用方是陌生代码，只有 props 这一个通道。

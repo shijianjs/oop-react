@@ -6,6 +6,15 @@ slug: /guide/state
 
 State is a field on the instance, and the class declares its own observability in its constructor.
 
+Between one write and one re-render there are only three things:
+
+```mermaid
+flowchart LR
+  write["this.count += 1<br/>writing a field"] --> track["MobX bookkeeping<br/>a field remembers who read it"]
+  track -->|"the field changed"| reaction["the reaction<br/>the one observer created"]
+  reaction --> island["an island re-renders<br/>only the method that read it"]
+```
+
 ## Declaring it in the constructor
 
 ```tsx title="cart.ts"

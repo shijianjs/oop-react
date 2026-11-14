@@ -7,6 +7,18 @@ slug: /guide/structure
 An application is a set of state objects plus a map of who holds whom. That map is where the logic lives; React only
 hangs the outermost island onto the page.
 
+The demo's map looks like this — the composition root builds its collaborators, and a grandchild reaches its
+grandparent's log through the references:
+
+```mermaid
+flowchart TB
+  workshop["Workshop<br/>the composition root, created once"] --> log["ActivityLog"]
+  workshop --> counter["CounterCard<br/>takes this in its constructor"]
+  workshop --> todos["TodoBoard<br/>takes this in its constructor"]
+  todos --> items["TodoItem[]"]
+  items -.->|"this.board.workshop.log"| log
+```
+
 ## Who news whom
 
 ```tsx title="main.tsx — the composition root"

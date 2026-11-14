@@ -43,6 +43,15 @@ export function CartView() {
 `cart` is created at module scope, asserted against in tests as `new Cart()`, and held directly by whoever needs
 it. It does not depend on React, and it does not depend on a component being mounted.
 
+How the three pieces fit together:
+
+```mermaid
+flowchart LR
+  A["state objects<br/>a field is the state"] -->|"hold each other, call directly"| B["the object graph<br/>where the logic lives"]
+  B -->|"@OopReactRender()"| C["islands<br/>one subscription + one boundary"]
+  C -->|"root.view()"| D["React<br/>only at the edge"]
+```
+
 ## Three rules
 
 **The object graph organises the logic.** Who holds whom is a business decision: a grandchild can hold its

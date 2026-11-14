@@ -5,6 +5,15 @@ slug: /getting-started
 sidebar_position: 2
 ---
 
+Four steps from nothing to a first screen:
+
+```mermaid
+flowchart LR
+  A["pnpm add oop-react mobx mobx-react-lite"] --> B["turn on experimentalDecorators"]
+  B --> C["write a class: fields + one @OopReactRender() method"]
+  C --> D["new it, and return obj.view() from a component"]
+```
+
 ## Install
 
 ```bash

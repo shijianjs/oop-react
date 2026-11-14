@@ -6,6 +6,13 @@ slug: /guide/errors
 
 每个渲染方法外面都有一个 React 错误边界。一个方法抛错，只有它那个岛变成 fallback，兄弟岛和父级照常。
 
+```mermaid
+flowchart TB
+  root["view()"] --> header["header()<br/>照常渲染"]
+  root --> body["body()<br/>抛错：只有这个岛变成 fallback"]
+  root --> siblings["其余兄弟岛<br/>照常渲染"]
+```
+
 ```tsx
 class Report {
   broken = true;

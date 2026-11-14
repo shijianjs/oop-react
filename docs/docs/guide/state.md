@@ -6,6 +6,15 @@ slug: /guide/state
 
 状态就是实例上的字段，可观察性由类自己在构造器里声明。
 
+一次写入到一次重渲染，中间只有三样东西：
+
+```mermaid
+flowchart LR
+  write["this.count += 1<br/>写的是实例字段"] --> track["MobX 记账<br/>字段记下谁读过它"]
+  track -->|"字段变了"| reaction["reaction<br/>observer 建立的那一个"]
+  reaction --> island["岛重渲染<br/>只重跑读过它的方法"]
+```
+
 ## 在构造器里声明
 
 ```tsx title="cart.ts"

@@ -9,6 +9,21 @@ state per button, one resource per piece of data. The library only brings the me
 `OopReactResource`); **which toast to show, what the progress bar looks like and how the button greys out are
 decisions of the object that holds it**.
 
+The order inside one `run`, and why it never throws:
+
+```mermaid
+sequenceDiagram
+  participant U as the user
+  participant B as SaveButton
+  participant L as OopReactLoading
+  U->>B: click
+  B->>L: run(task, timeoutMs)
+  L->>L: loading = true (counted)
+  L-->>B: a result object: ok / error / timed out
+  L->>L: loading = false
+  B->>B: on failure, hand it to Feedback
+```
+
 ## One loading state per button
 
 ```tsx title="SaveButton.tsx"

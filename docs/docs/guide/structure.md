@@ -6,6 +6,17 @@ slug: /guide/structure
 
 一个应用是若干状态对象加一张「谁持有谁」的图。这张图是逻辑组织的主体，React 只是把它最外层的岛挂上去。
 
+演示站的图长这样 —— 组装根建它的协作者，而孙子顺着引用直接够到祖父的日志：
+
+```mermaid
+flowchart TB
+  workshop["Workshop<br/>组装根：只 new 一次"] --> log["ActivityLog"]
+  workshop --> counter["CounterCard<br/>构造函数收到 this"]
+  workshop --> todos["TodoBoard<br/>构造函数收到 this"]
+  todos --> items["TodoItem[]"]
+  items -.->|"this.board.workshop.log"| log
+```
+
 ## 谁 new 谁
 
 ```tsx title="main.tsx —— 组装根"

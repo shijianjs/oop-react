@@ -6,6 +6,16 @@ slug: /guide/render-methods
 
 一个渲染方法是一个**岛**：自己的订阅、自己的错误边界、自己的重渲染范围。
 
+谁订阅了什么、一次写入能唤醒谁：
+
+```mermaid
+flowchart TB
+  view["view()<br/>什么都不读，只渲染一次"] --> counter["counter()<br/>订阅 count"]
+  view --> editor["editor()<br/>订阅 note"]
+  bump["bump() 写 count"] -.->|"只让 counter() 重渲染"| counter
+  setNote["setNote() 写 note"] -.->|"只让 editor() 重渲染"| editor
+```
+
 ## 边界在哪里
 
 ```tsx

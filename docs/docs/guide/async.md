@@ -8,6 +8,21 @@ slug: /guide/async
 resource。库只给机制（`OopReactLoading` / `OopReactResource`），**弹什么提示、进度条长什么样、按钮怎么变灰，
 都是持有它的对象自己决定**。
 
+一次 `run` 里的顺序，以及它为什么不会抛错：
+
+```mermaid
+sequenceDiagram
+  participant U as 用户
+  participant B as SaveButton
+  participant L as OopReactLoading
+  U->>B: 点击
+  B->>L: run(task, timeoutMs)
+  L->>L: loading = true（按次数记账）
+  L-->>B: 结果对象：ok / error / 超时
+  L->>L: loading = false
+  B->>B: 失败时交给 Feedback 提示
+```
+
 ## 一个按钮一个加载状态
 
 ```tsx title="SaveButton.tsx"

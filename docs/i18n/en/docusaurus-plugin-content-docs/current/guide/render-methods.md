@@ -6,6 +6,16 @@ slug: /guide/render-methods
 
 A render method is an **island**: its own subscription, its own error boundary, its own re-render scope.
 
+Who subscribes to what, and which write wakes whom:
+
+```mermaid
+flowchart TB
+  view["view()<br/>reads nothing, renders once"] --> counter["counter()<br/>subscribes to count"]
+  view --> editor["editor()<br/>subscribes to note"]
+  bump["bump() writes count"] -.->|"re-renders counter() only"| counter
+  setNote["setNote() writes note"] -.->|"re-renders editor() only"| editor
+```
+
 ## Where the boundary is
 
 ```tsx

@@ -33,6 +33,13 @@ export const CounterView = OopReactComponent(Counter, 'view');
 It does three things: `new Counter(props)` once, makes the instance observable (a no-op when the class already
 declared its own), and renders `view`. Reach for it when:
 
+```mermaid
+flowchart LR
+  host["the component OopReactComponent builds"] -->|"once, on mount"| inst["new Counter(props)<br/>the instance lives as long as the component"]
+  inst -->|"on every render"| view["counter.view()<br/>returns the island"]
+  props["props: the constructor arguments"] --> inst
+```
+
 - **adopting incrementally** — this screen is the new object graph, the rest of the page is still React;
 - **a component contract is required** — a route, antd's `Modal`/`Tabs`, somebody else's `<YourComponent />`;
 - **props are the entry point** — the caller is unknown code with no other channel.

@@ -5,6 +5,15 @@ slug: /getting-started
 sidebar_position: 2
 ---
 
+从零到第一个界面是四步：
+
+```mermaid
+flowchart LR
+  A["pnpm add oop-react mobx mobx-react-lite"] --> B["tsconfig 打开 experimentalDecorators"]
+  B --> C["写一个类：字段 + 一个 @OopReactRender() 方法"]
+  C --> D["new 出来，组件里 return obj.view()"]
+```
+
 ## 安装
 
 ```bash

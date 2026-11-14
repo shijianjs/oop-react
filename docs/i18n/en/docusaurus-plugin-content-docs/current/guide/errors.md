@@ -7,6 +7,13 @@ slug: /guide/errors
 Every render method is wrapped in a React error boundary. When one throws, only its island becomes a fallback;
 siblings and the parent keep rendering.
 
+```mermaid
+flowchart TB
+  root["view()"] --> header["header()<br/>renders as usual"]
+  root --> body["body()<br/>throws: only this island falls back"]
+  root --> siblings["its sibling islands<br/>render as usual"]
+```
+
 ```tsx
 class Report {
   broken = true;
