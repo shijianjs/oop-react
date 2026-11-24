@@ -170,6 +170,14 @@ export class Router {
 }
 ```
 
+```mermaid
+flowchart LR
+    menu["菜单"] -->|"只读元数据"| table["Route 表<br/>path / titleKey / create"]
+    table -->|"进入时 create()"| page["页面实例"]
+    page -->|"view()"| island["内容岛"]
+    page -.->|"离开路由，引用丢掉"| gone["可回收"]
+```
+
 菜单只读 `router.routes`，所以画菜单不需要任何页面实例；`router.goPath(path)` 换一条路由，读
 `router.current` 的那个岛重渲染，旧页面随实例一起释放。路由一多，这就是「一次 new 几百个」和
 「只留当前一个」的差别。主题和语言同理：`Settings` 上的 `theme` / `locale`，谁读了谁订阅。演示站点的

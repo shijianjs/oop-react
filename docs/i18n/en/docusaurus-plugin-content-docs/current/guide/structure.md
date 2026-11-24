@@ -175,6 +175,14 @@ export class Router {
 }
 ```
 
+```mermaid
+flowchart LR
+    menu["Menu"] -->|"reads metadata only"| table["Route table<br/>path / titleKey / create"]
+    table -->|"create() on entry"| page["Page instance"]
+    page -->|"view()"| island["Content island"]
+    page -.->|"leaving the route drops the reference"| gone["Collectable"]
+```
+
 The menu reads `router.routes`, so drawing it needs no page instance at all; `router.goPath(path)` switches routes,
 the island that reads `router.current` re-renders, and the page left behind is released with its instance. With many
 routes that is the difference between "new hundreds of them" and "keep only the one on screen". The same holds for
