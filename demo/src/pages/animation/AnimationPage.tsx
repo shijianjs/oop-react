@@ -16,8 +16,6 @@ import {PageHeader} from '../PageHeader';
  */
 @OopReactState
 export class AnimationPage implements Page {
-  readonly path = 'animation';
-  readonly titleKey = 'route.animation';
   readonly sourcePath = 'demo/src/pages/animation/AnimationPage.tsx';
   @OopReactIgnore
   @OopReactIgnore readonly app: App;

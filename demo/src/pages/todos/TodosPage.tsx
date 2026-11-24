@@ -8,8 +8,6 @@ import {TodoItem} from './TodoItem';
 
 @OopReactState
 export class TodosPage implements Page {
-  readonly path = 'todos';
-  readonly titleKey = 'route.todos';
   readonly sourcePath = 'demo/src/pages/todos/TodosPage.tsx';
   @OopReactIgnore readonly app: App;
   draft = '';

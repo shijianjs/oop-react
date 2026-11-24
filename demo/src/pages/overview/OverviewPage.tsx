@@ -10,8 +10,6 @@ import {PageHeader} from '../PageHeader';
  * changes, because `t()` is the only thing it reads.
  */
 export class OverviewPage implements Page {
-  readonly path = 'overview';
-  readonly titleKey = 'route.overview';
   readonly sourcePath = 'demo/src/pages/overview/OverviewPage.tsx';
   readonly app: App;
 

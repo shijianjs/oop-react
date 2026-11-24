@@ -51,8 +51,6 @@ const row = (index: number) => Math.floor(index / 3) + 1;
  */
 @OopReactState
 export class TicTacToePage implements Page {
-  readonly path = 'tictactoe';
-  readonly titleKey = 'route.tictactoe';
   readonly sourcePath = 'demo/src/pages/tictactoe/TicTacToePage.tsx';
   @OopReactIgnore
   @OopReactIgnore readonly app: App;

@@ -28,8 +28,6 @@ import {OrderEditor} from './OrderEditor';
  */
 @OopReactState
 export class OrdersPage implements Page {
-  readonly path = 'orders';
-  readonly titleKey = 'route.orders';
   readonly sourcePath = 'demo/src/pages/orders/OrdersPage.tsx';
   @OopReactIgnore readonly app: App;
   @OopReactIgnore readonly editor: OrderEditor;

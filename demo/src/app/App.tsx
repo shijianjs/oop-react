@@ -12,9 +12,9 @@ import {InvitePage} from '../pages/invite/InvitePage';
 import {LoadingPage} from '../pages/loading/LoadingPage';
 import {OrdersPage} from '../pages/orders/OrdersPage';
 import {OverviewPage} from '../pages/overview/OverviewPage';
-import type {Page} from '../pages/Page';
 import {TicTacToePage} from '../pages/tictactoe/TicTacToePage';
 import {TodosPage} from '../pages/todos/TodosPage';
+import type {Route} from '../routing/Route';
 import {Router} from '../routing/Router';
 import {Feedback, FeedbackHost} from './Feedback';
 import {DOCS_HREF} from './links';
@@ -22,7 +22,12 @@ import {Progress} from './Progress';
 import {Settings} from './Settings';
 
 /**
- * The root of the graph: settings, the router, one shared log, and every page.
+ * The root of the graph: settings, the router, one shared log, and the route
+ * table.
+ *
+ * The table is metadata plus a factory per entry; the router builds a page only
+ * when its route is entered. That is what keeps a long menu from instantiating
+ * every page — and every page's state — up front.
  *
  * It also owns the whole page — the providers, the layout, and the islands the
  * layout is split into, so that switching a page does not re-render the header
@@ -34,29 +39,28 @@ export class App {
   @OopReactIgnore readonly log: ActivityLog;
   @OopReactIgnore readonly feedback: Feedback;
   @OopReactIgnore readonly progress: Progress;
+  @OopReactIgnore readonly routes: readonly Route[];
   @OopReactIgnore readonly router: Router;
-  @OopReactIgnore readonly pages: Page[];
 
   constructor() {
     this.settings = new Settings();
     this.log = new ActivityLog(this);
     this.feedback = new Feedback();
     this.progress = new Progress();
-    this.pages = [
-      new OverviewPage(this),
-      new CounterPage(this),
-      new TodosPage(this),
-      new OrdersPage(this),
-      new FramePage(this),
-      new LoadingPage(this),
-      new TicTacToePage(this),
-      new ChartPage(this),
-      new AnimationPage(this),
-      new InvitePage(this),
-      new FailurePage(this),
+    this.routes = [
+      {path: 'overview', titleKey: 'route.overview', create: () => new OverviewPage(this)},
+      {path: 'counter', titleKey: 'route.counter', create: () => new CounterPage(this)},
+      {path: 'todos', titleKey: 'route.todos', create: () => new TodosPage(this)},
+      {path: 'orders', titleKey: 'route.orders', create: () => new OrdersPage(this)},
+      {path: 'frame', titleKey: 'route.frame', create: () => new FramePage(this)},
+      {path: 'loading', titleKey: 'route.loading', create: () => new LoadingPage(this)},
+      {path: 'tictactoe', titleKey: 'route.tictactoe', create: () => new TicTacToePage(this)},
+      {path: 'chart', titleKey: 'route.chart', create: () => new ChartPage(this)},
+      {path: 'animation', titleKey: 'route.animation', create: () => new AnimationPage(this)},
+      {path: 'invite', titleKey: 'route.invite', create: () => new InvitePage(this)},
+      {path: 'failure', titleKey: 'route.failure', create: () => new FailurePage(this)},
     ];
-    this.router = new Router(this.pages);
-
+    this.router = new Router(this.routes);
   }
 
   /**
@@ -132,15 +136,16 @@ export class App {
   @OopReactRender()
   sidebar() {
     const {router, settings} = this;
+    const routes = this.routes;
 
     return (
       <aside className="app-sidebar">
         <Menu
           mode="inline"
           className="app-menu"
-          selectedKeys={[router.current.path]}
-          onClick={({key}) => router.go(router.byPath(key))}
-          items={router.pages.map((page) => ({key: page.path, label: settings.t(page.titleKey)}))}
+          selectedKeys={[router.path]}
+          onClick={({key}) => router.goPath(String(key))}
+          items={routes.map((route) => ({key: route.path, label: settings.t(route.titleKey)}))}
         />
         {this.log.view()}
       </aside>

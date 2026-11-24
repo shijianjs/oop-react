@@ -19,8 +19,9 @@
 GitHub Pages 只上传一个产物 `docs/build`：先建文档站，再建 demo 到它的 `demo/` 子目录。
 
 demo 自己也是一张对象图，分层按能力目录：`app/`（根对象 `App`、`Settings`、`Feedback`）、
-`routing/`（`Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，
-页面对象 + 它的子对象）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
+`routing/`（`Route` 元数据 + `Router`，哈希路由）、`i18n/`（中英文案字典）、`log/`、`pages/<page>/`（每页一个文件夹，
+页面对象 + 它的子对象）。路由表里一条只有 `path`、菜单文案和 `create` 回调，页面实例在进入路由时才建、
+切走就释放（别把实例塞回路由表）。路由、主题、语言都是对象字段，不要为了它们引入 react-router / i18next。
 
 `pages/orders/` 是**能力边界的试验场**：antd `Table`（受控分页/排序/选中/筛选）+ `Form`（校验、自定义
 validator）+ 嵌套 `ConfigProvider` + `Form.useForm`/`Modal.useModal` 在渲染方法里 + `App.useApp()` 通过
@@ -233,8 +234,8 @@ token + 2FA，与 CI 的 OIDC 是两套互不相干的授权。
 
 - 新增 API → `packages/oop-react/src/` 对应能力目录 + `src/index.ts` 导出 + `docs/docs/api.md` 一行 +
   单元测试（`packages/oop-react/test/`）。公开 API 一律 `OopReact` 前缀。
-- 新增演示 → `demo/src/<能力>/` 一个文件夹，类 + `OopReactComponent(...)` 导出 + 挂到 `demo/src/app/App.tsx`
-  的网格里；如果它演示了新的用法，文档对应页补一段。
+- 新增演示 → `demo/src/<能力>/` 一个文件夹，类 + `OopReactComponent(...)` 导出 + 在 `demo/src/app/App.tsx`
+  的路由表里加一条 `{path, titleKey, create}`；如果它演示了新的用法，文档对应页补一段。
 - 新增文档页 → `docs/docs/`，同时改 `docs/sidebars.ts`；站内链接用路由路径（`/guide/state`），
   `onBrokenLinks` 是 `throw`。**英文镜像别忘了**（`docs/i18n/en/docusaurus-plugin-content-docs/current/`）。
 - 想配图就加一个语言标记为 `mermaid` 的围栏，**中英两页各放一份**：围栏由 `remarkMermaid` 渲染成图，标签要带

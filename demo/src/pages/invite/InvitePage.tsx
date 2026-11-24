@@ -12,8 +12,6 @@ interface Invite {
 
 @OopReactState
 export class InvitePage implements Page {
-  readonly path = 'invite';
-  readonly titleKey = 'route.invite';
   readonly sourcePath = 'demo/src/pages/invite/InvitePage.tsx';
   @OopReactIgnore readonly app: App;
   open = false;

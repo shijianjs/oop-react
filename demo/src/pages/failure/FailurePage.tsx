@@ -8,8 +8,6 @@ import {PageHeader} from '../PageHeader';
 
 @OopReactState
 export class FailurePage implements Page {
-  readonly path = 'failure';
-  readonly titleKey = 'route.failure';
   readonly sourcePath = 'demo/src/pages/failure/FailurePage.tsx';
   @OopReactIgnore readonly app: App;
   broken = false;

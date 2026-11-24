@@ -51,8 +51,6 @@ async function brokenReport(ms: number): Promise<never> {
  */
 @OopReactState
 export class LoadingPage implements Page {
-  readonly path = 'loading';
-  readonly titleKey = 'route.loading';
   readonly sourcePath = 'demo/src/pages/loading/LoadingPage.tsx';
   @OopReactIgnore readonly app: App;
   @OopReactIgnore readonly buttons: ActionButton[];

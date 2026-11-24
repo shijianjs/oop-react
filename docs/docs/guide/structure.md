@@ -133,29 +133,47 @@ import type {Workshop} from './Workshop';
 
 ## 框架层也是对象
 
-路由、主题、语言这些「通常要装个库」的东西，在这个模型里只是图里的节点：
+路由、主题、语言这些「通常要装个库」的东西，在这个模型里只是图里的节点。路由表存**元数据**，
+页面本身在进入那条路由时才建：
 
 ```tsx
-export class Router {
-  readonly pages: Page[];
-  path: string;                       // 可观察的只有它
+interface Route {
+  readonly path: string;         // 菜单要的
+  readonly titleKey: MessageKey; // 菜单要的
+  readonly create: () => Page;   // 进入时才调
+}
 
-  constructor(pages: Page[]) {
-    this.pages = pages;
-    this.path = location.hash.replace(/^#\//, '') || pages[0].path;
+@OopReactState
+export class Router {
+  @OopReactIgnore readonly routes: Route[];
+  private page: Page;            // 当前页；只有它活着
+  path: string;                  // 可观察：当前路由
+
+  constructor(routes: Route[]) {
+    this.routes = routes;
+    this.path = routes[0].path;
+    this.page = routes[0].create();
     window.addEventListener('hashchange', () => this.sync());
-    OopReactObservable(this, {pages: false});
   }
 
-  get current(): Page {              // computed：path 变了才算
-    return this.byPath(this.path);
+  get current(): Page {          // computed：page 换了才重算
+    return this.page;
+  }
+
+  goPath(path: string): void {
+    const route = this.route(path);
+    if (route.path === this.path) return;
+    const page = route.create(); // 先建，构造失败不破坏当前路由
+    this.page = page;
+    this.path = route.path;
   }
 }
 ```
 
-切页就是 `router.go(page)` 改一个字段，读 `router.current` 的那个岛重渲染。主题和语言同理：`Settings`
-上的 `theme` / `locale`，谁读了谁订阅。演示站点的导航、深浅色、中英切换都是这么实现的，没有 router 库、
-没有 i18n 库、没有 context。
+菜单只读 `router.routes`，所以画菜单不需要任何页面实例；`router.goPath(path)` 换一条路由，读
+`router.current` 的那个岛重渲染，旧页面随实例一起释放。路由一多，这就是「一次 new 几百个」和
+「只留当前一个」的差别。主题和语言同理：`Settings` 上的 `theme` / `locale`，谁读了谁订阅。演示站点的
+导航、深浅色、中英切换都是这么实现的，没有 router 库、没有 i18n 库、没有 context。
 
 ## 什么时候不该这样
 

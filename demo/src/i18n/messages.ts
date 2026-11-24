@@ -23,7 +23,7 @@ const zh = {
   'overview.description':
     '导航、路由、主题、语言和下面每个页面都是对象。React 只负责把根岛挂到 #root 上。',
   'overview.graph':
-    'App 持有 settings、router、log、feedback 和十一个页面；每个页面又持有自己的子对象。左侧菜单就是 router.pages 的投影，点一下就是 router.go(page)。',
+    'App 持有 settings、router、log、feedback 和一张路由表：每条路由只有路径、菜单文案和一个创建回调，页面实例在进入时才 new、切走就释放，所以几百条路由也不会一开始就占满内存。左侧菜单就是 router.routes 的投影，点一下就是 router.goPath(path)。',
   'overview.cross':
     '计数器、待办、订单、井字棋都写着同一个共享的 log —— 它是 App 的字段，被深层子对象直接持有，没有回调和 context。',
   'overview.try': '试试：切到「订单」新建一条，再回来看左侧日志和右上角的提示。',
@@ -219,7 +219,7 @@ const en: Record<MessageKey, string> = {
   'overview.description':
     'The nav, the router, the theme, the language and every page below are objects. React only mounts the root island into #root.',
   'overview.graph':
-    'App holds settings, router, log, feedback and eleven pages; each page holds its own children. The menu on the left is a projection of router.pages — clicking one calls router.go(page).',
+    'App holds settings, router, log, feedback and a routing table: each entry is only a path, a menu label and a factory, so a page is built on entry and released on leave — hundreds of routes do not sit in memory from the start. The menu on the left is a projection of router.routes — clicking one calls router.goPath(path).',
   'overview.cross':
     'The counter, the todos, the orders and tic-tac-toe all write to the same shared log: a field of App, held directly by deep children — no callbacks, no context.',
   'overview.try': 'Try it: open Orders, create one, then look at the log on the left and the toast in the corner.',

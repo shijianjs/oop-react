@@ -20,8 +20,6 @@ import {PageHeader} from '../PageHeader';
  */
 @OopReactState
 export class ChartPage implements Page {
-  readonly path = 'chart';
-  readonly titleKey = 'route.chart';
   readonly sourcePath = 'demo/src/pages/chart/ChartPage.tsx';
   @OopReactIgnore readonly app: App;
 

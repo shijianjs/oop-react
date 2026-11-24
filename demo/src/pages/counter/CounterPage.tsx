@@ -8,8 +8,6 @@ import {PageHeader} from '../PageHeader';
 
 @OopReactState
 export class CounterPage implements Page {
-  readonly path = 'counter';
-  readonly titleKey = 'route.counter';
   readonly sourcePath = 'demo/src/pages/counter/CounterPage.tsx';
   @OopReactIgnore readonly app: App;
   count = 0;

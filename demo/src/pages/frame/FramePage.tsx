@@ -27,8 +27,6 @@ const SLOT_LABEL: Record<SlotKey, MessageKey> = {
  */
 @OopReactState
 export class FramePage implements Page {
-  readonly path = 'frame';
-  readonly titleKey = 'route.frame';
   readonly sourcePath = 'demo/src/pages/frame/FramePage.tsx';
   @OopReactIgnore readonly app: App;
 

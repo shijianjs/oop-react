@@ -138,29 +138,48 @@ import type {Workshop} from './Workshop';
 
 ## The framework layer is objects too
 
-Routing, theming and language — the things that usually mean installing a library — are just nodes in the graph:
+Routing, theming and language — the things that usually mean installing a library — are just nodes in the graph.
+The routing table holds **metadata**; a page itself is built when its route is entered:
 
 ```tsx
-export class Router {
-  readonly pages: Page[];
-  path: string;                       // the only observable part
+interface Route {
+  readonly path: string;         // what the menu needs
+  readonly titleKey: MessageKey; // what the menu needs
+  readonly create: () => Page;   // called on entry
+}
 
-  constructor(pages: Page[]) {
-    this.pages = pages;
-    this.path = location.hash.replace(/^#\//, '') || pages[0].path;
+@OopReactState
+export class Router {
+  @OopReactIgnore readonly routes: Route[];
+  private page: Page;            // the current page — the only one alive
+  path: string;                  // observable: the current route
+
+  constructor(routes: Route[]) {
+    this.routes = routes;
+    this.path = routes[0].path;
+    this.page = routes[0].create();
     window.addEventListener('hashchange', () => this.sync());
-    OopReactObservable(this, {pages: false});
   }
 
-  get current(): Page {              // computed: recalculated when path changes
-    return this.byPath(this.path);
+  get current(): Page {          // computed: recalculated when page changes
+    return this.page;
+  }
+
+  goPath(path: string): void {
+    const route = this.route(path);
+    if (route.path === this.path) return;
+    const page = route.create(); // build first: a throwing constructor leaves the route intact
+    this.page = page;
+    this.path = route.path;
   }
 }
 ```
 
-Switching pages is `router.go(page)` writing one field, and the island that reads `router.current` re-renders. The
-same holds for theme and language: `theme` and `locale` on a `Settings` object, subscribed by whoever reads them.
-The demo's menu, dark mode and EN/中文 switch all work this way — no router library, no i18n library, no context.
+The menu reads `router.routes`, so drawing it needs no page instance at all; `router.goPath(path)` switches routes,
+the island that reads `router.current` re-renders, and the page left behind is released with its instance. With many
+routes that is the difference between "new hundreds of them" and "keep only the one on screen". The same holds for
+theme and language: `theme` and `locale` on a `Settings` object, subscribed by whoever reads them. The demo's menu,
+dark mode and EN/中文 switch all work this way — no router library, no i18n library, no context.
 
 ## When not to do this
 
